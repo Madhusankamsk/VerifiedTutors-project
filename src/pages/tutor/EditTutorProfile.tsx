@@ -5,6 +5,7 @@ import { useSubjects } from '../../contexts/SubjectContext';
 import { toast } from 'react-toastify';
 import { X, Plus, Search } from 'lucide-react';
 import LocationSelector from '../../components/location/LocationSelector';
+import SubjectSelector from '../../components/subject/SubjectSelector';
 
 type Gender = 'Male' | 'Female' | 'Other';
 
@@ -658,80 +659,10 @@ const EditTutorProfile = () => {
         {/* Teaching Subjects */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">Teaching Subjects</h2>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-                Select Category
-              </label>
-              <select
-                id="category"
-                value={selectedCategory}
-                onChange={handleCategoryChange}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-              >
-                <option value="">Select a Category</option>
-                {categories.map(category => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Subject Selection */}
-            {selectedCategory && (
-              <div className="mt-4">
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Subjects
-                </label>
-                <div className="border rounded-lg p-4">
-                  <div className="max-h-48 overflow-y-auto space-y-2">
-                    {filteredSubjects.map(subject => (
-                      <button
-                        key={subject._id}
-                        type="button"
-                        onClick={() => handleSubjectSelect(subject)}
-                        className={`w-full text-left px-3 py-2 rounded-md text-sm ${
-                          formData.subjects.some(sub => sub._id === subject._id)
-                            ? 'bg-primary-100 text-primary-800'
-                            : 'hover:bg-gray-100'
-                        }`}
-                      >
-                        {subject.name}
-                      </button>
-                    ))}
-                    {filteredSubjects.length === 0 && (
-                      <p className="text-sm text-gray-500 text-center py-2">No subjects available</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Selected Subjects</h3>
-              <div className="flex flex-wrap gap-2">
-                {formData.subjects.map(subject => (
-                  <span
-                    key={subject._id}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary-100 text-primary-800"
-                  >
-                    {subject.name} ({subject.category})
-                    <button
-                      type="button"
-                      onClick={() => handleSubjectSelect(subject)}
-                      className="ml-1 inline-flex text-primary-500 hover:text-primary-700"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))}
-                {formData.subjects.length === 0 && (
-                  <p className="text-sm text-gray-500">No subjects selected</p>
-                )}
-              </div>
-            </div>
-          </div>
+          <SubjectSelector
+            selectedSubjects={formData.subjects}
+            onSubjectsChange={(subjects) => setFormData(prev => ({ ...prev, subjects }))}
+          />
         </div>
 
         <div className="flex justify-end">

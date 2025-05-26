@@ -7,12 +7,24 @@ const options = {
       title: 'Verified Tutors API',
       version: '1.0.0',
       description: 'API documentation for Verified Tutors platform',
+      contact: {
+        name: 'API Support',
+        email: 'support@verifiedtutors.com'
+      },
+      license: {
+        name: 'MIT',
+        url: 'https://opensource.org/licenses/MIT'
+      }
     },
     servers: [
       {
         url: 'http://localhost:5000',
         description: 'Development server',
       },
+      {
+        url: 'https://api.verifiedtutors.com',
+        description: 'Production server',
+      }
     ],
     components: {
       securitySchemes: {
@@ -27,6 +39,10 @@ const options = {
           type: 'object',
           required: ['name', 'email', 'password'],
           properties: {
+            _id: {
+              type: 'string',
+              description: 'The auto-generated id of the user'
+            },
             name: {
               type: 'string',
               description: 'User\'s full name',
@@ -51,15 +67,39 @@ const options = {
               type: 'string',
               description: 'URL to user\'s profile image',
             },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'User creation timestamp'
+            }
           },
         },
         Tutor: {
           type: 'object',
           required: ['user', 'subjects'],
           properties: {
-            user: {
+            _id: {
               type: 'string',
-              description: 'Reference to User model',
+              description: 'The auto-generated id of the tutor'
+            },
+            user: {
+              type: 'object',
+              properties: {
+                _id: { type: 'string' },
+                name: { type: 'string' },
+                email: { type: 'string' },
+                profileImage: { type: 'string' }
+              }
+            },
+            gender: {
+              type: 'string',
+              enum: ['Male', 'Female', 'Other'],
+              description: 'Tutor\'s gender'
+            },
+            mobileNumber: {
+              type: 'string',
+              pattern: '^[0-9]{10}$',
+              description: '10-digit mobile number'
             },
             bio: {
               type: 'string',
@@ -68,9 +108,25 @@ const options = {
             subjects: {
               type: 'array',
               items: {
-                type: 'string',
+                type: 'object',
+                properties: {
+                  _id: { type: 'string' },
+                  name: { type: 'string' },
+                  category: { type: 'string' }
+                }
               },
-              description: 'Array of subject IDs',
+              description: 'Array of subjects taught by the tutor',
+            },
+            locations: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  _id: { type: 'string' },
+                  name: { type: 'string' }
+                }
+              },
+              description: 'Array of teaching locations'
             },
             education: {
               type: 'array',
@@ -82,6 +138,7 @@ const options = {
                   year: { type: 'number' },
                 },
               },
+              description: 'Education history'
             },
             experience: {
               type: 'array',
@@ -94,9 +151,11 @@ const options = {
                   description: { type: 'string' },
                 },
               },
+              description: 'Work experience history'
             },
             hourlyRate: {
               type: 'number',
+              minimum: 0,
               description: 'Tutor\'s hourly rate',
             },
             availability: {
@@ -113,20 +172,24 @@ const options = {
                     items: {
                       type: 'object',
                       properties: {
-                        start: { type: 'string' },
-                        end: { type: 'string' },
+                        start: { type: 'string', format: 'time' },
+                        end: { type: 'string', format: 'time' },
                       },
                     },
                   },
                 },
               },
+              description: 'Weekly availability schedule'
             },
             rating: {
               type: 'number',
-              description: 'Average rating (1-5)',
+              minimum: 0,
+              maximum: 5,
+              description: 'Average rating (0-5)',
             },
             totalRatings: {
               type: 'number',
+              minimum: 0,
               description: 'Total number of ratings',
             },
             isVerified: {
@@ -140,12 +203,69 @@ const options = {
               },
               description: 'Array of document URLs',
             },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Profile creation timestamp'
+            }
           },
+        },
+        Blog: {
+          type: 'object',
+          required: ['title', 'content', 'author'],
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'The auto-generated id of the blog'
+            },
+            title: {
+              type: 'string',
+              description: 'The blog post title'
+            },
+            content: {
+              type: 'string',
+              description: 'The blog post content'
+            },
+            author: {
+              type: 'string',
+              description: 'Reference to the Tutor model'
+            },
+            featuredImage: {
+              type: 'string',
+              description: 'URL to the featured image'
+            },
+            tags: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              description: 'Array of tags for the blog post'
+            },
+            status: {
+              type: 'string',
+              enum: ['draft', 'published'],
+              description: 'The status of the blog post'
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Blog creation timestamp'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Last update timestamp'
+            }
+          }
         },
         Subject: {
           type: 'object',
           required: ['name', 'category'],
           properties: {
+            _id: {
+              type: 'string',
+              description: 'The auto-generated id of the subject'
+            },
             name: {
               type: 'string',
               description: 'Subject name',
@@ -170,19 +290,33 @@ const options = {
               default: true,
               description: 'Whether the subject is active',
             },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Subject creation timestamp'
+            }
           },
         },
         Rating: {
           type: 'object',
           required: ['tutor', 'student', 'rating', 'review'],
           properties: {
+            _id: {
+              type: 'string',
+              description: 'The auto-generated id of the rating'
+            },
             tutor: {
               type: 'string',
               description: 'Reference to Tutor model',
             },
             student: {
-              type: 'string',
-              description: 'Reference to User model',
+              type: 'object',
+              properties: {
+                _id: { type: 'string' },
+                name: { type: 'string' },
+                profileImage: { type: 'string' }
+              },
+              description: 'Student information'
             },
             rating: {
               type: 'number',
@@ -199,6 +333,11 @@ const options = {
               default: false,
               description: 'Whether the rating is verified',
             },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Rating creation timestamp'
+            }
           },
         },
       },

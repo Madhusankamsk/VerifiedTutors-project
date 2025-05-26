@@ -59,6 +59,14 @@ const router = express.Router();
  *               type: string
  *             profileImage:
  *               type: string
+ *         gender:
+ *           type: string
+ *           enum: [Male, Female, Other]
+ *           description: Tutor's gender
+ *         mobileNumber:
+ *           type: string
+ *           pattern: '^[0-9]{10}$'
+ *           description: 10-digit mobile number
  *         bio:
  *           type: string
  *           description: Tutor's biography
@@ -72,6 +80,15 @@ const router = express.Router();
  *               name:
  *                 type: string
  *               category:
+ *                 type: string
+ *         locations:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               _id:
+ *                 type: string
+ *               name:
  *                 type: string
  *         education:
  *           type: array
@@ -115,10 +132,14 @@ const router = express.Router();
  *                   properties:
  *                     start:
  *                       type: string
+ *                       format: time
  *                     end:
  *                       type: string
+ *                       format: time
  *         rating:
  *           type: number
+ *           minimum: 0
+ *           maximum: 5
  *           description: Average rating (0-5)
  *         totalRatings:
  *           type: number
@@ -637,6 +658,179 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: Bio updated successfully
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: Tutor profile not found
+ */
+
+/**
+ * @swagger
+ * /api/tutors/blogs:
+ *   get:
+ *     summary: Get tutor's blogs
+ *     description: Retrieve all blogs written by the authenticated tutor
+ *     tags: [Tutors]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of tutor's blogs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Blog'
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: Tutor profile not found
+ *   post:
+ *     summary: Create a new blog post
+ *     description: Create a new blog post as the authenticated tutor
+ *     tags: [Tutors]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - content
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 description: The blog post title
+ *               content:
+ *                 type: string
+ *                 description: The blog post content
+ *               featuredImage:
+ *                 type: string
+ *                 description: URL to the featured image
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of tags for the blog post
+ *               status:
+ *                 type: string
+ *                 enum: [draft, published]
+ *                 default: draft
+ *                 description: The status of the blog post
+ *     responses:
+ *       201:
+ *         description: Blog post created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Blog'
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: Tutor profile not found
+ */
+
+/**
+ * @swagger
+ * /api/tutors/blogs/{id}:
+ *   put:
+ *     summary: Update a blog post
+ *     description: Update an existing blog post by the authenticated tutor
+ *     tags: [Tutors]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Blog post ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 description: The blog post title
+ *               content:
+ *                 type: string
+ *                 description: The blog post content
+ *               featuredImage:
+ *                 type: string
+ *                 description: URL to the featured image
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of tags for the blog post
+ *               status:
+ *                 type: string
+ *                 enum: [draft, published]
+ *                 description: The status of the blog post
+ *     responses:
+ *       200:
+ *         description: Blog post updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Blog'
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: Blog post not found
+ *   delete:
+ *     summary: Delete a blog post
+ *     description: Delete an existing blog post by the authenticated tutor
+ *     tags: [Tutors]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Blog post ID
+ *     responses:
+ *       200:
+ *         description: Blog post deleted successfully
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: Blog post not found
+ */
+
+/**
+ * @swagger
+ * /api/tutors/user/{userId}:
+ *   get:
+ *     summary: Get tutor profile by user ID
+ *     description: Retrieve tutor profile information using the associated user ID
+ *     tags: [Tutors]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID associated with the tutor
+ *     responses:
+ *       200:
+ *         description: Tutor profile details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Tutor'
  *       401:
  *         description: Not authorized
  *       404:

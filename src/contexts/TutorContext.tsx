@@ -157,16 +157,34 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateTutorProfile = async (data: Partial<Tutor>) => {
     try {
-      if (!isProfileLoaded || !tutor?._id) {
-        throw new Error('Tutor profile not loaded. Please try refreshing the page.');
-      }
-
       setLoading(true);
       setError(null);
+
+      // If profile doesn't exist, create it first
+      if (!tutor?._id) {
+        const createResponse = await axios.post('/api/tutors/profile', {
+          gender: 'Other',
+          mobileNumber: '',
+          bio: '',
+          hourlyRate: 0,
+          subjects: [],
+          locations: [],
+          education: [],
+          experience: [],
+          availability: [],
+          ...data
+        });
+        setTutor(createResponse.data);
+        setIsProfileLoaded(true);
+        return;
+      }
+
+      // Update existing profile
       const response = await axios.put('/api/tutors/profile', data);
       setTutor(response.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update tutor profile');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update tutor profile';
+      setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);

@@ -1,10 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config/constants';
 
-interface Subject {
+export interface Subject {
   _id: string;
   name: string;
   category: string;
+  educationLevel: 'PRIMARY' | 'JUNIOR_SECONDARY' | 'SENIOR_SECONDARY' | 'ADVANCED_LEVEL' | 'HIGHER_EDUCATION';
+  medium: 'English' | 'Sinhala' | 'Tamil';
+  description: string;
+  isActive: boolean;
+  createdAt: string;
 }
 
 interface SubjectContextType {
@@ -25,10 +31,12 @@ export const SubjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get('/api/subjects');
+      const response = await axios.get(`${API_URL}/api/subjects`);
       setSubjects(response.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch subjects');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch subjects';
+      setError(errorMessage);
+      console.error('Error fetching subjects:', err);
     } finally {
       setLoading(false);
     }
@@ -38,8 +46,15 @@ export const SubjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     fetchSubjects();
   }, []);
 
+  const value = {
+    subjects,
+    loading,
+    error,
+    fetchSubjects
+  };
+
   return (
-    <SubjectContext.Provider value={{ subjects, loading, error, fetchSubjects }}>
+    <SubjectContext.Provider value={value}>
       {children}
     </SubjectContext.Provider>
   );
