@@ -357,7 +357,10 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLoading(true);
       setError(null);
       const response = await axios.get(`${API_URL}/api/locations`);
-      const locationsData = Array.isArray(response.data) ? response.data : [];
+      console.log('Fetched locations:', response.data); // Debug log
+      
+      // Handle the new response structure
+      const locationsData = response.data.tree || [];
       setLocations(locationsData);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Failed to fetch locations';
@@ -422,14 +425,21 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const getAvailableParents = (level: number): Location[] => {
     if (!Array.isArray(locations)) return [];
     
-    // For Level 1 Towns (level 2), show only cities (level 1)
+    // For Towns (level 2), show only cities (level 1)
     if (level === 2) {
       return locations.filter(loc => loc.level === 1);
     }
     
-    // For Home Towns (level 3), show only Level 1 Towns (level 2)
+    // For Home Towns (level 3), show only towns (level 2)
     if (level === 3) {
-      return locations.filter(loc => loc.level === 2);
+      // Flatten the nested structure to get all towns
+      const allTowns: Location[] = [];
+      locations.forEach(city => {
+        if (city.children) {
+          allTowns.push(...city.children);
+        }
+      });
+      return allTowns;
     }
     
     return [];

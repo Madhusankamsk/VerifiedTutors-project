@@ -5,38 +5,45 @@ import Location from '../models/location.model.js';
 // @access  Public
 export const getLocations = async (req, res) => {
   try {
-    // First get all cities
-    const cities = await Location.find({ level: 1, isActive: true }).lean();
-    
-    // For each city, get its Level 1 towns
-    const locationTree = await Promise.all(cities.map(async (city) => {
-      const level1Towns = await Location.find({ 
-        parent: city._id,
-        level: 2,
-        isActive: true 
-      }).lean();
+    // Get all locations
+    const allLocations = await Location.find({ isActive: true }).lean();
+    console.log('All locations:', allLocations); // Debug log
 
-      // For each Level 1 town, get its Home towns
-      const townsWithHomes = await Promise.all(level1Towns.map(async (town) => {
-        const homeTowns = await Location.find({
-          parent: town._id,
-          level: 3,
-          isActive: true
-        }).lean();
+    // First get all cities
+    const cities = allLocations.filter(loc => loc.level === 1);
+    console.log('Cities:', cities); // Debug log
+    
+    // For each city, get its towns
+    const locationTree = cities.map(city => {
+      const towns = allLocations.filter(loc => 
+        loc.level === 2 && loc.parent && loc.parent.toString() === city._id.toString()
+      );
+      console.log(`Towns for ${city.name}:`, towns); // Debug log
+
+      // For each town, get its home towns
+      const townsWithHomes = towns.map(town => {
+        const homeTowns = allLocations.filter(loc => 
+          loc.level === 3 && loc.parent && loc.parent.toString() === town._id.toString()
+        );
+        console.log(`Home towns for ${town.name}:`, homeTowns); // Debug log
 
         return {
           ...town,
           children: homeTowns
         };
-      }));
+      });
 
       return {
         ...city,
         children: townsWithHomes
       };
-    }));
+    });
 
-    res.json(locationTree);
+    // Send both the tree structure and flat list
+    res.json({
+      tree: locationTree,
+      flat: allLocations
+    });
   } catch (error) {
     console.error('Error fetching locations:', error);
     res.status(500).json({ message: error.message });

@@ -245,7 +245,7 @@ const ManageLocations = () => {
           {formData.level > 1 && (
             <div>
               <label htmlFor="parentId" className="block text-sm font-medium text-gray-700">
-                {getParentLabel(formData.level)}
+                {formData.level === 2 ? 'Select City' : 'Select Town'}
               </label>
               <select
                 id="parentId"
@@ -257,7 +257,7 @@ const ManageLocations = () => {
                 <option value="">Select Parent Location</option>
                 {getAvailableParents(formData.level).map(loc => (
                   <option key={loc._id} value={loc._id}>
-                    {loc.name} ({getLevelLabel(loc.level)})
+                    {loc.name}
                   </option>
                 ))}
               </select>
