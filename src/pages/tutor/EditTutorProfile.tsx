@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useTutor } from '../../contexts/TutorContext';
-import { useLocations } from '../../contexts/LocationContext';
+import { useLocations, Location } from '../../contexts/LocationContext';
 import { useSubjects } from '../../contexts/SubjectContext';
 import { toast } from 'react-toastify';
 import { X, Plus, Search } from 'lucide-react';
+import LocationSelector from '../../components/location/LocationSelector';
 
 type Gender = 'Male' | 'Female' | 'Other';
 
-interface Location {
-  _id: string;
-  name: string;
-  province: string;
+interface Experience {
+  title: string;
+  company: string;
+  duration: string;
+  description: string;
 }
 
 interface Subject {
@@ -19,57 +21,128 @@ interface Subject {
   category: string;
 }
 
+interface TutorLocation {
+  _id: string;
+  name: string;
+  province: string;
+}
+
+interface FormData {
+  gender: Gender;
+  mobileNumber: string;
+  locations: TutorLocation[];
+  subjects: Array<{
+    _id: string;
+    name: string;
+    category: string;
+  }>;
+  bio: string;
+  hourlyRate: number;
+  education: Array<{
+    degree: string;
+    institution: string;
+    year: number;
+  }>;
+  experience: Experience[];
+}
+
 const EditTutorProfile = () => {
   const { tutor, loading: tutorLoading, error: tutorError, updateTutorProfile } = useTutor();
   const { locations = [], loading: locationsLoading, error: locationsError } = useLocations();
   const { subjects = [], loading: subjectsLoading, error: subjectsError } = useSubjects();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [selectedProvince, setSelectedProvince] = useState<string>('');
+  const [selectedCity, setSelectedCity] = useState<string>('');
+  const [selectedTown, setSelectedTown] = useState<string>('');
+  const [availableTowns, setAvailableTowns] = useState<Location[]>([]);
+  const [availableHomeTowns, setAvailableHomeTowns] = useState<Location[]>([]);
   const [filteredLocations, setFilteredLocations] = useState<Location[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [categories, setCategories] = useState<string[]>([]);
   const [filteredSubjects, setFilteredSubjects] = useState<Subject[]>([]);
   const [locationSearch, setLocationSearch] = useState('');
   const [subjectSearch, setSubjectSearch] = useState('');
   
-  const [formData, setFormData] = useState({
-    gender: 'Other' as Gender,
+  const [formData, setFormData] = useState<FormData>({
+    gender: 'Male',
     mobileNumber: '',
-    locations: [] as Array<{ _id: string; name: string; province: string }>,
-    subjects: [] as Array<{ _id: string; name: string; category: string }>,
+    locations: [],
+    subjects: [],
     bio: '',
     hourlyRate: 0,
-    education: [] as Array<{ degree: string; institution: string; year: number }>,
-    experience: [] as Array<{ title: string; company: string; duration: string; description: string }>,
+    education: [],
+    experience: []
   });
 
-  // Get unique provinces from locations
-  const provinces = Array.from(new Set(locations.map(loc => loc.province))).sort();
+  // Get cities (level 1 locations)
+  const cities = React.useMemo(() => {
+    if (!Array.isArray(locations)) return [];
+    return locations.filter(loc => loc.level === 1);
+  }, [locations]);
 
-  // Get unique categories from subjects
-  const categories = Array.from(new Set(subjects.map(sub => sub.category))).sort();
+  // Update available towns when city changes
+  useEffect(() => {
+    if (!selectedCity || !Array.isArray(locations)) {
+      setAvailableTowns([]);
+      setSelectedTown('');
+      return;
+    }
+
+    const city = locations.find(loc => loc._id === selectedCity);
+    if (city?.children) {
+      setAvailableTowns(city.children);
+    } else {
+      setAvailableTowns([]);
+    }
+    setSelectedTown('');
+  }, [selectedCity, locations]);
+
+  // Update available home towns when town changes
+  useEffect(() => {
+    if (!selectedTown || !Array.isArray(locations)) {
+      setAvailableHomeTowns([]);
+      return;
+    }
+
+    const town = locations.find(loc => loc._id === selectedTown);
+    if (town?.children) {
+      setAvailableHomeTowns(town.children);
+    } else {
+      setAvailableHomeTowns([]);
+    }
+  }, [selectedTown, locations]);
 
   // Filter locations when province changes or search changes
   useEffect(() => {
+    if (!Array.isArray(locations)) {
+      setFilteredLocations([]);
+      return;
+    }
+
     let filtered = locations;
     
-    if (selectedProvince) {
-      filtered = filtered.filter(loc => loc.province === selectedProvince);
+    if (selectedCity) {
+      filtered = filtered.filter(loc => loc._id === selectedCity);
     }
     
     if (locationSearch) {
       const searchLower = locationSearch.toLowerCase();
       filtered = filtered.filter(loc => 
         loc.name.toLowerCase().includes(searchLower) || 
-        loc.province.toLowerCase().includes(searchLower)
+        loc._id.toLowerCase().includes(searchLower)
       );
     }
     
     setFilteredLocations(filtered);
-  }, [selectedProvince, locations, locationSearch]);
+  }, [selectedCity, locations, locationSearch]);
 
   // Filter subjects when category changes or search changes
   useEffect(() => {
+    if (!Array.isArray(subjects)) {
+      setFilteredSubjects([]);
+      return;
+    }
+
     let filtered = subjects;
     
     if (selectedCategory) {
@@ -87,37 +160,66 @@ const EditTutorProfile = () => {
     setFilteredSubjects(filtered);
   }, [selectedCategory, subjects, subjectSearch]);
 
+  // Add this effect to extract unique categories from subjects
+  useEffect(() => {
+    if (Array.isArray(subjects)) {
+      const uniqueCategories = [...new Set(subjects.map(subject => subject.category))];
+      setCategories(uniqueCategories);
+    }
+  }, [subjects]);
+
   // Initialize form data when tutor profile is loaded
   useEffect(() => {
     if (tutor) {
       setFormData({
-        gender: (tutor.gender as Gender) || 'Other',
+        gender: (tutor.gender as Gender) || 'Male',
         mobileNumber: tutor.mobileNumber || '',
         locations: Array.isArray(tutor.locations) ? tutor.locations : [],
         subjects: Array.isArray(tutor.subjects) ? tutor.subjects : [],
         bio: tutor.bio || '',
         hourlyRate: tutor.hourlyRate || 0,
         education: Array.isArray(tutor.education) ? tutor.education : [],
-        experience: Array.isArray(tutor.experience) ? tutor.experience : [],
+        experience: Array.isArray(tutor.experience) ? tutor.experience : []
       });
       
-      // Set initial province if tutor has locations
-      if (tutor.locations?.length > 0) {
-        setSelectedProvince(tutor.locations[0].province);
+      // Set initial city if tutor has locations
+      if (Array.isArray(tutor.locations) && tutor.locations.length > 0) {
+        const firstLocation = tutor.locations[0];
+        // Find the city based on the location's province
+        const city = locations.find(loc => 
+          loc.level === 1 && loc.name === firstLocation.province
+        ) as Location;
+        if (city) {
+          setSelectedCity(city._id);
+        }
       }
       
       // Set initial category if tutor has subjects
-      if (tutor.subjects?.length > 0) {
+      if (Array.isArray(tutor.subjects) && tutor.subjects.length > 0) {
         setSelectedCategory(tutor.subjects[0].category);
       }
     }
-  }, [tutor]);
+  }, [tutor, locations]);
 
-  const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedProvince(e.target.value);
-  };
+  const handleLocationSelect = (location: Location | TutorLocation) => {
+    // If it's a TutorLocation (removing), just remove it
+    if ('province' in location) {
+      setFormData(prev => ({
+        ...prev,
+        locations: prev.locations.filter(loc => loc._id !== location._id)
+      }));
+      return;
+    }
 
-  const handleLocationSelect = (location: Location) => {
+    // If it's a Location (adding), convert it to TutorLocation
+    const tutorLocation: TutorLocation = {
+      _id: location._id,
+      name: location.name,
+      province: location.level === 1 ? location.name : 
+                location.level === 2 ? (locations.find(l => l._id === location.parent) as Location)?.name || '' :
+                (locations.find(l => l._id === (locations.find(p => p._id === location.parent) as Location)?.parent) as Location)?.name || ''
+    };
+
     setFormData(prev => {
       const exists = prev.locations.some(loc => loc._id === location._id);
       if (exists) {
@@ -125,12 +227,11 @@ const EditTutorProfile = () => {
           ...prev,
           locations: prev.locations.filter(loc => loc._id !== location._id)
         };
-      } else {
-        return {
-          ...prev,
-          locations: [...prev.locations, location]
-        };
       }
+      return {
+        ...prev,
+        locations: [...prev.locations, tutorLocation]
+      };
     });
   };
 
@@ -161,19 +262,42 @@ const EditTutorProfile = () => {
     setSubmitError(null);
 
     try {
-      // First validate the form data
-      if (!formData.mobileNumber || !formData.gender) {
-        throw new Error('Please fill in all required fields');
+      // Validate required fields
+      if (!formData.gender) {
+        throw new Error('Please select your gender');
       }
 
-      // Make sure locations is an array
-      if (!Array.isArray(formData.locations) || formData.locations.length === 0) {
+      if (!formData.mobileNumber || !/^[0-9]{10}$/.test(formData.mobileNumber)) {
+        throw new Error('Please enter a valid 10-digit mobile number');
+      }
+
+      if (!formData.locations || formData.locations.length === 0) {
         throw new Error('Please select at least one teaching location');
       }
 
-      // Make sure subjects is an array
-      if (!Array.isArray(formData.subjects) || formData.subjects.length === 0) {
+      if (!formData.subjects || formData.subjects.length === 0) {
         throw new Error('Please select at least one subject');
+      }
+
+      if (!formData.hourlyRate || formData.hourlyRate <= 0) {
+        throw new Error('Please enter a valid hourly rate');
+      }
+
+      // Validate education entries
+      for (const edu of formData.education) {
+        if (!edu.degree || !edu.institution || !edu.year) {
+          throw new Error('Please fill in all education fields');
+        }
+        if (edu.year < 1900 || edu.year > new Date().getFullYear()) {
+          throw new Error('Please enter a valid year for education');
+        }
+      }
+
+      // Validate experience entries
+      for (const exp of formData.experience) {
+        if (!exp.title || !exp.company || !exp.duration || !exp.description) {
+          throw new Error('Please fill in all experience fields');
+        }
       }
 
       // Update the profile
@@ -193,6 +317,31 @@ const EditTutorProfile = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    
+    // Validate mobile number format
+    if (name === 'mobileNumber') {
+      const numericValue = value.replace(/[^0-9]/g, '');
+      if (numericValue.length <= 10) {
+        setFormData(prev => ({
+          ...prev,
+          [name]: numericValue,
+        }));
+      }
+      return;
+    }
+
+    // Validate hourly rate
+    if (name === 'hourlyRate') {
+      const numericValue = parseFloat(value);
+      if (!isNaN(numericValue) && numericValue >= 0) {
+        setFormData(prev => ({
+          ...prev,
+          [name]: numericValue,
+        }));
+      }
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value,
@@ -339,56 +488,6 @@ const EditTutorProfile = () => {
                 placeholder="Enter 10-digit mobile number"
                 required
               />
-            </div>
-
-            <div>
-              <label htmlFor="locations" className="block text-sm font-medium text-gray-700">
-                Teaching Locations
-              </label>
-              <select
-                id="locations"
-                name="locations"
-                multiple
-                value={formData.locations.map(loc => loc._id)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                required
-              >
-                {Array.isArray(locations) && locations.map((location) => (
-                  <option 
-                    key={location._id} 
-                    value={location._id}
-                    data-province={location.province}
-                  >
-                    {location.name}, {location.province}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1 text-sm text-gray-500">Hold Ctrl/Cmd to select multiple locations</p>
-            </div>
-
-            <div>
-              <label htmlFor="subjects" className="block text-sm font-medium text-gray-700">
-                Teaching Subjects
-              </label>
-              <select
-                id="subjects"
-                name="subjects"
-                multiple
-                value={formData.subjects.map(sub => sub._id)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                required
-              >
-                {Array.isArray(subjects) && subjects.map(subject => (
-                  <option 
-                    key={subject._id} 
-                    value={subject._id} 
-                    data-category={subject.category}
-                  >
-                    {subject.name} ({subject.category})
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1 text-sm text-gray-500">Hold Ctrl/Cmd to select multiple subjects</p>
             </div>
 
             <div>
@@ -550,87 +649,10 @@ const EditTutorProfile = () => {
         {/* Teaching Locations */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">Teaching Locations</h2>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="province" className="block text-sm font-medium text-gray-700 mb-2">
-                Select Province
-              </label>
-              <select
-                id="province"
-                value={selectedProvince}
-                onChange={handleProvinceChange}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-              >
-                <option value="">All Provinces</option>
-                {provinces.map(province => (
-                  <option key={province} value={province}>{province}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Locations
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={locationSearch}
-                  onChange={(e) => setLocationSearch(e.target.value)}
-                  placeholder="Search locations..."
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 pl-10"
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              </div>
-            </div>
-
-            <div className="border rounded-lg p-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Available Locations</h3>
-              <div className="max-h-48 overflow-y-auto space-y-2">
-                {filteredLocations.map(location => (
-                  <button
-                    key={location._id}
-                    type="button"
-                    onClick={() => handleLocationSelect(location)}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm ${
-                      formData.locations.some(loc => loc._id === location._id)
-                        ? 'bg-primary-100 text-primary-800'
-                        : 'hover:bg-gray-100'
-                    }`}
-                  >
-                    {location.name}, {location.province}
-                  </button>
-                ))}
-                {filteredLocations.length === 0 && (
-                  <p className="text-sm text-gray-500 text-center py-2">No locations found</p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Selected Locations</h3>
-              <div className="flex flex-wrap gap-2">
-                {formData.locations.map(location => (
-                  <span
-                    key={location._id}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary-100 text-primary-800"
-                  >
-                    {location.name}, {location.province}
-                    <button
-                      type="button"
-                      onClick={() => handleLocationSelect(location)}
-                      className="ml-1 inline-flex text-primary-500 hover:text-primary-700"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))}
-                {formData.locations.length === 0 && (
-                  <p className="text-sm text-gray-500">No locations selected</p>
-                )}
-              </div>
-            </div>
-          </div>
+          <LocationSelector
+            selectedLocations={formData.locations}
+            onLocationsChange={(locations) => setFormData(prev => ({ ...prev, locations }))}
+          />
         </div>
 
         {/* Teaching Subjects */}
@@ -647,51 +669,44 @@ const EditTutorProfile = () => {
                 onChange={handleCategoryChange}
                 className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
               >
-                <option value="">All Categories</option>
+                <option value="">Select a Category</option>
                 {categories.map(category => (
-                  <option key={category} value={category}>{category}</option>
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
                 ))}
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Subjects
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={subjectSearch}
-                  onChange={(e) => setSubjectSearch(e.target.value)}
-                  placeholder="Search subjects..."
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 pl-10"
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            {/* Subject Selection */}
+            {selectedCategory && (
+              <div className="mt-4">
+                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Subjects
+                </label>
+                <div className="border rounded-lg p-4">
+                  <div className="max-h-48 overflow-y-auto space-y-2">
+                    {filteredSubjects.map(subject => (
+                      <button
+                        key={subject._id}
+                        type="button"
+                        onClick={() => handleSubjectSelect(subject)}
+                        className={`w-full text-left px-3 py-2 rounded-md text-sm ${
+                          formData.subjects.some(sub => sub._id === subject._id)
+                            ? 'bg-primary-100 text-primary-800'
+                            : 'hover:bg-gray-100'
+                        }`}
+                      >
+                        {subject.name}
+                      </button>
+                    ))}
+                    {filteredSubjects.length === 0 && (
+                      <p className="text-sm text-gray-500 text-center py-2">No subjects available</p>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-
-            <div className="border rounded-lg p-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Available Subjects</h3>
-              <div className="max-h-48 overflow-y-auto space-y-2">
-                {filteredSubjects.map(subject => (
-                  <button
-                    key={subject._id}
-                    type="button"
-                    onClick={() => handleSubjectSelect(subject)}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm ${
-                      formData.subjects.some(sub => sub._id === subject._id)
-                        ? 'bg-primary-100 text-primary-800'
-                        : 'hover:bg-gray-100'
-                    }`}
-                  >
-                    {subject.name} ({subject.category})
-                  </button>
-                ))}
-                {filteredSubjects.length === 0 && (
-                  <p className="text-sm text-gray-500 text-center py-2">No subjects found</p>
-                )}
-              </div>
-            </div>
+            )}
 
             <div>
               <h3 className="text-sm font-medium text-gray-700 mb-2">Selected Subjects</h3>

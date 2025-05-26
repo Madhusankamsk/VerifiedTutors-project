@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config/constants';
 
-interface Location {
+export interface Location {
   _id: string;
   name: string;
-  province: string;
+  level: number;
+  parent: string | null;
+  children?: Location[];
 }
 
 interface LocationContextType {
@@ -25,8 +28,10 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get('/api/locations');
-      setLocations(response.data);
+      const response = await axios.get(`${API_URL}/api/locations`);
+      // Handle the tree structure from the backend
+      const locationsData = response.data.tree || [];
+      setLocations(locationsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch locations');
     } finally {
