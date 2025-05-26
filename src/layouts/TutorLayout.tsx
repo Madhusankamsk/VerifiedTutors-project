@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LayoutDashboard, User, BookOpen, Settings, LogOut, Menu, X } from 'lucide-react';
+import Icon from '../components/common/Icon';
 
 const TutorLayout: React.FC = () => {
   const { logout } = useAuth();
@@ -15,9 +15,9 @@ const TutorLayout: React.FC = () => {
   };
 
   const navItems = [
-    { path: '/tutor/dashboard', name: 'Dashboard', icon: LayoutDashboard },
-    { path: '/tutor/profile', name: 'My Profile', icon: User },
-    { path: '/tutor/blogs', name: 'My Blogs', icon: BookOpen },
+    { path: '/tutor/dashboard', name: 'Dashboard', icon: 'LayoutDashboard' },
+    { path: '/tutor/profile', name: 'My Profile', icon: 'User' },
+    { path: '/tutor/blogs', name: 'My Blogs', icon: 'BookOpen' },
   ];
 
   return (
@@ -43,40 +43,37 @@ const TutorLayout: React.FC = () => {
             className="md:hidden text-white"
             onClick={() => setSidebarOpen(false)}
           >
-            <X className="h-6 w-6" />
+            <Icon name="X" className="h-6 w-6" />
           </button>
         </div>
         <nav className="mt-5 px-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
-                  location.pathname === item.path
-                    ? 'bg-secondary-800 text-white'
-                    : 'text-secondary-100 hover:bg-secondary-700 hover:text-white'
-                }`}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <Icon className="mr-3 h-6 w-6 flex-shrink-0" />
-                {item.name}
-              </Link>
-            );
-          })}
+          {navItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
+                location.pathname === item.path
+                  ? 'bg-secondary-800 text-white'
+                  : 'text-secondary-100 hover:bg-secondary-700 hover:text-white'
+              }`}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <Icon name={item.icon as any} className="mr-3 h-6 w-6 flex-shrink-0" />
+              {item.name}
+            </Link>
+          ))}
           <button
             onClick={handleLogout}
             className="mt-10 w-full group flex items-center px-2 py-2 text-base font-medium rounded-md text-secondary-100 hover:bg-secondary-700 hover:text-white"
           >
-            <LogOut className="mr-3 h-6 w-6 flex-shrink-0" />
+            <Icon name="LogOut" className="mr-3 h-6 w-6 flex-shrink-0" />
             Logout
           </button>
         </nav>
       </div>
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col">
         <header className="bg-white shadow-sm z-10">
           <div className="flex h-16 items-center justify-between px-4">
             <button
@@ -84,7 +81,7 @@ const TutorLayout: React.FC = () => {
               className="md:hidden text-gray-500 focus:outline-none"
               onClick={() => setSidebarOpen(true)}
             >
-              <Menu className="h-6 w-6" />
+              <Icon name="Menu" className="h-6 w-6" />
             </button>
             <div className="ml-4 md:ml-0">
               <h1 className="text-lg font-semibold text-gray-900">

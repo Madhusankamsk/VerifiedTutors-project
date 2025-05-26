@@ -1,32 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTutor } from '../../contexts/TutorContext';
+import { useAuth } from '../../contexts/AuthContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import axios from 'axios';
+
+interface Location {
+  _id: string;
+  name: string;
+  province: string;
+}
+
+type Gender = 'Male' | 'Female' | 'Other';
 
 const EditTutorProfile = () => {
-  const { tutor, loading, error, updateTutorProfile } = useTutor();
-  const [formData, setFormData] = useState({
-    bio: tutor?.bio || '',
-    hourlyRate: tutor?.hourlyRate || 0,
-    subjects: tutor?.subjects || [],
-    education: tutor?.education || [],
-    experience: tutor?.experience || [],
-  });
+  const { tutor, loading: tutorLoading, error: tutorError, updateTutorProfile } = useTutor();
+  const { user } = useAuth();
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [locationsLoading, setLocationsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    gender: 'Other' as Gender,
+    mobileNumber: '',
+    locations: [] as Array<{ _id: string; name: string; province: string }>,
+    bio: '',
+    hourlyRate: 0,
+    education: [] as Array<{ degree: string; institution: string; year: number }>,
+    experience: [] as Array<{ title: string; company: string; duration: string; description: string }>,
+  });
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  // Fetch locations
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        setLocationsLoading(true);
+        const response = await axios.get('/api/locations');
+        setLocations(response.data);
+      } catch (error) {
+        console.error('Error fetching locations:', error);
+      } finally {
+        setLocationsLoading(false);
+      }
+    };
 
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-600">{error}</p>
-        </div>
-      </div>
-    );
-  }
+    fetchLocations();
+  }, []);
+
+  // Initialize form data when tutor profile is loaded
+  useEffect(() => {
+    if (tutor) {
+      setFormData({
+        gender: (tutor.gender as Gender) || 'Other',
+        mobileNumber: tutor.mobileNumber || '',
+        locations: tutor.locations || [],
+        bio: tutor.bio || '',
+        hourlyRate: tutor.hourlyRate || 0,
+        education: tutor.education || [],
+        experience: tutor.experience || [],
+      });
+    }
+  }, [tutor]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,20 +67,46 @@ const EditTutorProfile = () => {
     setSubmitError(null);
 
     try {
+      // First validate the form data
+      if (!formData.mobileNumber || !formData.gender) {
+        throw new Error('Please fill in all required fields');
+      }
+
+      // Make sure locations is an array
+      if (!Array.isArray(formData.locations)) {
+        throw new Error('Invalid locations data');
+      }
+
+      // Update the profile
       await updateTutorProfile(formData);
-      // Show success message or redirect
+
+      // Show success message
+      alert('Profile updated successfully!');
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to update profile');
+      console.error('Update error:', err);
+      setSubmitError(err instanceof Error ? err.message : 'Failed to update profile. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => ({
+      _id: option.value,
+      name: option.text,
+      province: option.dataset.province || '',
+    }));
+    setFormData(prev => ({
+      ...prev,
+      locations: selectedOptions,
     }));
   };
 
@@ -97,6 +156,52 @@ const EditTutorProfile = () => {
     }));
   };
 
+  if (tutorLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+              <div className="space-y-4">
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-10 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (tutorError) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-600">{tutorError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!tutor) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-yellow-600">Tutor profile not found. Please create a profile first.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Edit Profile</h1>
@@ -108,17 +213,83 @@ const EditTutorProfile = () => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Bio */}
+        {/* Personal Information */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">About Me</h2>
-          <textarea
-            name="bio"
-            value={formData.bio}
-            onChange={handleInputChange}
-            rows={4}
-            className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            placeholder="Tell us about yourself and your teaching experience..."
-          />
+          <h2 className="text-xl font-semibold mb-4">Personal Information</h2>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
+                Gender
+              </label>
+              <select
+                id="gender"
+                name="gender"
+                value={formData.gender}
+                onChange={handleInputChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              >
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="mobileNumber" className="block text-sm font-medium text-gray-700">
+                Mobile Number
+              </label>
+              <input
+                type="tel"
+                id="mobileNumber"
+                name="mobileNumber"
+                value={formData.mobileNumber}
+                onChange={handleInputChange}
+                pattern="[0-9]{10}"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                placeholder="Enter 10-digit mobile number"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="locations" className="block text-sm font-medium text-gray-700">
+                Teaching Locations
+              </label>
+              {locationsLoading ? (
+                <div className="mt-1 h-10 bg-gray-100 rounded-md animate-pulse"></div>
+              ) : (
+                <select
+                  id="locations"
+                  name="locations"
+                  multiple
+                  value={formData.locations?.map(loc => loc._id) || []}
+                  onChange={handleLocationChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                >
+                  {Array.isArray(locations) && locations.map(location => (
+                    <option key={location._id} value={location._id} data-province={location.province}>
+                      {location.name}, {location.province}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <p className="mt-1 text-sm text-gray-500">Hold Ctrl/Cmd to select multiple locations</p>
+            </div>
+
+            <div>
+              <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
+                Bio
+              </label>
+              <textarea
+                id="bio"
+                name="bio"
+                value={formData.bio}
+                onChange={handleInputChange}
+                rows={4}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                placeholder="Tell us about yourself"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Hourly Rate */}

@@ -6,11 +6,18 @@ import {
   updateTutorProfile,
   deleteTutorProfile,
   getTutorAvailability,
-  updateTutorAvailability,
+  updateAvailability,
   getTutorBlogs,
   createBlog,
   updateBlog,
-  deleteBlog
+  deleteBlog,
+  getTutorByUserId,
+  updateSubjects,
+  updateLocations,
+  updateEducation,
+  updateExperience,
+  updateHourlyRate,
+  updateBio
 } from '../controllers/tutor.controller.js';
 import { protect, authorize } from '../middleware/auth.middleware.js';
 
@@ -19,6 +26,11 @@ const router = express.Router();
 /**
  * @swagger
  * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
  *   schemas:
  *     Tutor:
  *       type: object
@@ -159,6 +171,13 @@ const router = express.Router();
 
 /**
  * @swagger
+ * tags:
+ *   name: Tutors
+ *   description: Tutor management API
+ */
+
+/**
+ * @swagger
  * /api/tutors:
  *   get:
  *     summary: Get all tutors
@@ -194,32 +213,58 @@ const router = express.Router();
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Tutor'
- *             example:
- *               - _id: "60d21b4667d0d8992e610c85"
- *                 user:
- *                   _id: "60d21b4667d0d8992e610c86"
- *                   name: "John Doe"
- *                   email: "john@example.com"
- *                   profileImage: "https://example.com/profile.jpg"
- *                 bio: "Experienced math tutor"
- *                 subjects:
- *                   - _id: "60d21b4667d0d8992e610c87"
- *                     name: "Mathematics"
- *                     category: "Science"
- *                 hourlyRate: 50
- *                 rating: 4.5
- *                 totalRatings: 10
- *                 isVerified: true
  *       500:
  *         description: Server error
+ *   post:
+ *     summary: Create a new tutor profile
+ *     description: Create a new tutor profile for the authenticated user
+ *     tags: [Tutors]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - subjects
+ *               - hourlyRate
+ *               - bio
+ *             properties:
+ *               bio:
+ *                 type: string
+ *               subjects:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               education:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *               experience:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *               hourlyRate:
+ *                 type: number
+ *               availability:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *     responses:
+ *       201:
+ *         description: Tutor profile created successfully
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Error fetching tutors
+ *               $ref: '#/components/schemas/Tutor'
+ *       400:
+ *         description: Invalid input or profile already exists
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Not authorized as tutor
  */
 
 /**
@@ -245,311 +290,8 @@ const router = express.Router();
  *               $ref: '#/components/schemas/Tutor'
  *       404:
  *         description: Tutor not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Tutor not found
  *       500:
  *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Error fetching tutor
- */
-
-/**
- * @swagger
- * /api/tutors:
- *   post:
- *     summary: Create a new tutor profile
- *     description: Create a new tutor profile for the authenticated user
- *     tags: [Tutors]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - subjects
- *               - hourlyRate
- *               - bio
- *             properties:
- *               bio:
- *                 type: string
- *                 description: Tutor's biography
- *                 example: "Experienced math tutor with 5 years of teaching"
- *               subjects:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Array of subject IDs
- *                 example: ["60d21b4667d0d8992e610c87"]
- *               education:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     degree:
- *                       type: string
- *                     institution:
- *                       type: string
- *                     year:
- *                       type: number
- *               experience:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     title:
- *                       type: string
- *                     company:
- *                       type: string
- *                     duration:
- *                       type: string
- *                     description:
- *                       type: string
- *               hourlyRate:
- *                 type: number
- *                 description: Price per hour
- *                 example: 50
- *               availability:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     day:
- *                       type: string
- *                       enum: [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
- *                     slots:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           start:
- *                             type: string
- *                           end:
- *                             type: string
- *     responses:
- *       201:
- *         description: Tutor profile created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Tutor'
- *       400:
- *         description: Tutor profile already exists or invalid input
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Tutor profile already exists
- *       401:
- *         description: Not authorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized, no token
- *       403:
- *         description: Forbidden - Not a tutor
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized as a tutor
- */
-
-/**
- * @swagger
- * /api/tutors/{id}:
- *   put:
- *     summary: Update a tutor profile
- *     description: Update an existing tutor profile
- *     tags: [Tutors]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Tutor ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               bio:
- *                 type: string
- *               subjects:
- *                 type: array
- *                 items:
- *                   type: string
- *               education:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     degree:
- *                       type: string
- *                     institution:
- *                       type: string
- *                     year:
- *                       type: number
- *               experience:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     title:
- *                       type: string
- *                     company:
- *                       type: string
- *                     duration:
- *                       type: string
- *                     description:
- *                       type: string
- *               hourlyRate:
- *                 type: number
- *     responses:
- *       200:
- *         description: Tutor profile updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Tutor'
- *       400:
- *         description: Invalid input
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Invalid input data
- *       401:
- *         description: Not authorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized, no token
- *       403:
- *         description: Forbidden - Not the tutor
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized
- *       404:
- *         description: Tutor not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Tutor not found
- */
-
-/**
- * @swagger
- * /api/tutors/{id}:
- *   delete:
- *     summary: Delete a tutor profile
- *     description: Delete an existing tutor profile
- *     tags: [Tutors]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Tutor ID
- *     responses:
- *       200:
- *         description: Tutor profile deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Tutor profile removed
- *       401:
- *         description: Not authorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized, no token
- *       403:
- *         description: Forbidden - Not the tutor
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized
- *       404:
- *         description: Tutor not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Tutor not found
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Error deleting tutor profile
  */
 
 /**
@@ -590,42 +332,94 @@ const router = express.Router();
  *                           type: string
  *       404:
  *         description: Tutor not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Tutor not found
  *       500:
  *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Error fetching availability
  */
 
 /**
  * @swagger
- * /api/tutors/{id}/availability:
- *   put:
- *     summary: Update tutor's availability
- *     description: Update the weekly availability schedule of a tutor
+ * /api/tutors/profile:
+ *   get:
+ *     summary: Get authenticated tutor's profile
+ *     description: Retrieve the profile of the currently authenticated tutor
  *     tags: [Tutors]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Tutor ID
+ *     responses:
+ *       200:
+ *         description: Tutor profile
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Tutor'
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: Tutor profile not found
+ *   put:
+ *     summary: Update authenticated tutor's profile
+ *     description: Update the profile of the currently authenticated tutor
+ *     tags: [Tutors]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               bio:
+ *                 type: string
+ *               subjects:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               education:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *               experience:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *               hourlyRate:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Tutor'
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: Tutor profile not found
+ *   delete:
+ *     summary: Delete authenticated tutor's profile
+ *     description: Delete the profile of the currently authenticated tutor
+ *     tags: [Tutors]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profile deleted successfully
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: Tutor profile not found
+ */
+
+/**
+ * @swagger
+ * /api/tutors/availability:
+ *   put:
+ *     summary: Update tutor's availability
+ *     description: Update the availability schedule of the authenticated tutor
+ *     tags: [Tutors]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -634,9 +428,6 @@ const router = express.Router();
  *             type: array
  *             items:
  *               type: object
- *               required:
- *                 - day
- *                 - slots
  *               properties:
  *                 day:
  *                   type: string
@@ -645,246 +436,29 @@ const router = express.Router();
  *                   type: array
  *                   items:
  *                     type: object
- *                     required:
- *                       - start
- *                       - end
  *                     properties:
  *                       start:
  *                         type: string
- *                         example: "09:00"
  *                       end:
  *                         type: string
- *                         example: "17:00"
  *     responses:
  *       200:
  *         description: Availability updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   day:
- *                     type: string
- *                   slots:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         start:
- *                           type: string
- *                         end:
- *                           type: string
- *       400:
- *         description: Invalid input
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Invalid availability data
  *       401:
  *         description: Not authorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized, no token
- *       403:
- *         description: Forbidden - Not the tutor
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized
- *       404:
- *         description: Tutor not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Tutor not found
- */
-
-/**
- * @swagger
- * /api/tutors/blogs:
- *   get:
- *     summary: Get tutor's blogs
- *     description: Retrieve all blogs written by the authenticated tutor
- *     tags: [Tutors]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of tutor's blogs
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Blog'
- *       401:
- *         description: Not authorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized, no token
- *       403:
- *         description: Forbidden - Not a tutor
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized as a tutor
  *       404:
  *         description: Tutor profile not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Tutor profile not found
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Error fetching blogs
  */
 
 /**
  * @swagger
- * /api/tutors/blogs:
- *   post:
- *     summary: Create a new blog
- *     description: Create a new blog post as the authenticated tutor
- *     tags: [Tutors]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - title
- *               - content
- *             properties:
- *               title:
- *                 type: string
- *                 description: Blog post title
- *                 example: "Tips for Learning Mathematics"
- *               content:
- *                 type: string
- *                 description: Blog post content
- *                 example: "Here are some effective strategies..."
- *               featuredImage:
- *                 type: string
- *                 description: URL to the featured image
- *                 example: "https://example.com/image.jpg"
- *               tags:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Array of tags
- *                 example: ["mathematics", "education", "tips"]
- *               status:
- *                 type: string
- *                 enum: [draft, published]
- *                 default: draft
- *                 description: Blog post status
- *     responses:
- *       201:
- *         description: Blog created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Blog'
- *       400:
- *         description: Invalid input
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Invalid input data
- *       401:
- *         description: Not authorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized, no token
- *       403:
- *         description: Forbidden - Not a tutor
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized as a tutor
- *       404:
- *         description: Tutor profile not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Tutor profile not found
- */
-
-/**
- * @swagger
- * /api/tutors/blogs/{id}:
+ * /api/tutors/subjects:
  *   put:
- *     summary: Update a blog
- *     description: Update an existing blog post
+ *     summary: Update tutor's subjects
+ *     description: Update the subjects taught by the authenticated tutor
  *     tags: [Tutors]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Blog ID
  *     requestBody:
  *       required: true
  *       content:
@@ -892,145 +466,197 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             properties:
- *               title:
- *                 type: string
- *               content:
- *                 type: string
- *               featuredImage:
- *                 type: string
- *               tags:
+ *               subjects:
  *                 type: array
  *                 items:
  *                   type: string
- *               status:
- *                 type: string
- *                 enum: [draft, published]
  *     responses:
  *       200:
- *         description: Blog updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Blog'
- *       400:
- *         description: Invalid input
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Invalid input data
+ *         description: Subjects updated successfully
  *       401:
  *         description: Not authorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized, no token
- *       403:
- *         description: Forbidden - Not the tutor
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized
  *       404:
- *         description: Blog not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Blog not found
+ *         description: Tutor profile not found
  */
 
 /**
  * @swagger
- * /api/tutors/blogs/{id}:
- *   delete:
- *     summary: Delete a blog
- *     description: Delete an existing blog post
+ * /api/tutors/locations:
+ *   put:
+ *     summary: Update tutor's locations
+ *     description: Update the teaching locations of the authenticated tutor
  *     tags: [Tutors]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Blog ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               locations:
+ *                 type: array
+ *                 items:
+ *                   type: string
  *     responses:
  *       200:
- *         description: Blog deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Blog removed
+ *         description: Locations updated successfully
  *       401:
  *         description: Not authorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized, no token
- *       403:
- *         description: Forbidden - Not the tutor
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized
  *       404:
- *         description: Blog not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Blog not found
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Error deleting blog
+ *         description: Tutor profile not found
  */
 
-// Tutor routes
+/**
+ * @swagger
+ * /api/tutors/education:
+ *   put:
+ *     summary: Update tutor's education
+ *     description: Update the education history of the authenticated tutor
+ *     tags: [Tutors]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               education:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     degree:
+ *                       type: string
+ *                     institution:
+ *                       type: string
+ *                     year:
+ *                       type: number
+ *     responses:
+ *       200:
+ *         description: Education updated successfully
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: Tutor profile not found
+ */
+
+/**
+ * @swagger
+ * /api/tutors/experience:
+ *   put:
+ *     summary: Update tutor's experience
+ *     description: Update the work experience of the authenticated tutor
+ *     tags: [Tutors]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               experience:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     title:
+ *                       type: string
+ *                     company:
+ *                       type: string
+ *                     duration:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *     responses:
+ *       200:
+ *         description: Experience updated successfully
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: Tutor profile not found
+ */
+
+/**
+ * @swagger
+ * /api/tutors/hourly-rate:
+ *   put:
+ *     summary: Update tutor's hourly rate
+ *     description: Update the hourly rate of the authenticated tutor
+ *     tags: [Tutors]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               hourlyRate:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Hourly rate updated successfully
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: Tutor profile not found
+ */
+
+/**
+ * @swagger
+ * /api/tutors/bio:
+ *   put:
+ *     summary: Update tutor's bio
+ *     description: Update the biography of the authenticated tutor
+ *     tags: [Tutors]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               bio:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Bio updated successfully
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: Tutor profile not found
+ */
+
+// Public routes
 router.get('/', getTutors);
 router.get('/:id', getTutor);
-router.post('/', protect, authorize('tutor'), createTutorProfile);
-router.put('/:id', protect, authorize('tutor'), updateTutorProfile);
-router.delete('/:id', protect, authorize('tutor'), deleteTutorProfile);
 router.get('/:id/availability', getTutorAvailability);
-router.put('/:id/availability', protect, authorize('tutor'), updateTutorAvailability);
+
+// Protected routes - require authentication
+router.get('/profile', protect, getTutorByUserId);
+
+// Tutor-only routes
+router.post('/', protect, authorize('tutor'), createTutorProfile);
+router.put('/profile', protect, authorize('tutor'), updateTutorProfile);
+router.delete('/profile', protect, authorize('tutor'), deleteTutorProfile);
+
+// Additional profile update routes
+router.put('/availability', protect, authorize('tutor'), updateAvailability);
+router.put('/subjects', protect, authorize('tutor'), updateSubjects);
+router.put('/locations', protect, authorize('tutor'), updateLocations);
+router.put('/education', protect, authorize('tutor'), updateEducation);
+router.put('/experience', protect, authorize('tutor'), updateExperience);
+router.put('/hourly-rate', protect, authorize('tutor'), updateHourlyRate);
+router.put('/bio', protect, authorize('tutor'), updateBio);
 
 // Blog routes
 router.get('/blogs', protect, authorize('tutor'), getTutorBlogs);

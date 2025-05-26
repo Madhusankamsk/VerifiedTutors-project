@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllTutors, approveTutor, rejectTutor } from '../controllers/admin.controller.js';
+import { getAllTutors, approveTutor, rejectTutor, getDashboardStats } from '../controllers/admin.controller.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -25,6 +25,46 @@ const router = express.Router();
  *         verifiedBy:
  *           type: string
  *           description: ID of the admin who performed the verification
+ */
+
+/**
+ * @swagger
+ * /api/admin/dashboard/stats:
+ *   get:
+ *     summary: Get admin dashboard statistics
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dashboard statistics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalTutors:
+ *                   type: number
+ *                   description: Total number of tutors
+ *                 totalStudents:
+ *                   type: number
+ *                   description: Total number of students
+ *                 activeSubjects:
+ *                   type: number
+ *                   description: Number of active subjects
+ *                 pendingVerifications:
+ *                   type: number
+ *                   description: Number of pending tutor verifications
+ *                 totalBookings:
+ *                   type: number
+ *                   description: Total number of bookings
+ *                 totalRevenue:
+ *                   type: number
+ *                   description: Total revenue from completed bookings
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Forbidden - Not an admin
  */
 
 /**
@@ -193,6 +233,7 @@ const router = express.Router();
  */
 
 // Admin routes
+router.get('/dashboard/stats', protect, authorize('admin'), getDashboardStats);
 router.get('/tutors', protect, authorize('admin'), getAllTutors);
 router.patch('/tutors/:id/approve', protect, authorize('admin'), approveTutor);
 router.patch('/tutors/:id/reject', protect, authorize('admin'), rejectTutor);

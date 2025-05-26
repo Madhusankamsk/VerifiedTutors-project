@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { TutorProvider } from './contexts/TutorContext';
+import { AdminProvider } from './contexts/AdminContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import RoleRoute from './components/common/RoleRoute';
 
@@ -57,7 +58,9 @@ function App() {
             path="/admin" 
             element={
               <RoleRoute role="admin">
-                <AdminLayout />
+                <AdminProvider>
+                  <AdminLayout />
+                </AdminProvider>
               </RoleRoute>
             }
           >

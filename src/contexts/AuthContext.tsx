@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
           // Validate token and get user data
-          const response = await axios.get(`${API_URL}/auth/me`);
+          const response = await axios.get(`${API_URL}/api/auth/me`);
           setUser(response.data.user);
         }
       } catch (err) {
@@ -74,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
       
-      const response = await axios.post(`${API_URL}/auth/login`, { email, password });
+      const response = await axios.post(`${API_URL}/api/auth/login`, { email, password });
       const { token, user } = response.data;
       
       // Save token and set auth header
@@ -98,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(null);
       
       // Redirect to social auth endpoint
-      window.location.href = `${API_URL}/auth/${provider}`;
+      window.location.href = `${API_URL}/api/auth/${provider}`;
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || `Failed to login with ${provider}. Please try again.`;
       setError(errorMessage);
@@ -114,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
       
-      const response = await axios.post(`${API_URL}/auth/register`, { 
+      const response = await axios.post(`${API_URL}/api/auth/register`, { 
         name, 
         email, 
         password, 
@@ -143,7 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
       
-      const response = await axios.put(`${API_URL}/auth/profile`, data);
+      const response = await axios.put(`${API_URL}/api/auth/profile`, data);
       setUser(response.data.user);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Failed to update profile. Please try again.';

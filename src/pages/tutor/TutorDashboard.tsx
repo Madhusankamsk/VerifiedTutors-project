@@ -19,7 +19,7 @@ const TutorDashboard = () => {
     );
   }
 
-  if (!tutor) {
+  if (!tutor || !tutor.user) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -35,30 +35,36 @@ const TutorDashboard = () => {
         {/* Profile Overview */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center space-x-4 mb-4">
-            {tutor.user.profileImage ? (
+            {tutor.user?.profileImage ? (
               <img
                 src={tutor.user.profileImage}
-                alt={tutor.user.name}
+                alt={tutor.user.name || 'Tutor'}
                 className="h-16 w-16 rounded-full object-cover"
               />
             ) : (
               <div className="h-16 w-16 rounded-full bg-primary-100 flex items-center justify-center">
                 <span className="text-primary-600 font-semibold text-xl">
-                  {tutor.user.name.charAt(0)}
+                  {(tutor.user?.name || 'T').charAt(0)}
                 </span>
               </div>
             )}
             <div>
-              <h2 className="text-xl font-semibold">{tutor.user.name}</h2>
-              <p className="text-gray-600">{tutor.subjects.length} subjects</p>
+              <h2 className="text-xl font-semibold">{tutor.user?.name || 'Tutor'}</h2>
+              <p className="text-gray-600">{tutor.subjects?.length || 0} subjects</p>
             </div>
           </div>
           <div className="space-y-2">
             <p className="text-gray-600">
-              <span className="font-medium">Rating:</span> {tutor.rating.toFixed(1)} ({tutor.totalRatings} reviews)
+              <span className="font-medium">Gender:</span> {tutor.gender || 'Not specified'}
             </p>
             <p className="text-gray-600">
-              <span className="font-medium">Hourly Rate:</span> ${tutor.hourlyRate}
+              <span className="font-medium">Mobile:</span> {tutor.mobileNumber || 'Not specified'}
+            </p>
+            <p className="text-gray-600">
+              <span className="font-medium">Rating:</span> {(tutor.rating || 0).toFixed(1)} ({tutor.totalRatings || 0} reviews)
+            </p>
+            <p className="text-gray-600">
+              <span className="font-medium">Hourly Rate:</span> ${tutor.hourlyRate || 0}
             </p>
             <p className="text-gray-600">
               <span className="font-medium">Status:</span>{' '}
@@ -66,6 +72,23 @@ const TutorDashboard = () => {
                 {tutor.isVerified ? 'Verified' : 'Pending Verification'}
               </span>
             </p>
+          </div>
+        </div>
+
+        {/* Teaching Locations */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Teaching Locations</h2>
+          <div className="space-y-2">
+            {tutor.locations?.length > 0 ? (
+              tutor.locations.map((location) => (
+                <div key={location._id} className="flex items-center text-gray-600">
+                  <span className="w-2 h-2 bg-primary-500 rounded-full mr-2"></span>
+                  {location.name}, {location.province}
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-600">No locations specified</p>
+            )}
           </div>
         </div>
 
@@ -98,21 +121,13 @@ const TutorDashboard = () => {
               <p className="text-sm text-gray-600">Hours Taught</p>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-primary-600">0</p>
+              <p className="text-2xl font-bold text-primary-600">{tutor.totalRatings || 0}</p>
               <p className="text-sm text-gray-600">Reviews</p>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <p className="text-2xl font-bold text-primary-600">0</p>
               <p className="text-sm text-gray-600">Earnings</p>
             </div>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-          <div className="space-y-4">
-            <p className="text-gray-600">No recent activity</p>
           </div>
         </div>
 

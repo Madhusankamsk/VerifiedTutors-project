@@ -13,6 +13,13 @@ interface User {
 interface Tutor {
   _id: string;
   user: User;
+  gender: 'Male' | 'Female' | 'Other';
+  mobileNumber: string;
+  locations: Array<{
+    _id: string;
+    name: string;
+    province: string;
+  }>;
   bio: string;
   subjects: Array<{
     _id: string;
@@ -73,6 +80,7 @@ interface TutorContextType {
   updateTutorProfile: (data: Partial<Tutor>) => Promise<void>;
   updateAvailability: (availability: Tutor['availability']) => Promise<void>;
   updateSubjects: (subjects: Array<{ _id: string; name: string; category: string }>) => Promise<void>;
+  updateLocations: (locations: Array<{ _id: string; name: string; province: string }>) => Promise<void>;
   updateEducation: (education: Tutor['education']) => Promise<void>;
   updateExperience: (experience: Tutor['experience']) => Promise<void>;
   updateHourlyRate: (rate: number) => Promise<void>;
@@ -104,16 +112,44 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isProfileLoaded, setIsProfileLoaded] = useState(false);
 
   // Tutor Profile Methods
   const fetchTutorProfile = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`/api/tutors/${user?.id}`);
+      if (!user?.id) {
+        throw new Error('User ID is missing');
+      }
+
+      // Get the tutor profile using the authenticated user
+      let response;
+      try {
+        response = await axios.get('/api/tutors/profile');
+      } catch (err) {
+        // If tutor profile doesn't exist, create one
+        if (axios.isAxiosError(err) && err.response?.status === 404) {
+          response = await axios.post('/api/tutors/profile', {
+            gender: 'Other',
+            mobileNumber: '',
+            bio: '',
+            hourlyRate: 0,
+            subjects: [],
+            locations: [],
+            education: [],
+            experience: [],
+            availability: []
+          });
+        } else {
+          throw err;
+        }
+      }
       setTutor(response.data);
+      setIsProfileLoaded(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch tutor profile');
+      setIsProfileLoaded(false);
     } finally {
       setLoading(false);
     }
@@ -121,9 +157,13 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateTutorProfile = async (data: Partial<Tutor>) => {
     try {
+      if (!isProfileLoaded || !tutor?._id) {
+        throw new Error('Tutor profile not loaded. Please try refreshing the page.');
+      }
+
       setLoading(true);
       setError(null);
-      const response = await axios.put(`/api/tutors/${tutor?._id}`, data);
+      const response = await axios.put('/api/tutors/profile', data);
       setTutor(response.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update tutor profile');
@@ -137,7 +177,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.put(`/api/tutors/${tutor?._id}/availability`, availability);
+      const response = await axios.put('/api/tutors/availability', availability);
       setTutor(prev => prev ? { ...prev, availability: response.data } : null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update availability');
@@ -148,23 +188,87 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const updateSubjects = async (subjects: Array<{ _id: string; name: string; category: string }>) => {
-    return updateTutorProfile({ subjects });
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.put('/api/tutors/subjects', { subjects });
+      setTutor(prev => prev ? { ...prev, subjects: response.data } : null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update subjects');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateLocations = async (locations: Array<{ _id: string; name: string; province: string }>) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.put('/api/tutors/locations', { locations });
+      setTutor(prev => prev ? { ...prev, locations: response.data } : null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update locations');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateEducation = async (education: Tutor['education']) => {
-    return updateTutorProfile({ education });
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.put('/api/tutors/education', { education });
+      setTutor(prev => prev ? { ...prev, education: response.data } : null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update education');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateExperience = async (experience: Tutor['experience']) => {
-    return updateTutorProfile({ experience });
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.put('/api/tutors/experience', { experience });
+      setTutor(prev => prev ? { ...prev, experience: response.data } : null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update experience');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateHourlyRate = async (rate: number) => {
-    return updateTutorProfile({ hourlyRate: rate });
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.put('/api/tutors/hourly-rate', { hourlyRate: rate });
+      setTutor(prev => prev ? { ...prev, hourlyRate: response.data.hourlyRate } : null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update hourly rate');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateBio = async (bio: string) => {
-    return updateTutorProfile({ bio });
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.put('/api/tutors/bio', { bio });
+      setTutor(prev => prev ? { ...prev, bio: response.data.bio } : null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update bio');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Blog Methods
@@ -261,6 +365,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     updateTutorProfile,
     updateAvailability,
     updateSubjects,
+    updateLocations,
     updateEducation,
     updateExperience,
     updateHourlyRate,
