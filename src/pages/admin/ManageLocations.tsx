@@ -20,6 +20,7 @@ const ManageLocations = () => {
     name: '',
     level: 1,
     parentId: '',
+    selectedCityId: '',
   });
 
   // Reset form when editing location changes
@@ -29,12 +30,14 @@ const ManageLocations = () => {
         name: editingLocation.name,
         level: editingLocation.level,
         parentId: editingLocation.parent || '',
+        selectedCityId: '',
       });
     } else {
       setFormData({
         name: '',
         level: 1,
         parentId: '',
+        selectedCityId: '',
       });
     }
   }, [editingLocation]);
@@ -43,8 +46,15 @@ const ManageLocations = () => {
     setFormData(prev => ({
       ...prev,
       level: newLevel,
-      parentId: '', // Reset parent when level changes
+      parentId: '',
+      selectedCityId: '',
     }));
+  };
+
+  // Get towns for selected city
+  const getTownsForCity = (cityId: string): Location[] => {
+    const city = locations.find(loc => loc._id === cityId);
+    return city?.children || [];
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,7 +94,7 @@ const ManageLocations = () => {
       }
       
       // Reset form
-      setFormData({ name: '', level: 1, parentId: '' });
+      setFormData({ name: '', level: 1, parentId: '', selectedCityId: '' });
       setEditingLocation(null);
     } catch (err: any) {
       console.error('Error details:', err.response?.data);
@@ -109,6 +119,7 @@ const ManageLocations = () => {
       name: location.name,
       level: location.level,
       parentId: location.parent || '',
+      selectedCityId: '',
     });
   };
 
@@ -242,10 +253,10 @@ const ManageLocations = () => {
             </select>
           </div>
           
-          {formData.level > 1 && (
+          {formData.level === 2 && (
             <div>
               <label htmlFor="parentId" className="block text-sm font-medium text-gray-700">
-                {formData.level === 2 ? 'Select City' : 'Select Town'}
+                Select City
               </label>
               <select
                 id="parentId"
@@ -254,7 +265,7 @@ const ManageLocations = () => {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 required
               >
-                <option value="">Select Parent Location</option>
+                <option value="">Select City</option>
                 {getAvailableParents(formData.level).map(loc => (
                   <option key={loc._id} value={loc._id}>
                     {loc.name}
@@ -263,6 +274,56 @@ const ManageLocations = () => {
               </select>
             </div>
           )}
+
+          {formData.level === 3 && (
+            <>
+              <div>
+                <label htmlFor="selectedCityId" className="block text-sm font-medium text-gray-700">
+                  Select City
+                </label>
+                <select
+                  id="selectedCityId"
+                  value={formData.selectedCityId}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    selectedCityId: e.target.value,
+                    parentId: ''
+                  }))}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                  required
+                >
+                  <option value="">Select City</option>
+                  {getAvailableParents(2).map(loc => (
+                    <option key={loc._id} value={loc._id}>
+                      {loc.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {formData.selectedCityId && (
+                <div>
+                  <label htmlFor="parentId" className="block text-sm font-medium text-gray-700">
+                    Select Town
+                  </label>
+                  <select
+                    id="parentId"
+                    value={formData.parentId}
+                    onChange={(e) => setFormData(prev => ({ ...prev, parentId: e.target.value }))}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                    required
+                  >
+                    <option value="">Select Town</option>
+                    {getTownsForCity(formData.selectedCityId).map(loc => (
+                      <option key={loc._id} value={loc._id}>
+                        {loc.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </>
+          )}
           
           <div className="flex justify-end space-x-3">
             {editingLocation && (
@@ -270,7 +331,7 @@ const ManageLocations = () => {
                 type="button"
                 onClick={() => {
                   setEditingLocation(null);
-                  setFormData({ name: '', level: 1, parentId: '' });
+                  setFormData({ name: '', level: 1, parentId: '', selectedCityId: '' });
                 }}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
               >
