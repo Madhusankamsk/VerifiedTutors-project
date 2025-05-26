@@ -20,6 +20,13 @@ import {
   updateBio
 } from '../controllers/tutor.controller.js';
 import { protect, authorize } from '../middleware/auth.middleware.js';
+import {
+  validateTutorProfile,
+  validateEducation,
+  validateExperience,
+  validateHourlyRate,
+  validateBio
+} from '../middleware/validation.middleware.js';
 
 const router = express.Router();
 
@@ -645,23 +652,26 @@ router.get('/:id/availability', getTutorAvailability);
 router.get('/profile', protect, getTutorByUserId);
 
 // Tutor-only routes
-router.post('/', protect, authorize('tutor'), createTutorProfile);
-router.put('/profile', protect, authorize('tutor'), updateTutorProfile);
+router.post('/', protect, authorize('tutor'), validateTutorProfile, createTutorProfile);
+router.put('/profile', protect, authorize('tutor'), validateTutorProfile, updateTutorProfile);
 router.delete('/profile', protect, authorize('tutor'), deleteTutorProfile);
 
 // Additional profile update routes
 router.put('/availability', protect, authorize('tutor'), updateAvailability);
 router.put('/subjects', protect, authorize('tutor'), updateSubjects);
 router.put('/locations', protect, authorize('tutor'), updateLocations);
-router.put('/education', protect, authorize('tutor'), updateEducation);
-router.put('/experience', protect, authorize('tutor'), updateExperience);
-router.put('/hourly-rate', protect, authorize('tutor'), updateHourlyRate);
-router.put('/bio', protect, authorize('tutor'), updateBio);
+router.put('/education', protect, authorize('tutor'), validateEducation, updateEducation);
+router.put('/experience', protect, authorize('tutor'), validateExperience, updateExperience);
+router.put('/hourly-rate', protect, authorize('tutor'), validateHourlyRate, updateHourlyRate);
+router.put('/bio', protect, authorize('tutor'), validateBio, updateBio);
 
 // Blog routes
 router.get('/blogs', protect, authorize('tutor'), getTutorBlogs);
 router.post('/blogs', protect, authorize('tutor'), createBlog);
 router.put('/blogs/:id', protect, authorize('tutor'), updateBlog);
 router.delete('/blogs/:id', protect, authorize('tutor'), deleteBlog);
+
+// User-specific routes
+router.get('/user/:userId', protect, getTutorByUserId);
 
 export default router; 
