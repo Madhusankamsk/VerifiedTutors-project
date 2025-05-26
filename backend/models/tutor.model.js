@@ -6,6 +6,21 @@ const tutorSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  gender: {
+    type: String,
+    enum: ['Male', 'Female', 'Other'],
+    required: [true, 'Please specify your gender'],
+  },
+  mobileNumber: {
+    type: String,
+    required: [true, 'Please add a mobile number'],
+    match: [/^[0-9]{10}$/, 'Please add a valid 10-digit mobile number'],
+  },
+  locations: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Location',
+    required: true,
+  }],
   bio: {
     type: String,
     default: '',
