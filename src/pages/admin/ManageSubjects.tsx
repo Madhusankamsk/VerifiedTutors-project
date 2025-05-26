@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useAdminSubject } from '../../contexts/AdminSubjectContext';
-import { SUBJECT_CATEGORIES, EDUCATION_LEVELS, MEDIUM_OPTIONS } from '../../contexts/AdminSubjectContext';
+import { useAdmin } from '../../contexts/AdminContext';
+import { SUBJECT_CATEGORIES, EDUCATION_LEVELS, MEDIUM_OPTIONS } from '../../contexts/AdminContext';
 import { Plus, Edit2, Trash2, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -21,7 +21,7 @@ const initialFormData: SubjectFormData = {
 };
 
 const ManageSubjects = () => {
-  const { subjects, loading, error, createSubject, updateSubject, deleteSubject, toggleSubjectStatus } = useAdminSubject();
+  const { subjects, loading, error, createSubject, updateSubject, deleteSubject, toggleSubjectStatus } = useAdmin();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<string | null>(null);
   const [formData, setFormData] = useState<SubjectFormData>(initialFormData);

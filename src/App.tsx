@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { TutorProvider } from './contexts/TutorContext';
 import { AdminProvider } from './contexts/AdminContext';
 import { AdminSubjectProvider } from './contexts/AdminSubjectContext';
+import { AdminLocationProvider } from './contexts/AdminLocationContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import RoleRoute from './components/common/RoleRoute';
 import { Toaster } from 'react-hot-toast';
@@ -39,13 +40,13 @@ import CreateEditBlog from './pages/tutor/CreateEditBlog';
 import StudentDashboard from './pages/student/StudentDashboard';
 // import FavoriteTutors from './pages/student/FavoriteTutors';
 
-function App() {
+const App = () => {
   return (
-    <AuthProvider>
-      <AdminProvider>
-        <AdminSubjectProvider>
-          <Toaster position="top-right" />
-          <Router>
+    <Router>
+      <AuthProvider>
+        <TutorProvider>
+          <AdminProvider>
+            <Toaster position="top-right" />
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<MainLayout />}>
@@ -112,11 +113,11 @@ function App() {
               {/* 404 Route */}
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
-          </Router>
-        </AdminSubjectProvider>
-      </AdminProvider>
-    </AuthProvider>
+          </AdminProvider>
+        </TutorProvider>
+      </AuthProvider>
+    </Router>
   );
-}
+};
 
 export default App;
