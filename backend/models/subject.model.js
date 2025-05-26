@@ -10,16 +10,22 @@ const subjectSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Please add a category'],
-    enum: ['Science', 'Mathematics', 'Languages', 'Arts', 'Computer Science', 'Business', 'Other']
+    trim: true
+  },
+  educationLevel: {
+    type: String,
+    required: [true, 'Please add an education level'],
+    enum: ['PRIMARY', 'JUNIOR_SECONDARY', 'SENIOR_SECONDARY', 'ADVANCED_LEVEL', 'HIGHER_EDUCATION']
+  },
+  medium: {
+    type: String,
+    required: [true, 'Please add a medium'],
+    enum: ['English', 'Sinhala', 'Tamil'],
+    default: 'English'
   },
   description: {
     type: String,
     default: ''
-  },
-  level: {
-    type: String,
-    enum: ['Beginner', 'Intermediate', 'Advanced', 'All Levels'],
-    default: 'All Levels'
   },
   isActive: {
     type: Boolean,
@@ -30,6 +36,9 @@ const subjectSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+
+// Add compound index for category and educationLevel
+subjectSchema.index({ category: 1, educationLevel: 1 });
 
 const Subject = mongoose.model('Subject', subjectSchema);
 

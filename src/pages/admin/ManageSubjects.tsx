@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAdminSubject } from '../../contexts/AdminSubjectContext';
+import { SUBJECT_CATEGORIES, EDUCATION_LEVELS, MEDIUM_OPTIONS } from '../../contexts/AdminSubjectContext';
 import { Plus, Edit2, Trash2, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -7,33 +8,24 @@ interface SubjectFormData {
   name: string;
   category: string;
   description: string;
-  level: 'Beginner' | 'Intermediate' | 'Advanced' | 'All Levels';
+  medium: typeof MEDIUM_OPTIONS[number];
+  educationLevel: keyof typeof EDUCATION_LEVELS;
 }
 
 const initialFormData: SubjectFormData = {
   name: '',
-  category: 'Science',
+  category: SUBJECT_CATEGORIES.PRIMARY[0],
   description: '',
-  level: 'All Levels'
+  medium: 'English',
+  educationLevel: 'PRIMARY'
 };
-
-const CATEGORIES = [
-  'Science',
-  'Mathematics',
-  'Languages',
-  'Arts',
-  'Computer Science',
-  'Business',
-  'Other'
-];
-
-const LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'All Levels'];
 
 const ManageSubjects = () => {
   const { subjects, loading, error, createSubject, updateSubject, deleteSubject, toggleSubjectStatus } = useAdminSubject();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<string | null>(null);
   const [formData, setFormData] = useState<SubjectFormData>(initialFormData);
+  const [selectedEducationLevel, setSelectedEducationLevel] = useState<keyof typeof EDUCATION_LEVELS>('PRIMARY');
 
   const handleOpenModal = (subjectId?: string) => {
     if (subjectId) {
@@ -43,12 +35,15 @@ const ManageSubjects = () => {
           name: subject.name,
           category: subject.category,
           description: subject.description,
-          level: subject.level
+          medium: subject.medium,
+          educationLevel: subject.educationLevel
         });
+        setSelectedEducationLevel(subject.educationLevel);
         setEditingSubject(subjectId);
       }
     } else {
       setFormData(initialFormData);
+      setSelectedEducationLevel('PRIMARY');
       setEditingSubject(null);
     }
     setIsModalOpen(true);
@@ -58,6 +53,20 @@ const ManageSubjects = () => {
     setIsModalOpen(false);
     setEditingSubject(null);
     setFormData(initialFormData);
+    setSelectedEducationLevel('PRIMARY');
+  };
+
+  const handleEducationLevelChange = (level: keyof typeof EDUCATION_LEVELS) => {
+    setSelectedEducationLevel(level);
+    setFormData(prev => ({
+      ...prev,
+      educationLevel: level,
+      category: level === 'ADVANCED_LEVEL' 
+        ? SUBJECT_CATEGORIES.ADVANCED_LEVEL.ARTS[0] 
+        : level === 'HIGHER_EDUCATION'
+          ? 'Computer Science' // Default category for higher education
+          : (SUBJECT_CATEGORIES[level as keyof typeof SUBJECT_CATEGORIES] as string[])[0]
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -94,6 +103,20 @@ const ManageSubjects = () => {
     } catch (error) {
       toast.error('Failed to update subject status');
     }
+  };
+
+  const getAvailableCategories = () => {
+    if (selectedEducationLevel === 'ADVANCED_LEVEL') {
+      return [
+        ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.ARTS,
+        ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.COMMERCE,
+        ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.SCIENCE
+      ];
+    }
+    if (selectedEducationLevel === 'HIGHER_EDUCATION') {
+      return ['Computer Science', 'Engineering', 'Business', 'Medicine', 'Law', 'Arts & Humanities'];
+    }
+    return SUBJECT_CATEGORIES[selectedEducationLevel as keyof typeof SUBJECT_CATEGORIES] as string[];
   };
 
   if (loading) {
@@ -135,7 +158,8 @@ const ManageSubjects = () => {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Education Level</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medium</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
@@ -153,7 +177,10 @@ const ManageSubjects = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {subject.level}
+                    {EDUCATION_LEVELS[subject.educationLevel]}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {subject.medium}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <button
@@ -220,13 +247,27 @@ const ManageSubjects = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Category</label>
+                  <label className="block text-sm font-medium text-gray-700">Education Level</label>
+                  <select
+                    value={selectedEducationLevel}
+                    onChange={(e) => handleEducationLevelChange(e.target.value as keyof typeof EDUCATION_LEVELS)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                  >
+                    {Object.entries(EDUCATION_LEVELS).map(([key, value]) => (
+                      <option key={key} value={key}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Subject</label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                   >
-                    {CATEGORIES.map((category) => (
+                    {getAvailableCategories().map((category) => (
                       <option key={category} value={category}>
                         {category}
                       </option>
@@ -234,15 +275,16 @@ const ManageSubjects = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Level</label>
+                  <label className="block text-sm font-medium text-gray-700">Medium</label>
                   <select
-                    value={formData.level}
-                    onChange={(e) => setFormData({ ...formData, level: e.target.value as any })}
+                    value={formData.medium}
+                    onChange={(e) => setFormData({ ...formData, medium: e.target.value as typeof MEDIUM_OPTIONS[number] })}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                    required
                   >
-                    {LEVELS.map((level) => (
-                      <option key={level} value={level}>
-                        {level}
+                    {MEDIUM_OPTIONS.map((medium) => (
+                      <option key={medium} value={medium}>
+                        {medium}
                       </option>
                     ))}
                   </select>

@@ -1,15 +1,20 @@
 import Subject from '../models/subject.model.js';
+import { SUBJECT_CATEGORIES } from '../config/constants.js';
 
 // @desc    Get all subjects
 // @route   GET /api/subjects
 // @access  Public
 export const getSubjects = async (req, res) => {
   try {
-    const { category, search } = req.query;
+    const { category, educationLevel, search } = req.query;
     let query = {};
 
     if (category) {
       query.category = category;
+    }
+
+    if (educationLevel) {
+      query.educationLevel = educationLevel;
     }
 
     if (search) {
@@ -45,7 +50,41 @@ export const getSubject = async (req, res) => {
 // @access  Private/Admin
 export const createSubject = async (req, res) => {
   try {
-    const subject = await Subject.create(req.body);
+    const { name, category, educationLevel, description, level } = req.body;
+
+    // Validate education level
+    if (!educationLevel || !['PRIMARY', 'JUNIOR_SECONDARY', 'SENIOR_SECONDARY', 'ADVANCED_LEVEL', 'HIGHER_EDUCATION'].includes(educationLevel)) {
+      return res.status(400).json({ message: 'Invalid education level' });
+    }
+
+    // Validate category based on education level
+    let validCategories = [];
+    if (educationLevel === 'ADVANCED_LEVEL') {
+      validCategories = [
+        ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.ARTS,
+        ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.COMMERCE,
+        ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.SCIENCE
+      ];
+    } else if (educationLevel === 'HIGHER_EDUCATION') {
+      validCategories = ['Computer Science', 'Engineering', 'Business', 'Medicine', 'Law', 'Arts & Humanities'];
+    } else {
+      validCategories = SUBJECT_CATEGORIES[educationLevel];
+    }
+
+    if (!validCategories.includes(category)) {
+      return res.status(400).json({ 
+        message: `Invalid category for ${educationLevel}. Valid categories are: ${validCategories.join(', ')}` 
+      });
+    }
+
+    const subject = await Subject.create({
+      name,
+      category,
+      educationLevel,
+      description,
+      level
+    });
+
     res.status(201).json(subject);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -57,6 +96,44 @@ export const createSubject = async (req, res) => {
 // @access  Private/Admin
 export const updateSubject = async (req, res) => {
   try {
+    const { category, educationLevel } = req.body;
+
+    // If updating category or education level, validate them
+    if (category || educationLevel) {
+      const currentSubject = await Subject.findById(req.params.id);
+      if (!currentSubject) {
+        return res.status(404).json({ message: 'Subject not found' });
+      }
+
+      const levelToValidate = educationLevel || currentSubject.educationLevel;
+      const categoryToValidate = category || currentSubject.category;
+
+      // Validate education level
+      if (levelToValidate && !['PRIMARY', 'JUNIOR_SECONDARY', 'SENIOR_SECONDARY', 'ADVANCED_LEVEL', 'HIGHER_EDUCATION'].includes(levelToValidate)) {
+        return res.status(400).json({ message: 'Invalid education level' });
+      }
+
+      // Validate category based on education level
+      let validCategories = [];
+      if (levelToValidate === 'ADVANCED_LEVEL') {
+        validCategories = [
+          ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.ARTS,
+          ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.COMMERCE,
+          ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.SCIENCE
+        ];
+      } else if (levelToValidate === 'HIGHER_EDUCATION') {
+        validCategories = ['Computer Science', 'Engineering', 'Business', 'Medicine', 'Law', 'Arts & Humanities'];
+      } else {
+        validCategories = SUBJECT_CATEGORIES[levelToValidate];
+      }
+
+      if (!validCategories.includes(categoryToValidate)) {
+        return res.status(400).json({ 
+          message: `Invalid category for ${levelToValidate}. Valid categories are: ${validCategories.join(', ')}` 
+        });
+      }
+    }
+
     const subject = await Subject.findByIdAndUpdate(
       req.params.id,
       req.body,
