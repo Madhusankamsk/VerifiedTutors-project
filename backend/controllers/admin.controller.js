@@ -8,8 +8,67 @@ import Booking from '../models/booking.model.js';
 // @access  Private/Admin
 export const getAllTutors = async (req, res) => {
   try {
-    const tutors = await Tutor.find().populate('user', 'name email profileImage');
-    res.json(tutors);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || '';
+    const verified = req.query.verified || 'all';
+    const rating = req.query.rating || 'all';
+    const sortBy = req.query.sortBy || 'newest';
+
+    // Build query
+    let query = {};
+
+    // Search by name or email
+    if (search) {
+      query.$or = [
+        { 'user.name': { $regex: search, $options: 'i' } },
+        { 'user.email': { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Filter by verification status
+    if (verified !== 'all') {
+      query.isVerified = verified === 'verified';
+    }
+
+    // Filter by rating
+    if (rating !== 'all') {
+      query.rating = { $gte: parseInt(rating) };
+    }
+
+    // Get total count for pagination
+    const total = await Tutor.countDocuments(query);
+
+    // Build sort object
+    let sort = {};
+    switch (sortBy) {
+      case 'oldest':
+        sort = { createdAt: 1 };
+        break;
+      case 'rating':
+        sort = { rating: -1 };
+        break;
+      case 'name':
+        sort = { 'user.name': 1 };
+        break;
+      default: // newest
+        sort = { createdAt: -1 };
+    }
+
+    // Get tutors with pagination
+    const tutors = await Tutor.find(query)
+      .populate('user', 'name email profileImage')
+      .populate('subjects', 'name category')
+      .sort(sort)
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.json({
+      tutors,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalTutors: total
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

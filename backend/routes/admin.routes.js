@@ -75,53 +75,95 @@ const router = express.Router();
  *     tags: [Admin]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by tutor name or email
+ *       - in: query
+ *         name: verified
+ *         schema:
+ *           type: string
+ *           enum: [all, verified, unverified]
+ *           default: all
+ *         description: Filter by verification status
+ *       - in: query
+ *         name: rating
+ *         schema:
+ *           type: string
+ *           enum: [all, 4, 3, 2]
+ *           default: all
+ *         description: Filter by minimum rating
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [newest, oldest, rating, name]
+ *           default: newest
+ *         description: Sort order
  *     responses:
  *       200:
- *         description: List of all tutors
+ *         description: List of tutors with pagination info
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   _id:
- *                     type: string
- *                     description: Tutor ID
- *                   user:
+ *               type: object
+ *               properties:
+ *                 tutors:
+ *                   type: array
+ *                   items:
  *                     type: object
  *                     properties:
- *                       name:
+ *                       _id:
  *                         type: string
- *                       email:
- *                         type: string
- *                       profileImage:
- *                         type: string
- *                   isVerified:
- *                     type: boolean
- *                   verificationStatus:
- *                     type: string
- *                     enum: [pending, approved, rejected]
+ *                         description: Tutor ID
+ *                       user:
+ *                         type: object
+ *                         properties:
+ *                           name:
+ *                             type: string
+ *                           email:
+ *                             type: string
+ *                           profileImage:
+ *                             type: string
+ *                       subjects:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             name:
+ *                               type: string
+ *                             category:
+ *                               type: string
+ *                       rating:
+ *                         type: number
+ *                       totalRatings:
+ *                         type: number
+ *                       isVerified:
+ *                         type: boolean
+ *                 currentPage:
+ *                   type: number
+ *                 totalPages:
+ *                   type: number
+ *                 totalTutors:
+ *                   type: number
  *       401:
  *         description: Not authorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized, no token
  *       403:
  *         description: Forbidden - Not an admin
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Not authorized as an admin
  */
 
 /**
