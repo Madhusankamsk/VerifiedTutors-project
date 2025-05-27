@@ -1,4 +1,3 @@
-import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTutor } from '../../contexts/TutorContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -9,14 +8,12 @@ const TutorDashboard = () => {
   const { 
     profile, 
     loading, 
-    error, 
-    fetchProfile, 
-    fetchBlogs, 
+    error,  
     blogs,
     deleteProfile 
   } = useTutor();
 
-  
+
   const handleDeleteProfile = async () => {
     if (window.confirm('Are you sure you want to delete your profile? This action cannot be undone.')) {
       try {

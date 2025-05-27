@@ -1,4 +1,3 @@
-import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTutor } from '../../contexts/TutorContext';
 import { Edit2, Trash2, Plus } from 'lucide-react';
@@ -6,7 +5,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { toast } from 'react-toastify';
 
 const ManageBlogs = () => {
-  const { blogs, loading, error, fetchBlogs, deleteBlog } = useTutor();
+  const { blogs, loading, error, deleteBlog } = useTutor();
 
 
   const handleDeleteBlog = async (blogId: string) => {
