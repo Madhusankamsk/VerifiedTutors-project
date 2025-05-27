@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../contexts/AuthContext';
-import { AlertCircle, Mail, Lock, Github, Chrome } from 'lucide-react';
+import { AlertCircle, Mail, Lock, Chrome } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -41,7 +41,7 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'github') => {
+  const handleSocialLogin = async (provider: 'google') => {
     try {
       setIsSubmitting(true);
       clearError();
@@ -82,15 +82,6 @@ const LoginPage: React.FC = () => {
           >
             <Chrome className="h-5 w-5 mr-2 text-red-500" />
             Continue with Google
-          </button>
-          
-          <button
-            onClick={() => handleSocialLogin('github')}
-            disabled={isSubmitting}
-            className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-          >
-            <Github className="h-5 w-5 mr-2" />
-            Continue with GitHub
           </button>
         </div>
         

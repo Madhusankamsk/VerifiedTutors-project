@@ -10,7 +10,7 @@ interface User {
   name: string;
   role: UserRole;
   profileImage?: string;
-  socialProvider?: 'google' | 'github' | null;
+  socialProvider?: 'google' | null;
 }
 
 interface AuthContextType {
@@ -22,7 +22,7 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   clearError: () => void;
-  socialLogin: (provider: 'google' | 'github') => Promise<void>;
+  socialLogin: (provider: 'google') => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
 }
 
@@ -92,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Social login function
-  const socialLogin = async (provider: 'google' | 'github') => {
+  const socialLogin = async (provider: 'google') => {
     try {
       setLoading(true);
       setError(null);

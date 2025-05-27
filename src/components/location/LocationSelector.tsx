@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocations, Location } from '../../contexts/LocationContext';
-import { Check, X } from 'lucide-react';
+import { Check, X, ChevronDown, ChevronRight } from 'lucide-react';
 
 interface TutorLocation {
   _id: string;
@@ -58,11 +58,11 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ selectedLocations, 
     };
 
     const exists = selectedLocations.some(loc => loc._id === location._id);
-    if (exists) {
-      onLocationsChange(selectedLocations.filter(loc => loc._id !== location._id));
-    } else {
-      onLocationsChange([...selectedLocations, tutorLocation]);
-    }
+    const newLocations = exists 
+      ? selectedLocations.filter(loc => loc._id !== location._id)
+      : [...selectedLocations, tutorLocation];
+    
+    onLocationsChange(newLocations);
   };
 
   const isLocationSelected = (locationId: string) => {
@@ -92,111 +92,131 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ selectedLocations, 
 
   return (
     <div className="space-y-4">
-      {/* Selected Locations */}
-      <div className="mb-4">
-        <h3 className="text-sm font-medium text-gray-700 mb-2">Selected Locations</h3>
-        <div className="flex flex-wrap gap-2">
-          {selectedLocations.map((location) => (
-            <div
-              key={location._id}
-              className="flex items-center gap-2 bg-primary-50 px-3 py-1 rounded-full text-primary-700"
-            >
-              <span>{location.name}, {location.province}</span>
-              <button
-                type="button"
-                onClick={() => handleLocationSelect({ _id: location._id, name: location.name, level: 1, parent: null } as Location)}
-                className="text-primary-500 hover:text-primary-700"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-          {selectedLocations.length === 0 && (
-            <p className="text-sm text-gray-500">No locations selected</p>
-          )}
-        </div>
-      </div>
-
       {/* Location Tree */}
-      <div className="space-y-2">
+      <div className="border rounded-lg divide-y">
         {cities.map(city => (
-          <div key={city._id} className="border rounded-lg">
-            {/* City Row */}
-            <div className="flex items-center p-3 hover:bg-gray-50">
-              <button
-                onClick={() => toggleCity(city._id)}
-                className="p-1 hover:bg-gray-100 rounded mr-2"
-              >
-                {expandedCities.has(city._id) ? (
-                  <span className="text-gray-500">▼</span>
-                ) : (
-                  <span className="text-gray-500">▶</span>
-                )}
-              </button>
-              <button
-                onClick={() => handleLocationSelect(city)}
-                className="flex-1 flex items-center text-left"
-              >
-                <span className="flex-1">{city.name}</span>
-                {isLocationSelected(city._id) && (
-                  <Check className="w-5 h-5 text-primary-600" />
-                )}
-              </button>
+          <div key={city._id} className="p-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={() => toggleCity(city._id)}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
+                  {expandedCities.has(city._id) ? (
+                    <ChevronDown className="w-4 h-4" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleLocationSelect(city)}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-md ${
+                    isLocationSelected(city._id)
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <span>{city.name}</span>
+                  {isLocationSelected(city._id) && (
+                    <Check className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </div>
-
+            
             {/* Towns */}
             {expandedCities.has(city._id) && city.children && (
-              <div className="pl-8 border-t">
+              <div className="ml-8 mt-2 space-y-2">
                 {city.children.map(town => (
-                  <div key={town._id} className="border-b last:border-b-0">
-                    {/* Town Row */}
-                    <div className="flex items-center p-3 hover:bg-gray-50">
+                  <div key={town._id} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
                       <button
+                        type="button"
                         onClick={() => toggleTown(town._id)}
-                        className="p-1 hover:bg-gray-100 rounded mr-2"
+                        className="p-1 hover:bg-gray-100 rounded"
                       >
                         {expandedTowns.has(town._id) ? (
-                          <span className="text-gray-500">▼</span>
+                          <ChevronDown className="w-4 h-4" />
                         ) : (
-                          <span className="text-gray-500">▶</span>
+                          <ChevronRight className="w-4 h-4" />
                         )}
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleLocationSelect(town)}
-                        className="flex-1 flex items-center text-left"
+                        className={`flex items-center space-x-2 px-3 py-2 rounded-md ${
+                          isLocationSelected(town._id)
+                            ? 'bg-primary-50 text-primary-700'
+                            : 'hover:bg-gray-50'
+                        }`}
                       >
-                        <span className="flex-1">{town.name}</span>
+                        <span>{town.name}</span>
                         {isLocationSelected(town._id) && (
-                          <Check className="w-5 h-5 text-primary-600" />
+                          <Check className="w-4 h-4" />
                         )}
                       </button>
                     </div>
+                  </div>
+                ))}
 
-                    {/* Home Towns */}
-                    {expandedTowns.has(town._id) && town.children && (
-                      <div className="pl-8 border-t">
-                        {town.children.map(homeTown => (
-                          <div key={homeTown._id} className="border-b last:border-b-0">
+                {/* Home Towns */}
+                {city.children.map(town => (
+                  expandedTowns.has(town._id) && town.children && (
+                    <div key={`home-${town._id}`} className="ml-8 mt-2 space-y-2">
+                      {town.children.map(homeTown => (
+                        <div key={homeTown._id} className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
                             <button
+                              type="button"
                               onClick={() => handleLocationSelect(homeTown)}
-                              className="flex items-center w-full p-3 hover:bg-gray-50 text-left"
+                              className={`flex items-center space-x-2 px-3 py-2 rounded-md ${
+                                isLocationSelected(homeTown._id)
+                                  ? 'bg-primary-50 text-primary-700'
+                                  : 'hover:bg-gray-50'
+                              }`}
                             >
-                              <span className="flex-1">{homeTown.name}</span>
+                              <span>{homeTown.name}</span>
                               {isLocationSelected(homeTown._id) && (
-                                <Check className="w-5 h-5 text-primary-600" />
+                                <Check className="w-4 h-4" />
                               )}
                             </button>
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                        </div>
+                      ))}
+                    </div>
+                  )
                 ))}
               </div>
             )}
           </div>
         ))}
       </div>
+
+      {/* Selected Locations Display */}
+      {selectedLocations.length > 0 && (
+        <div className="mt-4">
+          <h3 className="text-sm font-medium text-gray-700 mb-2">Selected Locations</h3>
+          <div className="flex flex-wrap gap-2">
+            {selectedLocations.map(location => (
+              <div
+                key={location._id}
+                className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary-50 text-primary-700"
+              >
+                <span>{location.name}</span>
+                <button
+                  type="button"
+                  onClick={() => handleLocationSelect({ _id: location._id, name: location.name, level: 1, parent: null })}
+                  className="ml-2 text-primary-500 hover:text-primary-700"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
