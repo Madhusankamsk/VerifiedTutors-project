@@ -53,24 +53,24 @@ const EditTutorProfile: React.FC = () => {
   useEffect(() => {
     if (profile) {
       setFormData({
-        phone: profile.phone,
-        bio: profile.bio,
+        phone: profile.phone || '',
+        bio: profile.bio || '',
         gender: profile.gender || 'Male',
-        education: profile.education,
-        experience: profile.experience,
+        education: profile.education || [],
+        experience: profile.experience || [],
         subjects: profile.subjects.map(s => ({
           _id: s.subject._id,
           name: s.subject.name,
           category: s.subject.category,
-          hourlyRate: s.hourlyRate
-        })),
+          hourlyRate: s.rates?.individual || 0
+        })) || [],
         locations: profile.locations.map(l => ({
           _id: l._id,
           name: l.name,
           province: l.level === 1 ? l.name : 
                     l.level === 2 ? (locations.find(p => p._id === l.parent) as Location)?.name || '' :
                     (locations.find(p => p._id === (locations.find(p2 => p2._id === l.parent) as Location)?.parent) as Location)?.name || ''
-        }))
+        })) || []
       });
     }
   }, [profile, locations]);
@@ -91,7 +91,11 @@ const EditTutorProfile: React.FC = () => {
           }
           return {
             subject,
-            hourlyRate: Number(s.hourlyRate) || 0,
+            rates: {
+              individual: Number(s.hourlyRate) || 0,
+              group: 0,
+              online: 0
+            },
             availability: []
           };
         }),

@@ -504,14 +504,18 @@ export const deleteBlog = async (req, res) => {
 };
 
 // @desc    Get tutor by user ID
-// @route   GET /api/tutors/user/:userId
+// @route   GET /api/tutors/profile
 // @access  Private
 export const getTutorByUserId = async (req, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
     const tutor = await Tutor.findOne({ user: req.user.id })
       .populate('user', 'name email profileImage')
-      .populate('subjects')
-      .populate('locations');
+      .populate('subjects.subject', 'name category educationLevel')
+      .populate('locations', 'name');
 
     if (!tutor) {
       return res.status(404).json({ message: 'Tutor profile not found' });
@@ -519,7 +523,11 @@ export const getTutorByUserId = async (req, res) => {
 
     res.json(tutor);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error in getTutorByUserId:', error);
+    res.status(500).json({ 
+      message: 'Error fetching tutor profile',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 

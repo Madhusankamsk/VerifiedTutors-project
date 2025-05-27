@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import  User  from '../models/user.model.js';
+import User from '../models/user.model.js';
 
 // Middleware to authenticate JWT token
 export const protect = async (req, res, next) => {
@@ -15,17 +15,25 @@ export const protect = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
 
       // Get user from token
-      req.user = await User.findById(decoded.id).select('-password');
+      const user = await User.findById(decoded.id).select('-password');
+      
+      if (!user) {
+        return res.status(401).json({ message: 'User not found' });
+      }
 
+      // Ensure user object has both _id and id properties
+      req.user = {
+        ...user.toObject(),
+        id: user._id
+      };
+      
       next();
     } catch (error) {
-      console.error(error);
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      console.error('Token verification error:', error);
+      return res.status(401).json({ message: 'Not authorized, token failed' });
     }
-  }
-
-  if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token' });
+  } else {
+    return res.status(401).json({ message: 'Not authorized, no token' });
   }
 };
 

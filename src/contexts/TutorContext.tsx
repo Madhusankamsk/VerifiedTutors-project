@@ -163,28 +163,101 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Profile Management
   const fetchProfile = useCallback(async () => {
+    if (!user) {
+      setProfile(null);
+      setLoading(false);
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('No authentication token found');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
       const response = await axios.get(`${API_URL}/api/tutors/profile`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
-      setProfile(response.data);
+      
+      if (response.data) {
+        setProfile(response.data);
+      } else {
+        setError('No profile data received');
+      }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to fetch tutor profile';
-      setError(errorMessage);
-      console.error('Profile fetch error:', err);
+      // If the profile doesn't exist (404), we don't want to show an error
+      if (err.response?.status === 404) {
+        setProfile(null);
+        setError(null);
+      } else {
+        const errorMessage = err.response?.data?.message || 'Failed to fetch tutor profile';
+        setError(errorMessage);
+        console.error('Profile fetch error:', err);
+        setProfile(null);
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
-  const updateProfile = useCallback(async (data: Partial<TutorProfile>) => {
+  // Create tutor profile if it doesn't exist
+  const createProfile = useCallback(async (data: Partial<TutorProfile>) => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
     try {
       setLoading(true);
       setError(null);
+      
+      const response = await axios.post(`${API_URL}/api/tutors`, data, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (response.data) {
+        setProfile(response.data);
+        return response.data;
+      } else {
+        throw new Error('Invalid response format from server');
+      }
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to create profile';
+      setError(errorMessage);
+      console.error('Profile creation error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Fetch profile when user changes
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    }
+  }, [user, fetchProfile]);
+
+  const updateProfile = useCallback(async (data: Partial<TutorProfile>) => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // If profile doesn't exist, create it first
+      if (!profile) {
+        return createProfile(data);
+      }
       
       // Format the data to match backend expectations
       const formattedData = {
@@ -198,18 +271,18 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         documents: data.documents || []
       };
 
-      // Validate required fields
-      if (!formattedData.phone) {
-        throw new Error('Phone number is required');
-      }
-
       const response = await axios.put(`${API_URL}/api/tutors/profile`, formattedData, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      setProfile(response.data.tutor);
-      return response.data;
+
+      if (response.data && response.data.tutor) {
+        setProfile(response.data.tutor);
+        return response.data;
+      } else {
+        throw new Error('Invalid response format from server');
+      }
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to update profile';
       setError(errorMessage);
@@ -218,7 +291,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user, profile, createProfile]);
 
   // Subject Management
   const addSubject = useCallback(async (subjectData: TutorSubject) => {
@@ -467,9 +540,13 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
       setReviews(response.data);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to fetch reviews';
-      setError(errorMessage);
-      console.error('Reviews fetch error:', err);
+      // Don't show error for 404 (no reviews yet)
+      if (err.response?.status !== 404) {
+        const errorMessage = err.response?.data?.message || 'Failed to fetch reviews';
+        setError(errorMessage);
+        console.error('Reviews fetch error:', err);
+      }
+      setReviews([]);
     } finally {
       setLoading(false);
     }
@@ -489,9 +566,19 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
       setStats(response.data);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to fetch stats';
-      setError(errorMessage);
-      console.error('Stats fetch error:', err);
+      // Don't show error for 404 (no stats yet)
+      if (err.response?.status !== 404) {
+        const errorMessage = err.response?.data?.message || 'Failed to fetch stats';
+        setError(errorMessage);
+        console.error('Stats fetch error:', err);
+      }
+      // Set default stats
+      setStats({
+        totalStudents: 0,
+        totalSessions: 0,
+        averageRating: 0,
+        totalEarnings: 0
+      });
     } finally {
       setLoading(false);
     }
