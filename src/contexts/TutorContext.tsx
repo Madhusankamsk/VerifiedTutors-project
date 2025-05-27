@@ -56,6 +56,9 @@ export interface TutorProfile {
   status: 'active' | 'inactive' | 'suspended';
   createdAt: string;
   updatedAt: string;
+  totalEarnings: number;
+  totalStudents: number;
+  totalSessions: number;
 }
 
 export interface TutorAvailability {
