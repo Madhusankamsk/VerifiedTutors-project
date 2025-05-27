@@ -135,12 +135,7 @@ const EditTutorProfile: React.FC = () => {
             availability: s.availability
           };
         }),
-        locations: formData.locations.map(l => ({
-          _id: l._id,
-          name: l.name,
-          level: 1,
-          parent: null
-        }))
+        locations: formData.locations.map(l => l._id) as unknown as Location[]
       };
       await updateProfile(apiData);
       toast.success('Profile updated successfully');

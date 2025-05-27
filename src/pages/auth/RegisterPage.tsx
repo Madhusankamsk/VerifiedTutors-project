@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../contexts/AuthContext';
-import { AlertCircle, User, Mail, Lock, Github, Chrome } from 'lucide-react';
+import { AlertCircle, User, Mail, Lock, Chrome, ArrowRight, ArrowLeft } from 'lucide-react';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -23,24 +23,28 @@ const RegisterPage: React.FC = () => {
   const { register: registerUser, socialLogin, error, clearError } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 3;
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     watch,
-    setValue
+    setValue,
+    trigger
   } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      role: 'student'
-    }
+    resolver: zodResolver(registerSchema)
   });
 
   const selectedRole = watch('role');
 
+
   const onSubmit = async (data: RegisterFormData) => {
     try {
+      if (!data.role) {
+        throw new Error('Please select a role (Student or Tutor)');
+      }
       setIsSubmitting(true);
       clearError();
       await registerUser(data.name, data.email, data.password, data.role);
@@ -57,7 +61,7 @@ const RegisterPage: React.FC = () => {
     }
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'github') => {
+  const handleSocialLogin = async (provider: 'google') => {
     try {
       setIsSubmitting(true);
       clearError();
@@ -68,60 +72,66 @@ const RegisterPage: React.FC = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 animate-slide-up">
-        <div className="text-center">
-          <h2 className="mt-6 text-4xl font-extrabold text-gray-900 tracking-tight">
-            Create your account
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
-              Sign in
-            </Link>
-          </p>
-        </div>
-        
-        {error && (
-          <div className="bg-red-50 p-4 rounded-lg flex items-start border border-red-200">
-            <AlertCircle className="h-5 w-5 text-red-400 mr-3 mt-0.5 flex-shrink-0" />
-            <p className="text-sm text-red-700">{error}</p>
-          </div>
-        )}
-        
-        <div className="space-y-4">
-          <button
-            onClick={() => handleSocialLogin('google')}
-            disabled={isSubmitting}
-            className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+  const nextStep = async () => {
+    let isValid = false;
+    
+    switch (currentStep) {
+      case 1:
+        isValid = await trigger(['name', 'email']);
+        break;
+      case 2:
+        isValid = await trigger(['password', 'confirmPassword']);
+        break;
+      default:
+        isValid = true;
+    }
+
+    if (isValid) {
+      setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+    }
+  };
+
+  const prevStep = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
+  const renderStepIndicator = () => (
+    <div className="flex items-center justify-center space-x-4 mb-8">
+      {Array.from({ length: totalSteps }).map((_, index) => (
+        <div key={index} className="flex items-center">
+          <div
+            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              currentStep > index + 1
+                ? 'bg-blue-600 text-white'
+                : currentStep === index + 1
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-600'
+            }`}
           >
-            <Chrome className="h-5 w-5 mr-2 text-red-500" />
-            Continue with Google
-          </button>
-          
-          <button
-            onClick={() => handleSocialLogin('github')}
-            disabled={isSubmitting}
-            className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-          >
-            <Github className="h-5 w-5 mr-2" />
-            Continue with GitHub
-          </button>
-        </div>
-        
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
+            {currentStep > index + 1 ? (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              index + 1
+            )}
           </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-gradient-to-br from-blue-50 via-white to-indigo-50 text-gray-500">
-              Or continue with email
-            </span>
-          </div>
+          {index < totalSteps - 1 && (
+            <div
+              className={`w-16 h-1 ${
+                currentStep > index + 1 ? 'bg-blue-600' : 'bg-gray-200'
+              }`}
+            />
+          )}
         </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+      ))}
+    </div>
+  );
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -166,7 +176,11 @@ const RegisterPage: React.FC = () => {
                 <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
               )}
             </div>
-            
+          </div>
+        );
+      case 2:
+        return (
+          <div className="space-y-4">
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
@@ -210,7 +224,11 @@ const RegisterPage: React.FC = () => {
                 <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
               )}
             </div>
-            
+          </div>
+        );
+      case 3:
+        return (
+          <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 I want to join as
@@ -256,15 +274,90 @@ const RegisterPage: React.FC = () => {
               </div>
             </div>
           </div>
+        );
+      default:
+        return null;
+    }
+  };
 
-          <div>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-70"
-            >
-              {isSubmitting ? 'Creating Account...' : 'Create Account'}
-            </button>
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 animate-slide-up">
+        <div className="text-center">
+          <h2 className="mt-6 text-4xl font-extrabold text-gray-900 tracking-tight">
+            Create your account
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Already have an account?{' '}
+            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+              Sign in
+            </Link>
+          </p>
+        </div>
+        
+        {error && (
+          <div className="bg-red-50 p-4 rounded-lg flex items-start border border-red-200">
+            <AlertCircle className="h-5 w-5 text-red-400 mr-3 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
+        
+        <div className="space-y-4">
+          <button
+            onClick={() => handleSocialLogin('google')}
+            disabled={isSubmitting}
+            className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          >
+            <Chrome className="h-5 w-5 mr-2 text-red-500" />
+            Continue with Google
+          </button>
+        </div>
+        
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-gradient-to-br from-blue-50 via-white to-indigo-50 text-gray-500">
+              Or continue with email
+            </span>
+          </div>
+        </div>
+        
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+          {renderStepIndicator()}
+          {renderStepContent()}
+
+          <div className="flex justify-between pt-4">
+            {currentStep > 1 && (
+              <button
+                type="button"
+                onClick={prevStep}
+                className="flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </button>
+            )}
+            
+            {currentStep < totalSteps ? (
+              <button
+                type="button"
+                onClick={nextStep}
+                className="ml-auto flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              >
+                Next
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="ml-auto flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-70"
+              >
+                {isSubmitting ? 'Creating Account...' : 'Create Account'}
+              </button>
+            )}
           </div>
           
           <p className="text-xs text-center text-gray-500">

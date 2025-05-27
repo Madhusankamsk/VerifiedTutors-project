@@ -21,7 +21,6 @@ const iconComponents = {
   AlertCircle: lazy(() => import('lucide-react').then(mod => ({ default: mod.AlertCircle }))),
   Mail: lazy(() => import('lucide-react').then(mod => ({ default: mod.Mail }))),
   Lock: lazy(() => import('lucide-react').then(mod => ({ default: mod.Lock }))),
-  Github: lazy(() => import('lucide-react').then(mod => ({ default: mod.Github }))),
   Chrome: lazy(() => import('lucide-react').then(mod => ({ default: mod.Chrome }))),
   Facebook: lazy(() => import('lucide-react').then(mod => ({ default: mod.Facebook }))),
   Twitter: lazy(() => import('lucide-react').then(mod => ({ default: mod.Twitter }))),
