@@ -528,10 +528,14 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Reviews & Ratings
   const fetchReviews = useCallback(async () => {
+    if (!profile?._id) {
+      setReviews([]);
+      return;
+    }
+    
     try {
       setLoading(true);
       setError(null);
-      if (!profile?._id) return;
       
       const response = await axios.get(`${API_URL}/api/tutors/${profile._id}/reviews`, {
         headers: {
@@ -554,10 +558,11 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Stats & Analytics
   const fetchStats = useCallback(async () => {
+    if (!profile?._id) return;
+    
     try {
       setLoading(true);
       setError(null);
-      if (!profile?._id) return;
       
       const response = await axios.get(`${API_URL}/api/tutors/${profile._id}/stats`, {
         headers: {
@@ -627,13 +632,32 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Initial data fetch
   useEffect(() => {
-    if (user) {
-      fetchProfile().then(() => {
-        fetchReviews();
-        fetchStats();
-      });
-    }
-  }, [user, fetchProfile, fetchReviews, fetchStats]);
+    let isMounted = true;
+
+    const fetchInitialData = async () => {
+      if (!user) return;
+      
+      try {
+        await fetchProfile();
+        
+        // Only fetch reviews and stats if we have a profile
+        if (profile?._id && isMounted) {
+          await Promise.all([
+            fetchReviews(),
+            fetchStats()
+          ]);
+        }
+      } catch (error) {
+        console.error('Error fetching initial data:', error);
+      }
+    };
+
+    fetchInitialData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user, profile?._id]); // Add profile?._id to dependencies
 
   const value = {
     profile,
