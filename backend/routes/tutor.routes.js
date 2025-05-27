@@ -6,27 +6,14 @@ import {
   updateTutorProfile,
   deleteTutorProfile,
   getTutorAvailability,
-  updateAvailability,
   getTutorBlogs,
   createBlog,
   updateBlog,
   deleteBlog,
-  getTutorByUserId,
-  updateSubjects,
-  updateLocations,
-  updateEducation,
-  updateExperience,
-  updateHourlyRate,
-  updateBio
+  getTutorByUserId
 } from '../controllers/tutor.controller.js';
 import { protect, authorize } from '../middleware/auth.middleware.js';
-import {
-  validateTutorProfile,
-  validateEducation,
-  validateExperience,
-  validateHourlyRate,
-  validateBio
-} from '../middleware/validation.middleware.js';
+import { validateTutorProfile } from '../middleware/validation.middleware.js';
 
 const router = express.Router();
 
@@ -260,9 +247,19 @@ const router = express.Router();
  *               - hourlyRate
  *               - bio
  *             properties:
+ *               gender:
+ *                 type: string
+ *                 enum: [Male, Female, Other]
+ *               mobileNumber:
+ *                 type: string
+ *                 pattern: '^[0-9]{10}$'
  *               bio:
  *                 type: string
  *               subjects:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               locations:
  *                 type: array
  *                 items:
  *                   type: string
@@ -270,16 +267,48 @@ const router = express.Router();
  *                 type: array
  *                 items:
  *                   type: object
+ *                   properties:
+ *                     degree:
+ *                       type: string
+ *                     institution:
+ *                       type: string
+ *                     year:
+ *                       type: number
  *               experience:
  *                 type: array
  *                 items:
  *                   type: object
+ *                   properties:
+ *                     title:
+ *                       type: string
+ *                     company:
+ *                       type: string
+ *                     duration:
+ *                       type: string
+ *                     description:
+ *                       type: string
  *               hourlyRate:
  *                 type: number
+ *                 minimum: 0
  *               availability:
  *                 type: array
  *                 items:
  *                   type: object
+ *                   properties:
+ *                     day:
+ *                       type: string
+ *                       enum: [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
+ *                     slots:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           start:
+ *                             type: string
+ *                             format: time
+ *                           end:
+ *                             type: string
+ *                             format: time
  *     responses:
  *       201:
  *         description: Tutor profile created successfully
@@ -385,8 +414,33 @@ const router = express.Router();
  *       404:
  *         description: Tutor profile not found
  *   put:
- *     summary: Update authenticated tutor's profile
- *     description: Update the profile of the currently authenticated tutor
+ *     summary: Update tutor profile (full update)
+ *     description: Update the entire tutor profile. All fields must be provided.
+ *     tags: [Tutors]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Tutor'
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Tutor'
+ *       400:
+ *         description: Invalid input data
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: Tutor profile not found
+ *   patch:
+ *     summary: Update tutor profile (partial update)
+ *     description: Update specific fields of the tutor profile. Only include the fields you want to update.
  *     tags: [Tutors]
  *     security:
  *       - bearerAuth: []
@@ -397,22 +451,92 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             properties:
+ *               gender:
+ *                 type: string
+ *                 enum: [Male, Female, Other]
+ *                 description: Tutor's gender
+ *               mobileNumber:
+ *                 type: string
+ *                 pattern: '^[0-9]{10}$'
+ *                 description: 10-digit mobile number
  *               bio:
  *                 type: string
+ *                 description: Tutor's biography
  *               subjects:
  *                 type: array
  *                 items:
  *                   type: string
+ *                 description: Array of subject IDs
+ *               locations:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of location IDs
  *               education:
  *                 type: array
  *                 items:
  *                   type: object
+ *                   properties:
+ *                     degree:
+ *                       type: string
+ *                       description: Degree or qualification
+ *                     institution:
+ *                       type: string
+ *                       description: Name of the educational institution
+ *                     year:
+ *                       type: number
+ *                       description: Year of completion
  *               experience:
  *                 type: array
  *                 items:
  *                   type: object
+ *                   properties:
+ *                     title:
+ *                       type: string
+ *                       description: Job title or position
+ *                     company:
+ *                       type: string
+ *                       description: Company or organization name
+ *                     duration:
+ *                       type: string
+ *                       description: Duration of employment
+ *                     description:
+ *                       type: string
+ *                       description: Job description or responsibilities
  *               hourlyRate:
  *                 type: number
+ *                 minimum: 0
+ *                 description: Tutor's hourly rate
+ *               availability:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     day:
+ *                       type: string
+ *                       enum: [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
+ *                       description: Day of the week
+ *                     slots:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           start:
+ *                             type: string
+ *                             format: time
+ *                             pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+ *                             description: Start time in 24-hour format (HH:mm)
+ *                           end:
+ *                             type: string
+ *                             format: time
+ *                             pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+ *                             description: End time in 24-hour format (HH:mm)
+ *               documents:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uri
+ *                 description: Array of document URLs
  *     responses:
  *       200:
  *         description: Profile updated successfully
@@ -420,6 +544,8 @@ const router = express.Router();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Tutor'
+ *       400:
+ *         description: Invalid input data
  *       401:
  *         description: Not authorized
  *       404:
@@ -467,8 +593,10 @@ const router = express.Router();
  *                     properties:
  *                       start:
  *                         type: string
+ *                         format: time
  *                       end:
  *                         type: string
+ *                         format: time
  *     responses:
  *       200:
  *         description: Availability updated successfully
@@ -493,6 +621,8 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - subjects
  *             properties:
  *               subjects:
  *                 type: array
@@ -522,6 +652,8 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - locations
  *             properties:
  *               locations:
  *                 type: array
@@ -551,6 +683,8 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - education
  *             properties:
  *               education:
  *                 type: array
@@ -587,6 +721,8 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - experience
  *             properties:
  *               experience:
  *                 type: array
@@ -625,9 +761,12 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - hourlyRate
  *             properties:
  *               hourlyRate:
  *                 type: number
+ *                 minimum: 0
  *     responses:
  *       200:
  *         description: Hourly rate updated successfully
@@ -652,6 +791,8 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - bio
  *             properties:
  *               bio:
  *                 type: string
@@ -704,23 +845,18 @@ const router = express.Router();
  *             properties:
  *               title:
  *                 type: string
- *                 description: The blog post title
  *               content:
  *                 type: string
- *                 description: The blog post content
  *               featuredImage:
  *                 type: string
- *                 description: URL to the featured image
  *               tags:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Array of tags for the blog post
  *               status:
  *                 type: string
  *                 enum: [draft, published]
  *                 default: draft
- *                 description: The status of the blog post
  *     responses:
  *       201:
  *         description: Blog post created successfully
@@ -759,22 +895,17 @@ const router = express.Router();
  *             properties:
  *               title:
  *                 type: string
- *                 description: The blog post title
  *               content:
  *                 type: string
- *                 description: The blog post content
  *               featuredImage:
  *                 type: string
- *                 description: URL to the featured image
  *               tags:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Array of tags for the blog post
  *               status:
  *                 type: string
  *                 enum: [draft, published]
- *                 description: The status of the blog post
  *     responses:
  *       200:
  *         description: Blog post updated successfully
@@ -847,17 +978,9 @@ router.get('/profile', protect, getTutorByUserId);
 
 // Tutor-only routes
 router.post('/', protect, authorize('tutor'), validateTutorProfile, createTutorProfile);
+router.patch('/profile', protect, authorize('tutor'), updateTutorProfile);
 router.put('/profile', protect, authorize('tutor'), validateTutorProfile, updateTutorProfile);
 router.delete('/profile', protect, authorize('tutor'), deleteTutorProfile);
-
-// Additional profile update routes
-router.put('/availability', protect, authorize('tutor'), updateAvailability);
-router.put('/subjects', protect, authorize('tutor'), updateSubjects);
-router.put('/locations', protect, authorize('tutor'), updateLocations);
-router.put('/education', protect, authorize('tutor'), validateEducation, updateEducation);
-router.put('/experience', protect, authorize('tutor'), validateExperience, updateExperience);
-router.put('/hourly-rate', protect, authorize('tutor'), validateHourlyRate, updateHourlyRate);
-router.put('/bio', protect, authorize('tutor'), validateBio, updateBio);
 
 // Blog routes
 router.get('/blogs', protect, authorize('tutor'), getTutorBlogs);

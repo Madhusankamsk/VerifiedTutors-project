@@ -88,7 +88,7 @@ export const createTutorProfile = async (req, res) => {
 };
 
 // @desc    Update tutor profile
-// @route   PUT /api/tutors/:id
+// @route   PUT/PATCH /api/tutors/profile
 // @access  Private/Tutor
 export const updateTutorProfile = async (req, res) => {
   try {
@@ -102,10 +102,65 @@ export const updateTutorProfile = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this profile' });
     }
 
-    Object.assign(tutor, req.body);
+    // Define allowed fields for update
+    const allowedFields = [
+      'gender',
+      'mobileNumber',
+      'bio',
+      'subjects',
+      'locations',
+      'education',
+      'experience',
+      'hourlyRate',
+      'availability',
+      'documents'
+    ];
+
+    // Filter out any fields that are not allowed
+    const updates = Object.keys(req.body)
+      .filter(key => allowedFields.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = req.body[key];
+        return obj;
+      }, {});
+
+    // Validate specific fields if they are being updated
+    if (updates.mobileNumber && !/^[0-9]{10}$/.test(updates.mobileNumber)) {
+      return res.status(400).json({ message: 'Invalid mobile number format' });
+    }
+
+    if (updates.hourlyRate && updates.hourlyRate < 0) {
+      return res.status(400).json({ message: 'Hourly rate cannot be negative' });
+    }
+
+    if (updates.availability) {
+      const validDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+
+      for (const slot of updates.availability) {
+        if (!validDays.includes(slot.day)) {
+          return res.status(400).json({ message: `Invalid day: ${slot.day}` });
+        }
+
+        for (const timeSlot of slot.slots) {
+          if (!timeRegex.test(timeSlot.start) || !timeRegex.test(timeSlot.end)) {
+            return res.status(400).json({ message: 'Invalid time format. Use HH:mm format' });
+          }
+        }
+      }
+    }
+
+    // Update the tutor profile
+    Object.assign(tutor, updates);
     await tutor.save();
 
-    res.json(tutor);
+    // Populate the response with related data
+    const updatedTutor = await Tutor.findById(tutor._id)
+      .populate('user', 'name email profileImage')
+      .populate('subjects', 'name category')
+      .populate('locations', 'name');
+
+    res.json(updatedTutor);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -147,139 +202,6 @@ export const getTutorAvailability = async (req, res) => {
     res.json(tutor.availability);
   } catch (error) {
     res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Update tutor availability
-// @route   PUT /api/tutors/availability
-// @access  Private/Tutor
-export const updateAvailability = async (req, res) => {
-  try {
-    const tutor = await Tutor.findOne({ user: req.user.id });
-    if (!tutor) {
-      return res.status(404).json({ message: 'Tutor profile not found' });
-    }
-
-    tutor.availability = req.body.availability;
-    await tutor.save();
-
-    res.json(tutor.availability);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-
-// @desc    Update tutor subjects
-// @route   PUT /api/tutors/subjects
-// @access  Private/Tutor
-export const updateSubjects = async (req, res) => {
-  try {
-    const tutor = await Tutor.findOne({ user: req.user.id });
-    if (!tutor) {
-      return res.status(404).json({ message: 'Tutor profile not found' });
-    }
-
-    tutor.subjects = req.body.subjects;
-    await tutor.save();
-
-    res.json(tutor.subjects);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-
-// @desc    Update tutor locations
-// @route   PUT /api/tutors/locations
-// @access  Private/Tutor
-export const updateLocations = async (req, res) => {
-  try {
-    const tutor = await Tutor.findOne({ user: req.user.id });
-    if (!tutor) {
-      return res.status(404).json({ message: 'Tutor profile not found' });
-    }
-
-    tutor.locations = req.body.locations;
-    await tutor.save();
-
-    res.json(tutor.locations);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-
-// @desc    Update tutor education
-// @route   PUT /api/tutors/education
-// @access  Private/Tutor
-export const updateEducation = async (req, res) => {
-  try {
-    const tutor = await Tutor.findOne({ user: req.user.id });
-    if (!tutor) {
-      return res.status(404).json({ message: 'Tutor profile not found' });
-    }
-
-    tutor.education = req.body.education;
-    await tutor.save();
-
-    res.json(tutor.education);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-
-// @desc    Update tutor experience
-// @route   PUT /api/tutors/experience
-// @access  Private/Tutor
-export const updateExperience = async (req, res) => {
-  try {
-    const tutor = await Tutor.findOne({ user: req.user.id });
-    if (!tutor) {
-      return res.status(404).json({ message: 'Tutor profile not found' });
-    }
-
-    tutor.experience = req.body.experience;
-    await tutor.save();
-
-    res.json(tutor.experience);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-
-// @desc    Update tutor hourly rate
-// @route   PUT /api/tutors/hourly-rate
-// @access  Private/Tutor
-export const updateHourlyRate = async (req, res) => {
-  try {
-    const tutor = await Tutor.findOne({ user: req.user.id });
-    if (!tutor) {
-      return res.status(404).json({ message: 'Tutor profile not found' });
-    }
-
-    tutor.hourlyRate = req.body.hourlyRate;
-    await tutor.save();
-
-    res.json({ hourlyRate: tutor.hourlyRate });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-
-// @desc    Update tutor bio
-// @route   PUT /api/tutors/bio
-// @access  Private/Tutor
-export const updateBio = async (req, res) => {
-  try {
-    const tutor = await Tutor.findOne({ user: req.user.id });
-    if (!tutor) {
-      return res.status(404).json({ message: 'Tutor profile not found' });
-    }
-
-    tutor.bio = req.body.bio;
-    await tutor.save();
-
-    res.json({ bio: tutor.bio });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
   }
 };
 
