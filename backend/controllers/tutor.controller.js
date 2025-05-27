@@ -150,9 +150,10 @@ export const updateTutorProfile = async (req, res) => {
     if (!tutor) {
       return res.status(404).json({ message: 'Tutor profile not found' });
     }
-
+    console.log("tutor",tutor);
+    console.log("req.user",req.user);
     // Check if user is authorized
-    if (tutor.user.toString() !== req.user.id) {
+    if (tutor.user.toString() !== req.user.id.toString()) {
       return res.status(403).json({ message: 'Not authorized to update this profile' });
     }
 

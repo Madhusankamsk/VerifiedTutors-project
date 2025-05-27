@@ -1,16 +1,35 @@
 import React, { useEffect } from 'react';
 import { useTutor } from '../../contexts/TutorContext';
 import { Link } from 'react-router-dom';
-import { Calendar, BookOpen, MapPin, Star, FileText, Clock, Users, DollarSign } from 'lucide-react';
+import { Calendar, BookOpen, MapPin, Star, FileText, Clock, Users, DollarSign, Edit2, Trash2 } from 'lucide-react';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const TutorDashboard = () => {
-  const { profile, loading, error, reviews, fetchProfile, fetchReviews } = useTutor();
+  const { 
+    profile, 
+    loading, 
+    error, 
+    reviews, 
+    blogs,
+    stats,
+    fetchProfile, 
+    fetchReviews,
+    fetchBlogs,
+    fetchStats,
+    deleteProfile
+  } = useTutor();
 
   useEffect(() => {
-    fetchProfile();
-    fetchReviews();
-  }, [fetchProfile, fetchReviews]);
+    const fetchData = async () => {
+      await Promise.all([
+        fetchProfile(),
+        fetchReviews(),
+        fetchBlogs(),
+        fetchStats()
+      ]);
+    };
+    fetchData();
+  }, [fetchProfile, fetchReviews, fetchBlogs, fetchStats]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -39,36 +58,52 @@ const TutorDashboard = () => {
     );
   }
 
-  // Calculate total earnings (placeholder - replace with actual calculation)
-  const totalEarnings = profile.subjects.reduce((sum, subject) => sum + subject.hourlyRate * 10, 0);
-
-  // Calculate total students (placeholder - replace with actual calculation)
-  const totalStudents = reviews.length;
-
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Profile Overview */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <div className="flex items-center space-x-4">
-          <div className="h-16 w-16 rounded-full bg-primary-100 flex items-center justify-center">
-            <span className="text-primary-600 font-semibold text-xl">
-              {profile.user.name.charAt(0)}
-            </span>
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold">{profile.user.name}</h2>
-            <div className="flex items-center mt-1 space-x-4">
-              <div className="flex items-center text-gray-600">
-                <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                <span>{profile.rating.toFixed(1)}</span>
-                <span className="ml-1">({profile.totalReviews} reviews)</span>
-              </div>
-              {profile.isVerified && (
-                <span className="bg-green-500 text-white px-2 py-0.5 rounded-full text-sm">
-                  Verified
-                </span>
-              )}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="h-16 w-16 rounded-full bg-primary-100 flex items-center justify-center">
+              <span className="text-primary-600 font-semibold text-xl">
+                {profile.user.name.charAt(0)}
+              </span>
             </div>
+            <div>
+              <h2 className="text-xl font-semibold">{profile.user.name}</h2>
+              <div className="flex items-center mt-1 space-x-4">
+                <div className="flex items-center text-gray-600">
+                  <Star className="w-4 h-4 text-yellow-400 mr-1" />
+                  <span>{profile.rating.toFixed(1)}</span>
+                  <span className="ml-1">({profile.totalReviews} reviews)</span>
+                </div>
+                {profile.isVerified && (
+                  <span className="bg-green-500 text-white px-2 py-0.5 rounded-full text-sm">
+                    Verified
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex space-x-2">
+            <Link
+              to="/tutor/profile/edit"
+              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            >
+              <Edit2 className="w-4 h-4 mr-2" />
+              Edit Profile
+            </Link>
+            <button
+              onClick={() => {
+                if (window.confirm('Are you sure you want to delete your profile? This action cannot be undone.')) {
+                  deleteProfile();
+                }
+              }}
+              className="inline-flex items-center px-3 py-2 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Profile
+            </button>
           </div>
         </div>
       </div>
@@ -82,7 +117,7 @@ const TutorDashboard = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Earnings</p>
-              <p className="text-lg font-semibold text-gray-900">${totalEarnings}</p>
+              <p className="text-lg font-semibold text-gray-900">${stats.totalEarnings}</p>
             </div>
           </div>
         </div>
@@ -94,7 +129,7 @@ const TutorDashboard = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Students</p>
-              <p className="text-lg font-semibold text-gray-900">{totalStudents}</p>
+              <p className="text-lg font-semibold text-gray-900">{stats.totalStudents}</p>
             </div>
           </div>
         </div>
@@ -106,7 +141,7 @@ const TutorDashboard = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Average Rating</p>
-              <p className="text-lg font-semibold text-gray-900">{profile.rating.toFixed(1)}</p>
+              <p className="text-lg font-semibold text-gray-900">{stats.averageRating.toFixed(1)}</p>
             </div>
           </div>
         </div>
@@ -117,8 +152,8 @@ const TutorDashboard = () => {
               <BookOpen className="w-6 h-6" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Subjects</p>
-              <p className="text-lg font-semibold text-gray-900">{profile.subjects.length}</p>
+              <p className="text-sm font-medium text-gray-600">Total Sessions</p>
+              <p className="text-lg font-semibold text-gray-900">{stats.totalSessions}</p>
             </div>
           </div>
         </div>
@@ -126,18 +161,54 @@ const TutorDashboard = () => {
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Upcoming Sessions */}
+        {/* Recent Blogs */}
         <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b">
+          <div className="p-6 border-b flex justify-between items-center">
             <h3 className="text-lg font-semibold flex items-center">
-              <Calendar className="w-5 h-5 mr-2" />
-              Upcoming Sessions
+              <FileText className="w-5 h-5 mr-2" />
+              Recent Blogs
             </h3>
+            <Link
+              to="/tutor/blogs"
+              className="text-sm text-primary-600 hover:text-primary-700"
+            >
+              View All
+            </Link>
           </div>
           <div className="p-6">
-            <div className="text-center text-gray-500 py-4">
-              No upcoming sessions
-            </div>
+            {blogs.length > 0 ? (
+              <div className="space-y-4">
+                {blogs.slice(0, 3).map((blog) => (
+                  <div key={blog._id} className="border-b pb-4 last:border-b-0 last:pb-0">
+                    <h4 className="font-medium mb-1">{blog.title}</h4>
+                    <p className="text-gray-600 text-sm line-clamp-2">{blog.content}</p>
+                    <div className="mt-2 flex items-center justify-between">
+                      <span className="text-sm text-gray-500">
+                        {new Date(blog.createdAt).toLocaleDateString()}
+                      </span>
+                      <div className="flex space-x-2">
+                        <Link
+                          to={`/tutor/blogs/edit/${blog._id}`}
+                          className="text-sm text-primary-600 hover:text-primary-700"
+                        >
+                          Edit
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-gray-500 py-4">
+                No blogs yet
+                <Link
+                  to="/tutor/blogs/create"
+                  className="block mt-2 text-primary-600 hover:text-primary-700"
+                >
+                  Create your first blog
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 

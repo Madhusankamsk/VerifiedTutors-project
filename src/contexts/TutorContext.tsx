@@ -86,6 +86,23 @@ export interface TutorReview {
   isVerified: boolean;
 }
 
+export interface TutorBlog {
+  _id: string;
+  title: string;
+  content: string;
+  tags: string[];
+  author: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Favorite {
+  _id: string;
+  tutor: TutorProfile;
+  student: string;
+  createdAt: string;
+}
+
 interface TutorContextType {
   // Profile Management
   profile: TutorProfile | null;
@@ -93,6 +110,7 @@ interface TutorContextType {
   error: string | null;
   fetchProfile: () => Promise<void>;
   updateProfile: (data: Partial<TutorProfile>) => Promise<void>;
+  deleteProfile: () => Promise<void>;
   
   // Subject Management
   addSubject: (subjectData: TutorSubject) => Promise<void>;
@@ -114,6 +132,19 @@ interface TutorContextType {
   // Reviews & Ratings
   reviews: TutorReview[];
   fetchReviews: () => Promise<void>;
+  
+  // Blog Management
+  blogs: TutorBlog[];
+  fetchBlogs: () => Promise<void>;
+  createBlog: (blogData: Omit<TutorBlog, '_id' | 'author' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateBlog: (blogId: string, blogData: Partial<TutorBlog>) => Promise<void>;
+  deleteBlog: (blogId: string) => Promise<void>;
+  
+  // Favorites Management (for students)
+  favorites: Favorite[];
+  fetchFavorites: () => Promise<void>;
+  addFavorite: (tutorId: string) => Promise<void>;
+  removeFavorite: (tutorId: string) => Promise<void>;
   
   // Stats & Analytics
   stats: {
@@ -152,6 +183,8 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const { user } = useAuth();
   const [profile, setProfile] = useState<TutorProfile | null>(null);
   const [reviews, setReviews] = useState<TutorReview[]>([]);
+  const [blogs, setBlogs] = useState<TutorBlog[]>([]);
+  const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<TutorContextType['stats']>({
@@ -181,7 +214,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setError(null);
       const response = await axios.get(`${API_URL}/api/tutors/profile`, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
       
@@ -191,7 +224,6 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setError('No profile data received');
       }
     } catch (err: any) {
-      // If the profile doesn't exist (404), we don't want to show an error
       if (err.response?.status === 404) {
         setProfile(null);
         setError(null);
@@ -206,8 +238,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [user]);
 
-  // Create tutor profile if it doesn't exist
-  const createProfile = useCallback(async (data: Partial<TutorProfile>) => {
+  const updateProfile = useCallback(async (data: Partial<TutorProfile>) => {
     if (!user) {
       throw new Error('User not authenticated');
     }
@@ -216,92 +247,209 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLoading(true);
       setError(null);
       
-      const response = await axios.post(`${API_URL}/api/tutors`, data, {
+      const response = await axios.put(`${API_URL}/api/tutors/profile`, data, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
 
       if (response.data) {
-        setProfile(response.data);
+        setProfile(response.data.tutor);
         return response.data;
-      } else {
-        throw new Error('Invalid response format from server');
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to create profile';
+      const errorMessage = err.response?.data?.message || 'Failed to update profile';
       setError(errorMessage);
-      console.error('Profile creation error:', err);
       throw err;
     } finally {
       setLoading(false);
     }
   }, [user]);
 
-  // Fetch profile when user changes
-  useEffect(() => {
-    if (user) {
-      fetchProfile();
-    }
-  }, [user, fetchProfile]);
-
-  const updateProfile = useCallback(async (data: Partial<TutorProfile>) => {
+  const deleteProfile = useCallback(async () => {
     if (!user) {
       throw new Error('User not authenticated');
-    }
-
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
     }
 
     try {
       setLoading(true);
       setError(null);
-
-      // If profile doesn't exist, create it first
-      if (!profile) {
-        const response = await axios.post(
-          `${API_URL}/api/tutors`,
-          data,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        setProfile(response.data);
-        return response.data;
-      }
-
-      // Update existing profile
-      const response = await axios.put(
-        `${API_URL}/api/tutors/profile`,
-        data,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+      
+      await axios.delete(`${API_URL}/api/tutors/profile`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-      );
+      });
 
-      if (response.data) {
-        setProfile(response.data);
-        return response.data;
-      } else {
-        throw new Error('Invalid response format from server');
-      }
+      setProfile(null);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to update profile';
+      const errorMessage = err.response?.data?.message || 'Failed to delete profile';
       setError(errorMessage);
-      console.error('Profile update error:', err);
       throw err;
     } finally {
       setLoading(false);
     }
-  }, [user, profile]);
+  }, [user]);
+
+  // Blog Management
+  const fetchBlogs = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.get(`${API_URL}/api/tutors/blogs`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setBlogs(response.data);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to fetch blogs';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const createBlog = useCallback(async (blogData: Omit<TutorBlog, '_id' | 'author' | 'createdAt' | 'updatedAt'>) => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.post(`${API_URL}/api/tutors/blogs`, blogData, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setBlogs(prev => [...prev, response.data]);
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to create blog';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const updateBlog = useCallback(async (blogId: string, blogData: Partial<TutorBlog>) => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.put(`${API_URL}/api/tutors/blogs/${blogId}`, blogData, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setBlogs(prev => prev.map(blog => blog._id === blogId ? response.data : blog));
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to update blog';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const deleteBlog = useCallback(async (blogId: string) => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      await axios.delete(`${API_URL}/api/tutors/blogs/${blogId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setBlogs(prev => prev.filter(blog => blog._id !== blogId));
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to delete blog';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Favorites Management
+  const fetchFavorites = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.get(`${API_URL}/api/students/favorites`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setFavorites(response.data);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to fetch favorites';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const addFavorite = useCallback(async (tutorId: string) => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.post(`${API_URL}/api/students/favorites/${tutorId}`, {}, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setFavorites(prev => [...prev, response.data]);
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to add favorite';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const removeFavorite = useCallback(async (tutorId: string) => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      await axios.delete(`${API_URL}/api/students/favorites/${tutorId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setFavorites(prev => prev.filter(fav => fav.tutor._id !== tutorId));
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to remove favorite';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
 
   // Subject Management
   const addSubject = useCallback(async (subjectData: TutorSubject) => {
@@ -554,7 +702,6 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
       setReviews(response.data);
     } catch (err: any) {
-      // Don't show error for 404 (no reviews yet)
       if (err.response?.status !== 404) {
         const errorMessage = err.response?.data?.message || 'Failed to fetch reviews';
         setError(errorMessage);
@@ -581,13 +728,11 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
       setStats(response.data);
     } catch (err: any) {
-      // Don't show error for 404 (no stats yet)
       if (err.response?.status !== 404) {
         const errorMessage = err.response?.data?.message || 'Failed to fetch stats';
         setError(errorMessage);
         console.error('Stats fetch error:', err);
       }
-      // Set default stats
       setStats({
         totalStudents: 0,
         totalSessions: 0,
@@ -640,7 +785,6 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
-  // Initial data fetch
   useEffect(() => {
     let isMounted = true;
 
@@ -650,7 +794,6 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try {
         await fetchProfile();
         
-        // Only fetch reviews and stats if we have a profile
         if (profile?._id && isMounted) {
           await Promise.all([
             fetchReviews(),
@@ -667,7 +810,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return () => {
       isMounted = false;
     };
-  }, [user, profile?._id]); // Add profile?._id to dependencies
+  }, [user, profile?._id]);
 
   const value = {
     profile,
@@ -675,6 +818,16 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     error,
     fetchProfile,
     updateProfile,
+    deleteProfile,
+    blogs,
+    fetchBlogs,
+    createBlog,
+    updateBlog,
+    deleteBlog,
+    favorites,
+    fetchFavorites,
+    addFavorite,
+    removeFavorite,
     addSubject,
     updateSubject,
     removeSubject,
