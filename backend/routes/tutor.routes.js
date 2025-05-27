@@ -26,7 +26,7 @@ router.use(protect);
 
 // Profile routes
 router.get('/profile', getTutorByUserId);
-router.put('/profile', authorize('tutor'), validateTutorProfile, updateTutorProfile);
+router.put('/profile', authorize('tutor'), updateTutorProfile);
 router.delete('/profile', authorize('tutor'), deleteTutorProfile);
 
 // Blog routes

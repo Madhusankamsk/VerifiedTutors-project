@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTutor } from '../contexts/TutorContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { Star, MapPin, BookOpen, GraduationCap, Briefcase, FileText } from 'lucide-react';
+import { Star, MapPin, BookOpen, GraduationCap, Briefcase, FileText, User, Clock } from 'lucide-react';
 
 const TutorProfilePage = () => {
   const { id } = useParams();
@@ -73,7 +73,13 @@ const TutorProfilePage = () => {
           {/* About Section */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4">About</h2>
-            <p className="text-gray-600">{profile.bio}</p>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex items-center mb-2">
+                <User className="w-5 h-5 mr-2 text-gray-600" />
+                <span className="text-gray-600">Gender: {profile.gender}</span>
+              </div>
+              <p className="text-gray-600">{profile.bio}</p>
+            </div>
           </div>
 
           {/* Contact Information */}
@@ -100,14 +106,37 @@ const TutorProfilePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {profile.subjects.map((subject, index) => (
                 <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-medium">{subject.subject.name}</h3>
-                  <p className="text-gray-600">${subject.hourlyRate}/hour</p>
-                  <div className="mt-2">
-                    <h4 className="text-sm font-medium text-gray-700">Availability:</h4>
-                    <div className="mt-1 space-y-1">
+                  <h3 className="font-medium mb-2">{subject.subject.name}</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Individual Rate:</span>
+                      <span className="font-medium">${subject.rates.individual}/hour</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Group Rate:</span>
+                      <span className="font-medium">${subject.rates.group}/hour</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Online Rate:</span>
+                      <span className="font-medium">${subject.rates.online}/hour</span>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                      <Clock className="w-4 h-4 mr-1" />
+                      Availability:
+                    </h4>
+                    <div className="space-y-2">
                       {subject.availability.map((slot, idx) => (
-                        <div key={idx} className="text-sm text-gray-600">
-                          {slot.day}: {slot.slots.map(s => `${s.start}-${s.end}`).join(', ')}
+                        <div key={idx} className="text-sm">
+                          <div className="font-medium text-gray-700">{slot.day}</div>
+                          <div className="ml-4 space-y-1">
+                            {slot.slots.map((s, slotIdx) => (
+                              <div key={slotIdx} className="text-gray-600">
+                                {s.start} - {s.end}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       ))}
                     </div>

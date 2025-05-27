@@ -250,35 +250,45 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       throw new Error('User not authenticated');
     }
 
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
     try {
       setLoading(true);
       setError(null);
-      
+
       // If profile doesn't exist, create it first
       if (!profile) {
-        return createProfile(data);
+        const response = await axios.post(
+          `${API_URL}/api/tutors`,
+          data,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        setProfile(response.data);
+        return response.data;
       }
-      
-      // Format the data to match backend expectations
-      const formattedData = {
-        phone: data.phone || '',
-        bio: data.bio || '',
-        gender: data.gender,
-        education: data.education || [],
-        experience: data.experience || [],
-        subjects: data.subjects || [],
-        locations: data.locations || [],
-        documents: data.documents || []
-      };
 
-      const response = await axios.put(`${API_URL}/api/tutors/profile`, formattedData, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      // Update existing profile
+      const response = await axios.put(
+        `${API_URL}/api/tutors/profile`,
+        data,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
         }
-      });
+      );
 
-      if (response.data && response.data.tutor) {
-        setProfile(response.data.tutor);
+      if (response.data) {
+        setProfile(response.data);
         return response.data;
       } else {
         throw new Error('Invalid response format from server');
@@ -291,7 +301,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } finally {
       setLoading(false);
     }
-  }, [user, profile, createProfile]);
+  }, [user, profile]);
 
   // Subject Management
   const addSubject = useCallback(async (subjectData: TutorSubject) => {
