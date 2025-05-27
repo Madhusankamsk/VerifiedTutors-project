@@ -170,7 +170,7 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({ selectedSubjects, onS
       )}
 
       {/* Subject List */}
-      <div className="border rounded-lg divide-y">
+      <div className="space-y-2">
         {filteredSubjects.map((subject) => (
           <div
             key={subject._id}

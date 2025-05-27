@@ -1,12 +1,9 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { TutorProvider } from './contexts/TutorContext';
 import { AdminProvider } from './contexts/AdminContext';
 import { LocationProvider } from './contexts/LocationContext';
 import { SubjectProvider } from './contexts/SubjectContext';
-import { AdminSubjectProvider } from './contexts/AdminSubjectContext';
-import { AdminLocationProvider } from './contexts/AdminLocationContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import RoleRoute from './components/common/RoleRoute';
 import { Toaster } from 'react-hot-toast';

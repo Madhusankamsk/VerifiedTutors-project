@@ -1,615 +1,573 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from './AuthContext';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { useAuth } from './AuthContext';
+import { API_URL } from '../config/constants';
+import { Subject } from './AdminContext';
+import { Location } from './LocationContext';
 
-interface User {
+// Types
+export interface TutorProfile {
   _id: string;
-  name: string;
-  email: string;
-  profileImage?: string;
-  role: 'student' | 'tutor' | 'admin';
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Location {
-  _id: string;
-  name: string;
-  province: string;
-  country: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Subject {
-  _id: string;
-  name: string;
-  category: string;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Education {
-  _id: string;
-  degree: string;
-  institution: string;
-  year: number;
-  fieldOfStudy: string;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Experience {
-  _id: string;
-  title: string;
-  company: string;
-  duration: string;
-  description: string;
-  startDate: string;
-  endDate?: string;
-  isCurrent: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface AvailabilitySlot {
-  start: string;
-  end: string;
-  isBooked: boolean;
-  bookingId?: string;
-}
-
-interface DayAvailability {
-  day: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
-  slots: AvailabilitySlot[];
-  isAvailable: boolean;
-}
-
-interface Tutor {
-  _id: string;
-  user: User;
-  gender: 'Male' | 'Female' | 'Other';
-  mobileNumber: string;
-  locations: Location[];
-  bio: string;
-  subjects: Subject[];
-  education: Education[];
-  experience: Experience[];
-  hourlyRate: number;
-  availability: DayAvailability[];
-  rating: number;
-  totalRatings: number;
-  isVerified: boolean;
-  documents: string[];
-  status: 'active' | 'inactive' | 'suspended';
-  preferences: {
-    teachingStyle: string[];
-    preferredStudents: string[];
-    maxStudentsPerSession: number;
-    minSessionDuration: number;
-    maxSessionDuration: number;
-  };
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface BlogAuthor {
-  _id: string;
-  name: string;
-  profileImage?: string;
-  role: string;
-}
-
-interface Blog {
-  _id: string;
-  title: string;
-  content: string;
-  author: BlogAuthor;
-  featuredImage?: string;
-  tags: string[];
-  status: 'draft' | 'published' | 'archived';
-  views: number;
-  likes: number;
-  comments: Array<{
+  user: {
     _id: string;
-    user: BlogAuthor;
-    content: string;
-    createdAt: string;
-    updatedAt: string;
-  }>;
+    name: string;
+    email: string;
+    profileImage?: string;
+  };
+  phone: string;
+  gender: 'Male' | 'Female' | 'Other';
+  bio: string;
+  education: {
+    degree: string;
+    institution: string;
+    year: number;
+  }[];
+  experience: {
+    position: string;
+    institution: string;
+    duration: string;
+    description: string;
+  }[];
+  subjects: {
+    subject: Subject;
+    rates: {
+      individual: number;
+      group: number;
+      online: number;
+    };
+    availability: {
+      day: string;
+      slots: {
+        start: string;
+        end: string;
+      }[];
+    }[];
+  }[];
+  locations: Location[];
+  documents: {
+    _id: string;
+    type: 'qualification' | 'identity' | 'other';
+    url: string;
+    verified: boolean;
+  }[];
+  rating: number;
+  totalReviews: number;
+  isVerified: boolean;
+  status: 'active' | 'inactive' | 'suspended';
   createdAt: string;
   updatedAt: string;
 }
 
-interface TutorStats {
-  totalStudents: number;
-  totalSessions: number;
-  averageRating: number;
-  totalEarnings: number;
-  completedSessions: number;
-  upcomingSessions: number;
-  monthlyEarnings: number;
-  yearlyEarnings: number;
-  studentRetentionRate: number;
-  popularSubjects: Array<{
-    subject: Subject;
-    sessionCount: number;
-  }>;
+export interface TutorAvailability {
+  day: string;
+  slots: {
+    start: string;
+    end: string;
+  }[];
+}
+
+export interface TutorSubject {
+  subject: Subject;
+  rates: {
+    individual: number;
+    group: number;
+    online: number;
+  };
+  availability: TutorAvailability[];
+}
+
+export interface TutorReview {
+  _id: string;
+  studentId: string;
+  studentName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  isVerified: boolean;
 }
 
 interface TutorContextType {
-  tutor: Tutor | null;
-  blogs: Blog[];
+  // Profile Management
+  profile: TutorProfile | null;
   loading: boolean;
   error: string | null;
-  isProfileLoaded: boolean;
-  // Tutor Profile Methods
-  fetchTutorProfile: () => Promise<void>;
-  fetchTutorById: (id: string) => Promise<Tutor>;
-  fetchAllTutors: (filters?: {
+  fetchProfile: () => Promise<void>;
+  updateProfile: (data: Partial<TutorProfile>) => Promise<void>;
+  
+  // Subject Management
+  addSubject: (subjectData: TutorSubject) => Promise<void>;
+  updateSubject: (subjectId: string, data: Partial<TutorSubject>) => Promise<void>;
+  removeSubject: (subjectId: string) => Promise<void>;
+  
+  // Availability Management
+  updateAvailability: (subjectId: string, availability: TutorAvailability[]) => Promise<void>;
+  getAvailabilityForDateRange: (startDate: Date, endDate: Date) => Promise<any>;
+  
+  // Document Management
+  uploadDocument: (file: File, type: 'qualification' | 'identity' | 'other') => Promise<void>;
+  deleteDocument: (documentId: string) => Promise<void>;
+  
+  // Location Management
+  addLocation: (locationId: string) => Promise<void>;
+  removeLocation: (locationId: string) => Promise<void>;
+  
+  // Reviews & Ratings
+  reviews: TutorReview[];
+  fetchReviews: () => Promise<void>;
+  
+  // Stats & Analytics
+  stats: {
+    totalStudents: number;
+    totalSessions: number;
+    averageRating: number;
+    totalEarnings: number;
+  };
+  fetchStats: () => Promise<void>;
+  
+  // Search & Filter
+  searchTutors: (params: {
     subject?: string;
     rating?: number;
-    price?: number;
-    search?: string;
+    price?: { min: number; max: number };
     location?: string;
-    availability?: string;
-    gender?: string;
-  }) => Promise<Tutor[]>;
-  updateTutorProfile: (data: Partial<Tutor>) => Promise<void>;
-  updateAvailability: (availability: DayAvailability[]) => Promise<void>;
-  updateSubjects: (subjects: Subject[]) => Promise<void>;
-  updateLocations: (locations: Location[]) => Promise<void>;
-  updateEducation: (education: Education[]) => Promise<void>;
-  updateExperience: (experience: Experience[]) => Promise<void>;
-  updateHourlyRate: (rate: number) => Promise<void>;
-  updateBio: (bio: string) => Promise<void>;
-  updatePreferences: (preferences: Tutor['preferences']) => Promise<void>;
-  deleteTutorProfile: () => Promise<void>;
-  // Blog Methods
-  fetchTutorBlogs: () => Promise<void>;
-  createBlog: (blogData: {
-    title: string;
-    content: string;
-    featuredImage?: string;
-    tags: string[];
-    status?: 'draft' | 'published';
-  }) => Promise<void>;
-  updateBlog: (blogId: string, blogData: Partial<{
-    title: string;
-    content: string;
-    featuredImage: string;
-    tags: string[];
-    status: 'draft' | 'published' | 'archived';
-  }>) => Promise<void>;
-  deleteBlog: (blogId: string) => Promise<void>;
-  // Document Methods
-  uploadDocument: (file: File) => Promise<string>;
-  deleteDocument: (documentUrl: string) => Promise<void>;
-  // Stats Methods
-  getTutorStats: () => Promise<TutorStats>;
-  clearError: () => void;
+    educationLevel?: string;
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) => Promise<{
+    tutors: TutorProfile[];
+    pagination: {
+      total: number;
+      page: number;
+      pages: number;
+      limit: number;
+    };
+  }>;
 }
 
 const TutorContext = createContext<TutorContextType | undefined>(undefined);
 
 export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, isAuthenticated } = useAuth();
-  const [tutor, setTutor] = useState<Tutor | null>(null);
-  const [blogs, setBlogs] = useState<Blog[]>([]);
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<TutorProfile | null>(null);
+  const [reviews, setReviews] = useState<TutorReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isProfileLoaded, setIsProfileLoaded] = useState(false);
+  const [stats, setStats] = useState<TutorContextType['stats']>({
+    totalStudents: 0,
+    totalSessions: 0,
+    averageRating: 0,
+    totalEarnings: 0
+  });
 
-  // Clear error state
-  const clearError = () => setError(null);
-
-  // Fetch all tutors with optional filters
-  const fetchAllTutors = async (filters?: {
-    subject?: string;
-    rating?: number;
-    price?: number;
-    search?: string;
-    location?: string;
-    availability?: string;
-    gender?: string;
-  }) => {
+  // Profile Management
+  const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const params = new URLSearchParams();
-      if (filters?.subject) params.append('subject', filters.subject);
-      if (filters?.rating) params.append('rating', filters.rating.toString());
-      if (filters?.price) params.append('price', filters.price.toString());
-      if (filters?.search) params.append('search', filters.search);
-      if (filters?.location) params.append('location', filters.location);
-      if (filters?.availability) params.append('availability', filters.availability);
-      if (filters?.gender) params.append('gender', filters.gender);
-      
-      const response = await axios.get(`/api/tutors?${params.toString()}`);
-      return response.data;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch tutors');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch tutor by ID
-  const fetchTutorById = async (id: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.get(`/api/tutors/${id}`);
-      return response.data;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch tutor');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Delete tutor profile
-  const deleteTutorProfile = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      await axios.delete('/api/tutors/profile');
-      setTutor(null);
-      setIsProfileLoaded(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete tutor profile');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Tutor Profile Methods
-  const fetchTutorProfile = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      if (!user?.id) {
-        throw new Error('User ID is missing');
-      }
-
-      // Get the tutor profile using the authenticated user
-      let response;
-      try {
-        response = await axios.get('/api/tutors/profile');
-      } catch (err) {
-        // If tutor profile doesn't exist, create one
-        if (axios.isAxiosError(err) && err.response?.status === 404) {
-          response = await axios.post('/api/tutors/profile', {
-            gender: 'Other',
-            mobileNumber: '',
-            bio: '',
-            hourlyRate: 0,
-            subjects: [],
-            locations: [],
-            education: [],
-            experience: [],
-            availability: []
-          });
-        } else {
-          throw err;
+      const response = await axios.get(`${API_URL}/api/tutors/profile`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-      }
-      setTutor(response.data);
-      setIsProfileLoaded(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch tutor profile');
-      setIsProfileLoaded(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateTutorProfile = async (data: Partial<Tutor>) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // If profile doesn't exist, create it first
-      if (!tutor?._id) {
-        const createResponse = await axios.post('/api/tutors/profile', {
-          gender: 'Other',
-          mobileNumber: '',
-          bio: '',
-          hourlyRate: 0,
-          subjects: [],
-          locations: [],
-          education: [],
-          experience: [],
-          availability: [],
-          ...data
-        });
-        setTutor(createResponse.data);
-        setIsProfileLoaded(true);
-        return;
-      }
-
-      // Update existing profile
-      const response = await axios.put('/api/tutors/profile', data);
-      setTutor(response.data);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update tutor profile';
+      });
+      setProfile(response.data);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to fetch tutor profile';
       setError(errorMessage);
-      throw err;
+      console.error('Profile fetch error:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const updateAvailability = async (availability: DayAvailability[]) => {
+  const updateProfile = useCallback(async (data: Partial<TutorProfile>) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.put('/api/tutors/availability', availability);
-      setTutor(prev => prev ? { ...prev, availability: response.data } : null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update availability');
+      
+      // Format the data to match backend expectations
+      const formattedData = {
+        phone: data.phone || '',
+        bio: data.bio || '',
+        gender: data.gender,
+        education: data.education || [],
+        experience: data.experience || [],
+        subjects: data.subjects || [],
+        locations: data.locations || [],
+        documents: data.documents || []
+      };
+
+      // Validate required fields
+      if (!formattedData.phone) {
+        throw new Error('Phone number is required');
+      }
+
+      const response = await axios.put(`${API_URL}/api/tutors/profile`, formattedData, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setProfile(response.data.tutor);
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to update profile';
+      setError(errorMessage);
+      console.error('Profile update error:', err);
       throw err;
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const updateSubjects = async (subjects: Subject[]) => {
+  // Subject Management
+  const addSubject = useCallback(async (subjectData: TutorSubject) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.put('/api/tutors/subjects', { subjects });
-      setTutor(prev => prev ? { ...prev, subjects: response.data } : null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update subjects');
+      const response = await axios.post(`${API_URL}/api/tutors/subjects`, subjectData, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setProfile(prev => prev ? { ...prev, subjects: [...prev.subjects, response.data] } : null);
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to add subject';
+      setError(errorMessage);
+      console.error('Add subject error:', err);
       throw err;
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const updateLocations = async (locations: Location[]) => {
+  const updateSubject = useCallback(async (subjectId: string, data: Partial<TutorSubject>) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.put('/api/tutors/locations', { locations });
-      setTutor(prev => prev ? { ...prev, locations: response.data } : null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update locations');
+      const response = await axios.patch(`${API_URL}/api/tutors/subjects/${subjectId}`, data, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setProfile(prev => {
+        if (!prev) return null;
+        const updatedSubjects = prev.subjects.map(subject =>
+          subject.subject._id === subjectId ? { ...subject, ...response.data } : subject
+        );
+        return { ...prev, subjects: updatedSubjects };
+      });
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to update subject';
+      setError(errorMessage);
+      console.error('Update subject error:', err);
       throw err;
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const updateEducation = async (education: Education[]) => {
+  const removeSubject = useCallback(async (subjectId: string) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.put('/api/tutors/education', { education });
-      setTutor(prev => prev ? { ...prev, education: response.data } : null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update education');
+      await axios.delete(`${API_URL}/api/tutors/subjects/${subjectId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setProfile(prev => {
+        if (!prev) return null;
+        const updatedSubjects = prev.subjects.filter(subject => subject.subject._id !== subjectId);
+        return { ...prev, subjects: updatedSubjects };
+      });
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to remove subject';
+      setError(errorMessage);
+      console.error('Remove subject error:', err);
       throw err;
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const updateExperience = async (experience: Experience[]) => {
+  // Availability Management
+  const updateAvailability = useCallback(async (subjectId: string, availability: TutorAvailability[]) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.put('/api/tutors/experience', { experience });
-      setTutor(prev => prev ? { ...prev, experience: response.data } : null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update experience');
+      const response = await axios.patch(
+        `${API_URL}/api/tutors/subjects/${subjectId}/availability`,
+        { availability },
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      setProfile(prev => {
+        if (!prev) return null;
+        const updatedSubjects = prev.subjects.map(subject =>
+          subject.subject._id === subjectId ? { ...subject, availability: response.data.availability } : subject
+        );
+        return { ...prev, subjects: updatedSubjects };
+      });
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to update availability';
+      setError(errorMessage);
+      console.error('Update availability error:', err);
       throw err;
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const updateHourlyRate = async (rate: number) => {
+  const getAvailabilityForDateRange = useCallback(async (startDate: Date, endDate: Date) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.put('/api/tutors/hourly-rate', { hourlyRate: rate });
-      setTutor(prev => prev ? { ...prev, hourlyRate: response.data.hourlyRate } : null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update hourly rate');
+      const response = await axios.get(
+        `${API_URL}/api/tutors/${profile?._id}/availability`,
+        {
+          params: {
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString()
+          },
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to fetch availability';
+      setError(errorMessage);
+      console.error('Fetch availability error:', err);
       throw err;
     } finally {
       setLoading(false);
     }
-  };
+  }, [profile?._id]);
 
-  const updateBio = async (bio: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.put('/api/tutors/bio', { bio });
-      setTutor(prev => prev ? { ...prev, bio: response.data.bio } : null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update bio');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updatePreferences = async (preferences: Tutor['preferences']) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.put('/api/tutors/preferences', { preferences });
-      setTutor(prev => prev ? { ...prev, preferences: response.data.preferences } : null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update preferences');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Blog Methods
-  const fetchTutorBlogs = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.get('/api/tutors/blogs');
-      setBlogs(response.data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch blogs');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createBlog = async (blogData: {
-    title: string;
-    content: string;
-    featuredImage?: string;
-    tags: string[];
-    status?: 'draft' | 'published';
-  }) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.post('/api/tutors/blogs', blogData);
-      setBlogs(prev => [...prev, response.data]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create blog');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateBlog = async (blogId: string, blogData: Partial<{
-    title: string;
-    content: string;
-    featuredImage: string;
-    tags: string[];
-    status: 'draft' | 'published' | 'archived';
-  }>) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.put(`/api/tutors/blogs/${blogId}`, blogData);
-      setBlogs(prev => prev.map(blog => blog._id === blogId ? response.data : blog));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update blog');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteBlog = async (blogId: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      await axios.delete(`/api/tutors/blogs/${blogId}`);
-      setBlogs(prev => prev.filter(blog => blog._id !== blogId));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete blog');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // New Methods
-  const uploadDocument = async (file: File): Promise<string> => {
+  // Document Management
+  const uploadDocument = useCallback(async (file: File, type: 'qualification' | 'identity' | 'other') => {
     try {
       setLoading(true);
       setError(null);
       const formData = new FormData();
       formData.append('document', file);
-      const response = await axios.post('/api/tutors/documents', formData, {
+      formData.append('type', type);
+
+      const response = await axios.post(`${API_URL}/api/tutors/documents`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'multipart/form-data'
+        }
       });
-      setTutor(prev => prev ? { ...prev, documents: [...prev.documents, response.data.url] } : null);
-      return response.data.url;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to upload document');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteDocument = async (documentUrl: string): Promise<void> => {
-    try {
-      setLoading(true);
-      setError(null);
-      await axios.delete(`/api/tutors/documents/${encodeURIComponent(documentUrl)}`);
-      setTutor(prev => prev ? { ...prev, documents: prev.documents.filter(doc => doc !== documentUrl) } : null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete document');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getTutorStats = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.get('/api/tutors/stats');
+      setProfile(prev => prev ? { ...prev, documents: [...prev.documents, response.data] } : null);
       return response.data;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch tutor stats');
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to upload document';
+      setError(errorMessage);
+      console.error('Document upload error:', err);
       throw err;
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Effect to fetch tutor profile when user is authenticated
-  useEffect(() => {
-    if (isAuthenticated && user?.role === 'tutor') {
-      fetchTutorProfile();
+  const deleteDocument = useCallback(async (documentId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      await axios.delete(`${API_URL}/api/tutors/documents/${documentId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setProfile(prev => {
+        if (!prev) return null;
+        const updatedDocuments = prev.documents.filter(doc => doc._id !== documentId);
+        return { ...prev, documents: updatedDocuments };
+      });
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to delete document';
+      setError(errorMessage);
+      console.error('Document delete error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
     }
-  }, [isAuthenticated, user]);
+  }, []);
+
+  // Location Management
+  const addLocation = useCallback(async (locationId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.post(
+        `${API_URL}/api/tutors/locations`,
+        { locationId },
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      setProfile(prev => prev ? { ...prev, locations: [...prev.locations, response.data] } : null);
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to add location';
+      setError(errorMessage);
+      console.error('Add location error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const removeLocation = useCallback(async (locationId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      await axios.delete(`${API_URL}/api/tutors/locations/${locationId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setProfile(prev => {
+        if (!prev) return null;
+        const updatedLocations = prev.locations.filter(loc => loc._id !== locationId);
+        return { ...prev, locations: updatedLocations };
+      });
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to remove location';
+      setError(errorMessage);
+      console.error('Remove location error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Reviews & Ratings
+  const fetchReviews = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      if (!profile?._id) return;
+      
+      const response = await axios.get(`${API_URL}/api/tutors/${profile._id}/reviews`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setReviews(response.data);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to fetch reviews';
+      setError(errorMessage);
+      console.error('Reviews fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [profile?._id]);
+
+  // Stats & Analytics
+  const fetchStats = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      if (!profile?._id) return;
+      
+      const response = await axios.get(`${API_URL}/api/tutors/${profile._id}/stats`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setStats(response.data);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to fetch stats';
+      setError(errorMessage);
+      console.error('Stats fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [profile?._id]);
+
+  // Search & Filter
+  const searchTutors = useCallback(async (params: {
+    subject?: string;
+    rating?: number;
+    price?: { min: number; max: number };
+    location?: string;
+    educationLevel?: string;
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const queryParams = new URLSearchParams();
+      if (params.subject) queryParams.append('subject', params.subject);
+      if (params.rating) queryParams.append('rating', params.rating.toString());
+      if (params.price) {
+        queryParams.append('price', `${params.price.min}-${params.price.max}`);
+      }
+      if (params.location) queryParams.append('location', params.location);
+      if (params.educationLevel) queryParams.append('educationLevel', params.educationLevel);
+      if (params.page) queryParams.append('page', params.page.toString());
+      if (params.limit) queryParams.append('limit', params.limit.toString());
+      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+
+      const response = await axios.get(`${API_URL}/api/tutors?${queryParams.toString()}`);
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to search tutors';
+      setError(errorMessage);
+      console.error('Search tutors error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Initial data fetch
+  useEffect(() => {
+    if (user) {
+      fetchProfile().then(() => {
+        fetchReviews();
+        fetchStats();
+      });
+    }
+  }, [user, fetchProfile, fetchReviews, fetchStats]);
 
   const value = {
-    tutor,
-    blogs,
+    profile,
     loading,
     error,
-    isProfileLoaded,
-    fetchTutorProfile,
-    fetchTutorById,
-    fetchAllTutors,
-    updateTutorProfile,
+    fetchProfile,
+    updateProfile,
+    addSubject,
+    updateSubject,
+    removeSubject,
     updateAvailability,
-    updateSubjects,
-    updateLocations,
-    updateEducation,
-    updateExperience,
-    updateHourlyRate,
-    updateBio,
-    updatePreferences,
-    deleteTutorProfile,
-    fetchTutorBlogs,
-    createBlog,
-    updateBlog,
-    deleteBlog,
+    getAvailabilityForDateRange,
     uploadDocument,
     deleteDocument,
-    getTutorStats,
-    clearError
+    addLocation,
+    removeLocation,
+    reviews,
+    fetchReviews,
+    stats,
+    fetchStats,
+    searchTutors
   };
 
   return <TutorContext.Provider value={value}>{children}</TutorContext.Provider>;
@@ -621,4 +579,4 @@ export function useTutor() {
     throw new Error('useTutor must be used within a TutorProvider');
   }
   return context;
-} 
+}

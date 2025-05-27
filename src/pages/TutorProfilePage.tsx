@@ -1,33 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTutor } from '../contexts/TutorContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { Star, MapPin, BookOpen, GraduationCap, Briefcase, FileText } from 'lucide-react';
 
 const TutorProfilePage = () => {
   const { id } = useParams();
-  const [loading, setLoading] = React.useState(true);
-  const [tutor, setTutor] = React.useState<any>(null);
-  const [error, setError] = React.useState<string | null>(null);
+  const { profile, loading, error, fetchProfile } = useTutor();
 
-  React.useEffect(() => {
-    const fetchTutorProfile = async () => {
-      try {
-        setLoading(true);
-        // TODO: Replace with actual API call
-        const response = await fetch(`/api/tutors/${id}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch tutor profile');
-        }
-        const data = await response.json();
-        setTutor(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTutorProfile();
-  }, [id]);
+  useEffect(() => {
+    if (id) {
+      fetchProfile();
+    }
+  }, [id, fetchProfile]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -44,7 +29,7 @@ const TutorProfilePage = () => {
     );
   }
 
-  if (!tutor) {
+  if (!profile) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -58,80 +43,166 @@ const TutorProfilePage = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        {/* Profile Header */}
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6">
           <div className="flex items-center space-x-4">
             <div className="h-24 w-24 rounded-full bg-white flex items-center justify-center">
-              {tutor.profileImage ? (
-                <img
-                  src={tutor.profileImage}
-                  alt={tutor.name}
-                  className="h-24 w-24 rounded-full object-cover"
-                />
-              ) : (
-                <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
-                  <span className="text-4xl text-gray-500">{tutor.name.charAt(0)}</span>
-                </div>
-              )}
+              <span className="text-4xl text-blue-600 font-semibold">
+                {profile.user.name.charAt(0)}
+              </span>
             </div>
             <div className="text-white">
-              <h1 className="text-3xl font-bold">{tutor.name}</h1>
-              <p className="text-blue-100">{tutor.subjects.join(', ')}</p>
+              <h1 className="text-3xl font-bold">{profile.user.name}</h1>
+              <div className="flex items-center mt-2 space-x-4">
+                <div className="flex items-center">
+                  <Star className="w-5 h-5 text-yellow-300" />
+                  <span className="ml-1">{profile.rating.toFixed(1)}</span>
+                  <span className="ml-1 text-blue-100">({profile.totalReviews} reviews)</span>
+                </div>
+                {profile.isVerified && (
+                  <span className="bg-green-500 text-white px-2 py-1 rounded-full text-sm">
+                    Verified Tutor
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h2 className="text-xl font-semibold mb-4">About</h2>
-              <p className="text-gray-600">{tutor.bio}</p>
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Expertise</h2>
-              <div className="flex flex-wrap gap-2">
-                {tutor.subjects.map((subject: string) => (
-                  <span
-                    key={subject}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                  >
-                    {subject}
-                  </span>
-                ))}
+          {/* About Section */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">About</h2>
+            <p className="text-gray-600">{profile.bio}</p>
+          </div>
+
+          {/* Contact Information */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm font-medium text-gray-700">Phone</p>
+                <p className="text-gray-600">{profile.phone}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm font-medium text-gray-700">Email</p>
+                <p className="text-gray-600">{profile.user.email}</p>
               </div>
             </div>
           </div>
 
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold mb-4">Experience & Qualifications</h2>
-            <div className="space-y-4">
-              {tutor.qualifications?.map((qualification: string, index: number) => (
-                <div key={index} className="flex items-start">
-                  <div className="h-2 w-2 rounded-full bg-blue-500 mt-2 mr-3"></div>
-                  <p className="text-gray-600">{qualification}</p>
+          {/* Subjects Section */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4 flex items-center">
+              <BookOpen className="w-5 h-5 mr-2" />
+              Subjects & Rates
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {profile.subjects.map((subject, index) => (
+                <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-medium">{subject.subject.name}</h3>
+                  <p className="text-gray-600">${subject.hourlyRate}/hour</p>
+                  <div className="mt-2">
+                    <h4 className="text-sm font-medium text-gray-700">Availability:</h4>
+                    <div className="mt-1 space-y-1">
+                      {subject.availability.map((slot, idx) => (
+                        <div key={idx} className="text-sm text-gray-600">
+                          {slot.day}: {slot.slots.map(s => `${s.start}-${s.end}`).join(', ')}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold mb-4">Teaching Locations</h2>
+          {/* Education Section */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4 flex items-center">
+              <GraduationCap className="w-5 h-5 mr-2" />
+              Education
+            </h2>
+            <div className="space-y-4">
+              {profile.education.map((edu, index) => (
+                <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-medium">{edu.degree}</h3>
+                  <p className="text-gray-600">{edu.institution}</p>
+                  <p className="text-gray-500 text-sm">Graduated: {edu.year}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Experience Section */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4 flex items-center">
+              <Briefcase className="w-5 h-5 mr-2" />
+              Experience
+            </h2>
+            <div className="space-y-4">
+              {profile.experience.map((exp, index) => (
+                <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-medium">{exp.position}</h3>
+                  <p className="text-gray-600">{exp.institution}</p>
+                  <p className="text-gray-500 text-sm">{exp.duration}</p>
+                  <p className="text-gray-600 mt-2">{exp.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Locations Section */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4 flex items-center">
+              <MapPin className="w-5 h-5 mr-2" />
+              Teaching Locations
+            </h2>
             <div className="flex flex-wrap gap-2">
-              {tutor.locations?.map((location: string) => (
+              {profile.locations.map((location, index) => (
                 <span
-                  key={location}
+                  key={index}
                   className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm"
                 >
-                  {location}
+                  {location.name}
                 </span>
               ))}
             </div>
           </div>
-        </div>
 
-        <div className="border-t border-gray-200 p-6">
-          <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200">
-            Contact Tutor
-          </button>
+          {/* Documents Section */}
+          {profile.documents.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-4 flex items-center">
+                <FileText className="w-5 h-5 mr-2" />
+                Documents
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {profile.documents.map((doc, index) => (
+                  <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium capitalize">{doc.type}</h3>
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline text-sm"
+                        >
+                          View Document
+                        </a>
+                      </div>
+                      {doc.verified && (
+                        <span className="bg-green-500 text-white px-2 py-1 rounded-full text-sm">
+                          Verified
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
