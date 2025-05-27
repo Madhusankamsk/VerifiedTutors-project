@@ -34,18 +34,17 @@ const RegisterPage: React.FC = () => {
     setValue,
     trigger
   } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      role: 'student'
-    }
+    resolver: zodResolver(registerSchema)
   });
 
   const selectedRole = watch('role');
-  const name = watch('name');
-  const email = watch('email');
+
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
+      if (!data.role) {
+        throw new Error('Please select a role (Student or Tutor)');
+      }
       setIsSubmitting(true);
       clearError();
       await registerUser(data.name, data.email, data.password, data.role);

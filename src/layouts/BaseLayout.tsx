@@ -10,6 +10,7 @@ interface BaseLayoutProps {
 }
 
 const BaseLayout: React.FC<BaseLayoutProps> = ({
+  showHeader = true,
   showFooter = true,
   className = '',
 }) => {

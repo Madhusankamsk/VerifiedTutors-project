@@ -207,7 +207,13 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ selectedLocations, 
                 <span>{location.name}</span>
                 <button
                   type="button"
-                  onClick={() => handleLocationSelect({ _id: location._id, name: location.name, level: 1, parent: null })}
+                  onClick={() => {
+                    // Find the actual location object from the locations list
+                    const actualLocation = locations.find(loc => loc._id === location._id);
+                    if (actualLocation) {
+                      handleLocationSelect(actualLocation);
+                    }
+                  }}
                   className="ml-2 text-primary-500 hover:text-primary-700"
                 >
                   <X className="w-4 h-4" />
