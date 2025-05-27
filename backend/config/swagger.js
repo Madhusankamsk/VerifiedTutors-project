@@ -89,7 +89,8 @@ const options = {
                 name: { type: 'string' },
                 email: { type: 'string' },
                 profileImage: { type: 'string' }
-              }
+              },
+              description: 'User information'
             },
             gender: {
               type: 'string',
@@ -103,7 +104,7 @@ const options = {
             },
             bio: {
               type: 'string',
-              description: 'Tutor\'s biography',
+              description: 'Tutor\'s biography'
             },
             subjects: {
               type: 'array',
@@ -115,7 +116,7 @@ const options = {
                   category: { type: 'string' }
                 }
               },
-              description: 'Array of subjects taught by the tutor',
+              description: 'Subjects taught by the tutor'
             },
             locations: {
               type: 'array',
@@ -126,7 +127,7 @@ const options = {
                   name: { type: 'string' }
                 }
               },
-              description: 'Array of teaching locations'
+              description: 'Teaching locations'
             },
             education: {
               type: 'array',
@@ -135,8 +136,8 @@ const options = {
                 properties: {
                   degree: { type: 'string' },
                   institution: { type: 'string' },
-                  year: { type: 'number' },
-                },
+                  year: { type: 'number' }
+                }
               },
               description: 'Education history'
             },
@@ -148,15 +149,15 @@ const options = {
                   title: { type: 'string' },
                   company: { type: 'string' },
                   duration: { type: 'string' },
-                  description: { type: 'string' },
-                },
+                  description: { type: 'string' }
+                }
               },
-              description: 'Work experience history'
+              description: 'Work experience'
             },
             hourlyRate: {
               type: 'number',
               minimum: 0,
-              description: 'Tutor\'s hourly rate',
+              description: 'Price per hour'
             },
             availability: {
               type: 'array',
@@ -165,7 +166,7 @@ const options = {
                 properties: {
                   day: {
                     type: 'string',
-                    enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                    enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
                   },
                   slots: {
                     type: 'array',
@@ -173,11 +174,11 @@ const options = {
                       type: 'object',
                       properties: {
                         start: { type: 'string', format: 'time' },
-                        end: { type: 'string', format: 'time' },
-                      },
-                    },
-                  },
-                },
+                        end: { type: 'string', format: 'time' }
+                      }
+                    }
+                  }
+                }
               },
               description: 'Weekly availability schedule'
             },
@@ -185,30 +186,28 @@ const options = {
               type: 'number',
               minimum: 0,
               maximum: 5,
-              description: 'Average rating (0-5)',
+              description: 'Average rating (0-5)'
             },
             totalRatings: {
               type: 'number',
-              minimum: 0,
-              description: 'Total number of ratings',
+              description: 'Total number of ratings'
             },
             isVerified: {
               type: 'boolean',
-              description: 'Whether the tutor is verified',
+              default: false,
+              description: 'Whether the tutor is verified'
             },
             documents: {
               type: 'array',
-              items: {
-                type: 'string',
-              },
-              description: 'Array of document URLs',
+              items: { type: 'string' },
+              description: 'Array of document URLs'
             },
             createdAt: {
               type: 'string',
               format: 'date-time',
               description: 'Profile creation timestamp'
             }
-          },
+          }
         },
         Blog: {
           type: 'object',
@@ -236,9 +235,7 @@ const options = {
             },
             tags: {
               type: 'array',
-              items: {
-                type: 'string'
-              },
+              items: { type: 'string' },
               description: 'Array of tags for the blog post'
             },
             status: {
