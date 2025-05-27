@@ -8,9 +8,6 @@ import { toast } from 'react-toastify';
 const ManageBlogs = () => {
   const { blogs, loading, error, fetchBlogs, deleteBlog } = useTutor();
 
-  useEffect(() => {
-    fetchBlogs();
-  }, [fetchBlogs]);
 
   const handleDeleteBlog = async (blogId: string) => {
     if (window.confirm('Are you sure you want to delete this blog? This action cannot be undone.')) {

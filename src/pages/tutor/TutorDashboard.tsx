@@ -16,21 +16,7 @@ const TutorDashboard = () => {
     deleteProfile 
   } = useTutor();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await Promise.all([
-          fetchProfile(),
-          fetchBlogs()
-        ]);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        toast.error('Failed to fetch data. Please try again later.');
-      }
-    };
-    fetchData();
-  }, [fetchProfile, fetchBlogs]);
-
+  
   const handleDeleteProfile = async () => {
     if (window.confirm('Are you sure you want to delete your profile? This action cannot be undone.')) {
       try {
