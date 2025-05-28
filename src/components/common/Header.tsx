@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Menu, X, ChevronDown, User, LogOut, Settings, BookOpen, Bell } from 'lucide-react';
+import { Menu, X, ChevronDown, User, LogOut, Settings, Bell } from 'lucide-react';
 
 const Header: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -168,7 +168,7 @@ const Header: React.FC = () => {
                 </div>
               </>
             ) : (
-              <div className="flex items-center space-x-2 sm:space-x-4">
+              <div className="hidden md:flex items-center space-x-2 sm:space-x-4">
                 <Link
                   to="/login"
                   className="text-gray-500 hover:text-gray-700 px-2 sm:px-3 py-2 text-sm font-medium transition-colors duration-150"
@@ -219,6 +219,24 @@ const Header: React.FC = () => {
                 {item.name}
               </Link>
             ))}
+            {!isAuthenticated && (
+              <div className="border-t pt-4 pb-3">
+                <Link
+                  to="/login"
+                  className="block pl-3 pr-4 py-2 text-base font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50 border-l-4 border-transparent"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/register"
+                  className="block pl-3 pr-4 py-2 text-base font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-l-4 border-transparent"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Sign up
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

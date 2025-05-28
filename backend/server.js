@@ -13,6 +13,7 @@ import blogRoutes from './routes/blog.routes.js';
 import subjectRoutes from './routes/subject.routes.js';
 import locationRoutes from './routes/location.routes.js';
 import ratingRoutes from './routes/rating.routes.js';
+import uploadRoutes from './routes/upload.routes.js';
 
 // Middleware imports
 import { errorHandler } from './middleware/errorHandler.js';
@@ -39,6 +40,7 @@ app.use('/api/blogs', blogRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api/ratings', ratingRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Base route
 app.get('/', (req, res) => {
