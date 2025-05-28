@@ -107,7 +107,8 @@ export const getTutor = async (req, res) => {
   try {
     const tutor = await Tutor.findById(req.params.id)
       .populate('user', 'name email profileImage')
-      .populate('subjects', 'name category');
+      .populate('subjects.subject', 'name category educationLevel')
+      .populate('locations', 'name');
 
     if (!tutor) {
       return res.status(404).json({ message: 'Tutor not found' });
@@ -115,7 +116,11 @@ export const getTutor = async (req, res) => {
 
     res.json(tutor);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error in getTutor:', error);
+    res.status(500).json({ 
+      message: 'Error fetching tutor profile',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
