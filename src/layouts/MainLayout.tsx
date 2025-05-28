@@ -10,10 +10,8 @@ const MainLayout: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className={`flex-grow container mx-auto px-4 sm:px-6 lg:px-8 ${isAuthenticated ? 'pt-20' : 'pt-16'}`}>
-        <div className="max-w-7xl mx-auto">
-          <Outlet />
-        </div>
+      <main className={`container mx-auto flex-grow ${isAuthenticated ? 'pt-20' : 'pt-16'} pb-8 sm:pb-12 md:pb-16`}>
+        <Outlet />
       </main>
       <Footer />
     </div>

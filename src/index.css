@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
+/* @layer base {
   html {
     @apply text-gray-900;
     scroll-behavior: smooth;
@@ -109,4 +109,4 @@
   .badge-purple {
     @apply bg-purple-100 text-purple-800;
   }
-}
+} */

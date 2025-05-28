@@ -56,18 +56,18 @@ const Header: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo and Primary Nav */}
-          <div className="flex">
-            <Link to="/" className="flex items-center">
-              <span className="text-2xl font-bold text-blue-600">VerifiedTutors</span>
+          <div className="flex items-center">
+            <Link to="/" className="flex-shrink-0">
+              <span className="text-xl sm:text-2xl font-bold text-blue-600">VerifiedTutors</span>
             </Link>
             
             {/* Desktop Navigation */}
-            <nav className="hidden md:ml-8 md:flex md:space-x-8">
+            <nav className="hidden md:ml-6 lg:ml-8 md:flex md:space-x-4 lg:space-x-8">
               {navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors duration-200 ${
                     location.pathname === item.path
                       ? 'text-blue-600 border-b-2 border-blue-600'
                       : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -80,35 +80,35 @@ const Header: React.FC = () => {
           </div>
 
           {/* Right side buttons */}
-          <div className="flex items-center">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {isAuthenticated ? (
               <>
                 {/* Notifications */}
-                <div className="relative ml-3">
+                <div className="relative">
                   <button
                     onClick={toggleNotifications}
-                    className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                    className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full"
                   >
-                    <Bell className="h-6 w-6" />
+                    <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
                     <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
                   </button>
                   
                   {/* Notifications Dropdown */}
                   {isNotificationsOpen && (
-                    <div className="origin-top-right absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                    <div className="origin-top-right absolute right-0 mt-2 w-[280px] sm:w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
                       <div className="py-1">
                         <div className="px-4 py-2 text-sm text-gray-700 border-b">
                           <p className="font-medium">Notifications</p>
                         </div>
-                        <div className="max-h-96 overflow-y-auto">
+                        <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
                           {/* Sample notifications - replace with actual data */}
-                          <a href="#" className="block px-4 py-3 hover:bg-gray-50">
+                          <a href="#" className="block px-4 py-3 hover:bg-gray-50 transition-colors duration-150">
                             <p className="text-sm font-medium text-gray-900">New message from John</p>
-                            <p className="text-xs text-gray-500">2 minutes ago</p>
+                            <p className="text-xs text-gray-500 mt-1">2 minutes ago</p>
                           </a>
-                          <a href="#" className="block px-4 py-3 hover:bg-gray-50">
+                          <a href="#" className="block px-4 py-3 hover:bg-gray-50 transition-colors duration-150">
                             <p className="text-sm font-medium text-gray-900">Your profile was viewed</p>
-                            <p className="text-xs text-gray-500">1 hour ago</p>
+                            <p className="text-xs text-gray-500 mt-1">1 hour ago</p>
                           </a>
                         </div>
                       </div>
@@ -117,14 +117,14 @@ const Header: React.FC = () => {
                 </div>
 
                 {/* Profile Dropdown */}
-                <div className="relative ml-3">
+                <div className="relative">
                   <button
                     onClick={toggleProfileMenu}
-                    className="flex items-center text-sm rounded-full focus:outline-none"
+                    className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 p-1"
                   >
                     {user?.profileImage ? (
                       <img
-                        className="h-8 w-8 rounded-full"
+                        className="h-8 w-8 rounded-full object-cover"
                         src={user.profileImage}
                         alt={user.name}
                       />
@@ -133,40 +133,34 @@ const Header: React.FC = () => {
                         <User className="h-5 w-5 text-blue-600" />
                       </div>
                     )}
-                    <span className="ml-2 text-gray-700 hidden md:block">{user?.name}</span>
-                    <ChevronDown className="ml-1 h-4 w-4 text-gray-500" />
+                    <span className="ml-2 text-gray-700 hidden sm:block">{user?.name}</span>
+                    <ChevronDown className="h-4 w-4 text-gray-500 hidden sm:block" />
                   </button>
 
                   {/* Profile Menu Dropdown */}
                   {isProfileMenuOpen && (
-                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
                       <div className="py-1">
                         <Link
                           to={getDashboardLink()}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
                         >
-                          <div className="flex items-center">
-                            <User className="h-4 w-4 mr-2" />
-                            Dashboard
-                          </div>
+                          <User className="h-4 w-4 mr-2" />
+                          Dashboard
                         </Link>
                         <Link
                           to="/settings"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
                         >
-                          <div className="flex items-center">
-                            <Settings className="h-4 w-4 mr-2" />
-                            Settings
-                          </div>
+                          <Settings className="h-4 w-4 mr-2" />
+                          Settings
                         </Link>
                         <button
                           onClick={handleLogout}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
                         >
-                          <div className="flex items-center">
-                            <LogOut className="h-4 w-4 mr-2" />
-                            Sign out
-                          </div>
+                          <LogOut className="h-4 w-4 mr-2" />
+                          Sign out
                         </button>
                       </div>
                     </div>
@@ -174,16 +168,16 @@ const Header: React.FC = () => {
                 </div>
               </>
             ) : (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 sm:space-x-4">
                 <Link
                   to="/login"
-                  className="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium"
+                  className="text-gray-500 hover:text-gray-700 px-2 sm:px-3 py-2 text-sm font-medium transition-colors duration-150"
                 >
                   Sign in
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium"
+                  className="bg-blue-600 text-white hover:bg-blue-700 px-3 sm:px-4 py-2 rounded-md text-sm font-medium transition-colors duration-150"
                 >
                   Sign up
                 </Link>
@@ -193,7 +187,8 @@ const Header: React.FC = () => {
             {/* Mobile menu button */}
             <button
               onClick={toggleMenu}
-              className="ml-4 md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-expanded="false"
             >
               <span className="sr-only">Open main menu</span>
               {isMenuOpen ? (
@@ -208,17 +203,18 @@ const Header: React.FC = () => {
 
       {/* Mobile menu */}
       {isMenuOpen && (
-        <div className="md:hidden">
+        <div className="md:hidden bg-white border-t">
           <div className="pt-2 pb-3 space-y-1">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`block pl-3 pr-4 py-2 text-base font-medium ${
+                className={`block pl-3 pr-4 py-2 text-base font-medium transition-colors duration-150 ${
                   location.pathname === item.path
                     ? 'text-blue-600 bg-blue-50 border-l-4 border-blue-600'
                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border-l-4 border-transparent'
                 }`}
+                onClick={() => setIsMenuOpen(false)}
               >
                 {item.name}
               </Link>
