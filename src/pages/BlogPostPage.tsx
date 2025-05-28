@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useBlog } from '../contexts/BlogContext';
 import { Heart, ArrowLeft } from 'lucide-react';
 
-const BlogPostPage = () => {
+const BlogPostPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { posts, likePost } = useBlog();

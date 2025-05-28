@@ -3,7 +3,7 @@ import { useBlog } from '../contexts/BlogContext';
 import BlogCard from '../components/BlogCard';
 import { Search } from 'lucide-react';
 
-const BlogListPage = () => {
+const BlogListPage: React.FC = () => {
   const { posts, likePost } = useBlog();
   const [selectedCategory, setSelectedCategory] = useState('');
   const [searchQuery, setSearchQuery] = useState('');

@@ -6,7 +6,7 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import { Star, MapPin, BookOpen, GraduationCap, Briefcase, FileText, User, Clock, Video, Home, Users, MessageCircle, Calendar, CheckCircle, Phone, Mail, AlertCircle, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-const TutorProfilePage = () => {
+const TutorProfilePage: React.FC = () => {
   const { id } = useParams();
   const { isAuthenticated, user } = useAuth();
   const { fetchTutorById, loading, error } = useTutor();
@@ -70,7 +70,7 @@ const TutorProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className=" bg-gray-50 flex items-center justify-center">
         <LoadingSpinner size="large" />
       </div>
     );
@@ -78,7 +78,7 @@ const TutorProfilePage = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className=" bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
           <p className="text-gray-600">{error}</p>
@@ -95,7 +95,7 @@ const TutorProfilePage = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className=" bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Tutor Not Found</h2>
           <p className="text-gray-600">The tutor profile you're looking for doesn't exist.</p>
@@ -111,7 +111,7 @@ const TutorProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className=" bg-gray-50">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
         <div className="container mx-auto px-4 py-8 md:py-12">

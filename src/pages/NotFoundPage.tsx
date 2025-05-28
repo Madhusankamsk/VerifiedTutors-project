@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { HomeIcon } from 'lucide-react';
 
-const NotFoundPage = () => {
+const NotFoundPage: React.FC = () => {
   return (
     <div className="min-h-[80vh] flex items-center justify-center">
       <div className="text-center">

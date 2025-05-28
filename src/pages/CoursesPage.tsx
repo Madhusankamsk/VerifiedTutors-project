@@ -18,7 +18,7 @@ interface Course {
   level: 'Beginner' | 'Intermediate' | 'Advanced';
 }
 
-const CoursesPage = () => {
+const CoursesPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedLevel, setSelectedLevel] = useState('All');

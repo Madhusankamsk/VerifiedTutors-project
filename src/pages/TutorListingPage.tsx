@@ -4,7 +4,7 @@ import { useSubjects } from '../contexts/SubjectContext';
 import { useLocations } from '../contexts/LocationContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import TutorCard from '../components/common/TutorCard';
-import { Search, Filter, ChevronDown, ChevronUp, Star, MapPin, GraduationCap, DollarSign, X, SlidersHorizontal, Clock, Users } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Star, DollarSign, X, SlidersHorizontal, Clock, Users } from 'lucide-react';
 
 const TutorListingPage: React.FC = () => {
   const { searchTutors, loading, error } = useTutor();
@@ -119,7 +119,7 @@ const TutorListingPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
         <div className="container mx-auto px-4">
