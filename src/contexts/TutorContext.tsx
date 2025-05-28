@@ -800,7 +800,8 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (profile?._id && isMounted) {
           await Promise.all([
             fetchReviews(),
-            fetchStats()
+            fetchStats(),
+            fetchBlogs()
           ]);
         }
       } catch (error) {

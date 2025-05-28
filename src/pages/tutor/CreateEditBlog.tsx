@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTutor } from '../../contexts/TutorContext';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { X } from 'lucide-react';
+import { X, ArrowLeft, Save } from 'lucide-react';
 
 interface BlogFormData {
   title: string;
@@ -74,114 +74,133 @@ const CreateEditBlog = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-600">{error}</p>
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="container mx-auto px-4">
+          <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6 shadow-sm">
+            <p className="text-red-700 font-medium">{error}</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">
-          {blogId ? 'Edit Blog' : 'Create New Blog'}
-        </h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="mb-8">
+          <button
+            onClick={() => navigate('/tutor/blogs')}
+            className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Blogs
+          </button>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {blogId ? 'Edit Blog' : 'Create New Blog'}
+          </h1>
+          <p className="mt-2 text-sm text-gray-500">
+            {blogId ? 'Update your existing blog post' : 'Share your knowledge with the community'}
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-              Title
-            </label>
-            <input
-              type="text"
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700">
-              Content
-            </label>
-            <textarea
-              id="content"
-              value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              rows={10}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="tags" className="block text-sm font-medium text-gray-700">
-              Tags
-            </label>
-            <div className="mt-1 flex rounded-md shadow-sm">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                Title
+              </label>
               <input
                 type="text"
-                id="tags"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddTag();
-                  }
-                }}
-                className="flex-1 block w-full rounded-none rounded-l-md border-gray-300 focus:border-primary-500 focus:ring-primary-500"
-                placeholder="Add a tag and press Enter"
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                className="block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
+                placeholder="Enter a descriptive title"
+                required
               />
+            </div>
+
+            <div>
+              <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
+                Content
+              </label>
+              <textarea
+                id="content"
+                value={formData.content}
+                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                rows={12}
+                className="block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
+                placeholder="Write your blog content here..."
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-1">
+                Tags
+              </label>
+              <div className="flex rounded-lg shadow-sm">
+                <input
+                  type="text"
+                  id="tags"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddTag();
+                    }
+                  }}
+                  className="flex-1 block w-full rounded-l-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 transition-colors"
+                  placeholder="Add a tag and press Enter"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddTag}
+                  className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-r-lg hover:bg-primary-700 transition-colors font-medium"
+                >
+                  Add
+                </button>
+              </div>
+              {formData.tags.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {formData.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-50 text-primary-700"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTag(tag)}
+                        className="ml-1.5 inline-flex items-center p-0.5 rounded-full text-primary-400 hover:bg-primary-100 hover:text-primary-600 transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
               <button
                 type="button"
-                onClick={handleAddTag}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                onClick={() => navigate('/tutor/blogs')}
+                className="inline-flex items-center px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
               >
-                Add
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium shadow-sm"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {blogId ? 'Update Blog' : 'Create Blog'}
               </button>
             </div>
-            {formData.tags.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {formData.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800"
-                  >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTag(tag)}
-                      className="ml-1 inline-flex items-center p-0.5 rounded-full text-primary-400 hover:bg-primary-200 hover:text-primary-500 focus:outline-none"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={() => navigate('/tutor/blogs')}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-            >
-              {blogId ? 'Update Blog' : 'Create Blog'}
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );

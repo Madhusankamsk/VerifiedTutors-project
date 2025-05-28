@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTutor } from '../../contexts/TutorContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { Star, Users, DollarSign, BookOpen, Edit2, Trash2 } from 'lucide-react';
+import { Star, Users, DollarSign, BookOpen, Edit2, Trash2, Calendar, Clock } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const TutorDashboard = () => {
@@ -12,7 +12,6 @@ const TutorDashboard = () => {
     blogs,
     deleteProfile 
   } = useTutor();
-
 
   const handleDeleteProfile = async () => {
     if (window.confirm('Are you sure you want to delete your profile? This action cannot be undone.')) {
@@ -31,9 +30,11 @@ const TutorDashboard = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-600">{error}</p>
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="container mx-auto px-4">
+          <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6 shadow-sm">
+            <p className="text-red-700 font-medium">{error}</p>
+          </div>
         </div>
       </div>
     );
@@ -41,161 +42,188 @@ const TutorDashboard = () => {
 
   if (!profile) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-yellow-600">Please complete your tutor profile to get started.</p>
-          <Link to="/tutor/profile/edit" className="mt-4 inline-block btn btn-primary">
-            Complete Profile
-          </Link>
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="container mx-auto px-4">
+          <div className="bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-6 shadow-sm">
+            <p className="text-yellow-700 font-medium mb-4">Please complete your tutor profile to get started.</p>
+            <Link 
+              to="/tutor/profile/edit" 
+              className="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+            >
+              Complete Profile
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Profile Overview */}
-      <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center space-x-4">
-            <div className="h-16 w-16 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-              <span className="text-primary-600 font-semibold text-xl">
-                {profile.user.name.charAt(0)}
-              </span>
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold">{profile.user.name}</h2>
-              <div className="flex flex-wrap items-center mt-1 gap-2 sm:gap-4">
-                <div className="flex items-center text-gray-600">
-                  <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                  <span>{profile.rating.toFixed(1)} ({profile.totalReviews} reviews)</span>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Profile Overview */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+            <div className="flex items-center space-x-6">
+              <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center flex-shrink-0 shadow-md">
+                <span className="text-white font-semibold text-2xl">
+                  {profile.user.name.charAt(0)}
+                </span>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">{profile.user.name}</h2>
+                <div className="flex flex-wrap items-center mt-2 gap-3">
+                  <div className="flex items-center text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
+                    <Star className="w-4 h-4 text-yellow-400 mr-1.5" />
+                    <span className="text-sm font-medium">{profile.rating.toFixed(1)} ({profile.totalReviews} reviews)</span>
+                  </div>
+                  {profile.isVerified && (
+                    <span className="bg-green-50 text-green-700 text-sm px-3 py-1 rounded-full font-medium flex items-center">
+                      <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      Verified
+                    </span>
+                  )}
                 </div>
-                {profile.isVerified && (
-                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                    Verified
-                  </span>
-                )}
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                to="/tutor/profile/edit"
+                className="inline-flex items-center px-4 py-2 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors font-medium"
+              >
+                <Edit2 className="w-4 h-4 mr-2" />
+                Edit Profile
+              </Link>
+              <button
+                onClick={handleDeleteProfile}
+                className="inline-flex items-center px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors font-medium"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Profile
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center">
+              <div className="p-3 rounded-xl bg-blue-50 text-blue-600 flex-shrink-0">
+                <DollarSign className="w-6 h-6" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Earnings</p>
+                <p className="text-xl font-bold text-gray-900">${profile.totalEarnings || 0}</p>
               </div>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              to="/tutor/profile/edit"
-              className="btn btn-outline-primary flex items-center flex-1 sm:flex-none justify-center"
-            >
-              <Edit2 className="w-4 h-4 mr-2" />
-              Edit Profile
-            </Link>
-            <button
-              onClick={handleDeleteProfile}
-              className="btn btn-outline-danger flex items-center flex-1 sm:flex-none justify-center"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete Profile
-            </button>
-          </div>
-        </div>
-      </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-blue-100 text-blue-600 flex-shrink-0">
-              <DollarSign className="w-6 h-6" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Earnings</p>
-              <p className="text-lg font-semibold text-gray-900">${profile.totalEarnings || 0}</p>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center">
+              <div className="p-3 rounded-xl bg-green-50 text-green-600 flex-shrink-0">
+                <Users className="w-6 h-6" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Students</p>
+                <p className="text-xl font-bold text-gray-900">{profile.totalStudents || 0}</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-green-100 text-green-600 flex-shrink-0">
-              <Users className="w-6 h-6" />
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center">
+              <div className="p-3 rounded-xl bg-yellow-50 text-yellow-600 flex-shrink-0">
+                <Star className="w-6 h-6" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Average Rating</p>
+                <p className="text-xl font-bold text-gray-900">{profile.rating.toFixed(1)}</p>
+              </div>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Students</p>
-              <p className="text-lg font-semibold text-gray-900">{profile.totalStudents || 0}</p>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center">
+              <div className="p-3 rounded-xl bg-purple-50 text-purple-600 flex-shrink-0">
+                <BookOpen className="w-6 h-6" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Sessions</p>
+                <p className="text-xl font-bold text-gray-900">{profile.totalSessions || 0}</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-yellow-100 text-yellow-600 flex-shrink-0">
-              <Star className="w-6 h-6" />
+        {/* Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Recent Blogs */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <h3 className="text-xl font-bold text-gray-900">Recent Blogs</h3>
+              <Link 
+                to="/tutor/blogs/create" 
+                className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+              >
+                New Blog
+              </Link>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Average Rating</p>
-              <p className="text-lg font-semibold text-gray-900">{profile.rating.toFixed(1)}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-purple-100 text-purple-600 flex-shrink-0">
-              <BookOpen className="w-6 h-6" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Sessions</p>
-              <p className="text-lg font-semibold text-gray-900">{profile.totalSessions || 0}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Recent Blogs */}
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <h3 className="text-lg font-semibold">Recent Blogs</h3>
-            <Link to="/tutor/blogs/create" className="btn btn-primary w-full sm:w-auto">
-              New Blog
-            </Link>
-          </div>
-          {blogs && blogs.length > 0 ? (
-            <div className="space-y-4">
-              {blogs.slice(0, 3).map((blog) => (
-                <div key={blog._id} className="border-b pb-4 last:border-b-0 last:pb-0">
-                  <h4 className="font-medium">{blog.title}</h4>
-                  <p className="text-gray-600 text-sm mt-1 line-clamp-2">{blog.content}</p>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-2">
-                    <span className="text-sm text-gray-500">
-                      {new Date(blog.createdAt).toLocaleDateString()}
-                    </span>
-                    <div className="flex space-x-2">
-                      <Link
-                        to={`/tutor/blogs/edit/${blog._id}`}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        Edit
-                      </Link>
+            {blogs && blogs.length > 0 ? (
+              <div className="space-y-6">
+                {blogs.slice(0, 3).map((blog) => (
+                  <div key={blog._id} className="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0">
+                    <h4 className="font-semibold text-gray-900 text-lg mb-2">{blog.title}</h4>
+                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">{blog.content}</p>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex items-center text-gray-500 text-sm">
+                        <Calendar className="w-4 h-4 mr-1.5" />
+                        {new Date(blog.createdAt).toLocaleDateString()}
+                      </div>
+                      <div className="flex space-x-3">
+                        <Link
+                          to={`/tutor/blogs/edit/${blog._id}`}
+                          className="text-primary-600 hover:text-primary-700 font-medium text-sm"
+                        >
+                          Edit
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500">No blog posts yet.</p>
-          )}
-        </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 mb-4">No blog posts yet.</p>
+                <Link 
+                  to="/tutor/blogs/create" 
+                  className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+                >
+                  Create Your First Blog
+                </Link>
+              </div>
+            )}
+          </div>
 
-        {/* Recent Reviews */}
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-          <h3 className="text-lg font-semibold mb-4">Recent Reviews</h3>
-          {profile.totalReviews > 0 ? (
-            <div className="space-y-4">
-              {/* We'll add review display here once the reviews endpoint is implemented */}
-              <p className="text-gray-500">Reviews will be displayed here.</p>
-            </div>
-          ) : (
-            <p className="text-gray-500">No reviews yet.</p>
-          )}
+          {/* Recent Reviews */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">Recent Reviews</h3>
+            {profile.totalReviews > 0 ? (
+              <div className="space-y-6">
+                {/* We'll add review display here once the reviews endpoint is implemented */}
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Reviews will be displayed here.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 mb-4">No reviews yet.</p>
+                <p className="text-sm text-gray-400">Your reviews will appear here once students start rating your sessions.</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
