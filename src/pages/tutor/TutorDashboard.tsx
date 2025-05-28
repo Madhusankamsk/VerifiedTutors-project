@@ -90,7 +90,7 @@ const TutorDashboard = () => {
             </div>
             <div className="flex flex-wrap gap-3">
               <Link
-                to="/tutor/profile/edit"
+                to="/tutor/profile"
                 className="inline-flex items-center px-4 py-2 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors font-medium"
               >
                 <Edit2 className="w-4 h-4 mr-2" />

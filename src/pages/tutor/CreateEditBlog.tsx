@@ -14,26 +14,46 @@ interface BlogFormData {
 const CreateEditBlog = () => {
   const { blogId } = useParams<{ blogId: string }>();
   const navigate = useNavigate();
-  const { blogs, loading, error, createBlog, updateBlog } = useTutor();
+  const { blogs, loading, error, createBlog, updateBlog, fetchBlogs } = useTutor();
   const [formData, setFormData] = useState<BlogFormData>({
     title: '',
     content: '',
     tags: []
   });
   const [tagInput, setTagInput] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (blogId) {
-      const blog = blogs.find(b => b._id === blogId);
-      if (blog) {
-        setFormData({
-          title: blog.title,
-          content: blog.content,
-          tags: blog.tags || []
-        });
+    const loadBlogData = async () => {
+      if (!blogId) {
+        setIsLoading(false);
+        return;
       }
-    }
-  }, [blogId, blogs]);
+
+      try {
+        setIsLoading(true);
+        await fetchBlogs();
+        const blog = blogs.find(b => b._id === blogId);
+        if (blog) {
+          setFormData({
+            title: blog.title,
+            content: blog.content,
+            tags: blog.tags || []
+          });
+        } else {
+          toast.error('Blog not found');
+          navigate('/tutor/blogs');
+        }
+      } catch (error) {
+        toast.error('Failed to load blog data');
+        navigate('/tutor/blogs');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadBlogData();
+  }, [blogId, fetchBlogs, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +88,7 @@ const CreateEditBlog = () => {
     }));
   };
 
-  if (loading) {
+  if (loading || isLoading) {
     return <LoadingSpinner />;
   }
 

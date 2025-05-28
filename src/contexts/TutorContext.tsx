@@ -112,6 +112,7 @@ interface TutorContextType {
   loading: boolean;
   error: string | null;
   fetchProfile: () => Promise<void>;
+  fetchTutorById: (id: string) => Promise<TutorProfile>;
   updateProfile: (data: Partial<TutorProfile>) => Promise<void>;
   deleteProfile: () => Promise<void>;
   
@@ -207,7 +208,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const token = localStorage.getItem('token');
     if (!token) {
-      setError('No authentication token found');
+      setProfile(null);
       setLoading(false);
       return;
     }
@@ -217,7 +218,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setError(null);
       const response = await axios.get(`${API_URL}/api/tutors/profile`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -240,6 +241,22 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLoading(false);
     }
   }, [user]);
+
+  const fetchTutorById = useCallback(async (id: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.get(`${API_URL}/api/tutors/${id}`);
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to fetch tutor profile';
+      setError(errorMessage);
+      console.error('Tutor fetch error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const updateProfile = useCallback(async (data: Partial<TutorProfile>) => {
     if (!user) {
@@ -792,7 +809,11 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     let isMounted = true;
 
     const fetchInitialData = async () => {
-      if (!user) return;
+      if (!user) {
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
       
       try {
         await fetchProfile();
@@ -821,6 +842,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     loading,
     error,
     fetchProfile,
+    fetchTutorById,
     updateProfile,
     deleteProfile,
     blogs,

@@ -3,6 +3,7 @@ import User from '../models/user.model.js';
 import Blog from '../models/blog.model.js';
 import Subject from '../models/subject.model.js';
 import Rating from '../models/rating.model.js';
+import Session from '../models/session.model.js';
 
 // @desc    Get all tutors
 // @route   GET /api/tutors
@@ -532,28 +533,85 @@ export const getTutorByUserId = async (req, res) => {
   }
 };
 
-export const getTutorReviews = async (req, res, next) => {
+export const getTutorReviews = async (req, res) => {
   try {
-    const tutor = await Tutor.findOne({ userId: req.user._id });
+    const tutor = await Tutor.findById(req.params.id);
     if (!tutor) {
-      return res.status(404).json({ message: 'Tutor profile not found' });
+      return res.status(404).json({ message: 'Tutor not found' });
     }
 
-    const reviews = await Rating.find({ tutorId: tutor._id })
-      .populate('studentId', 'firstName lastName')
+    const reviews = await Rating.find({ tutor: tutor._id })
+      .populate('student', 'name email profileImage')
       .sort({ createdAt: -1 });
 
     const formattedReviews = reviews.map(review => ({
       _id: review._id,
-      studentId: review.studentId._id,
-      studentName: `${review.studentId.firstName} ${review.studentId.lastName}`,
+      student: {
+        _id: review.student._id,
+        name: review.student.name,
+        profileImage: review.student.profileImage
+      },
       rating: review.rating,
-      comment: review.comment,
+      review: review.review,
+      isVerified: review.isVerified,
       createdAt: review.createdAt
     }));
 
     res.json(formattedReviews);
   } catch (error) {
-    next(error);
+    console.error('Error in getTutorReviews:', error);
+    res.status(500).json({ 
+      message: 'Error fetching tutor reviews',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Get tutor statistics
+// @route   GET /api/tutors/:id/stats
+// @access  Public
+export const getTutorStats = async (req, res) => {
+  try {
+    const tutor = await Tutor.findById(req.params.id);
+    if (!tutor) {
+      return res.status(404).json({ message: 'Tutor not found' });
+    }
+
+    // Get total earnings from completed sessions
+    const totalEarnings = await Session.aggregate([
+      { $match: { tutor: tutor._id, status: 'completed' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
+
+    // Get total students count
+    const totalStudents = await Session.distinct('student', {
+      tutor: tutor._id,
+      status: 'completed'
+    });
+
+    // Get total sessions count
+    const totalSessions = await Session.countDocuments({
+      tutor: tutor._id,
+      status: 'completed'
+    });
+
+    // Get average rating
+    const ratings = await Rating.aggregate([
+      { $match: { tutor: tutor._id } },
+      { $group: { _id: null, average: { $avg: '$rating' } } }
+    ]);
+
+    res.json({
+      totalEarnings: totalEarnings[0]?.total || 0,
+      totalStudents: totalStudents.length || 0,
+      totalSessions: totalSessions || 0,
+      averageRating: ratings[0]?.average || 0
+    });
+  } catch (error) {
+    console.error('Error in getTutorStats:', error);
+    res.status(500).json({ 
+      message: 'Error fetching tutor statistics',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 }; 

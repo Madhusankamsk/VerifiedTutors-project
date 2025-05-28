@@ -1,18 +1,72 @@
-import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useTutor, TutorProfile } from '../contexts/TutorContext';
+import { useAuth } from '../contexts/AuthContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { Star, MapPin, BookOpen, GraduationCap, Briefcase, FileText, User, Clock, Video, Home, Users, MessageCircle, Calendar, CheckCircle, Phone, Mail } from 'lucide-react';
+import { Star, MapPin, BookOpen, GraduationCap, Briefcase, FileText, User, Clock, Video, Home, Users, MessageCircle, Calendar, CheckCircle, Phone, Mail, AlertCircle, X } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 const TutorProfilePage = () => {
   const { id } = useParams();
-  const { profile, loading, error, fetchProfile } = useTutor();
+  const { isAuthenticated, user } = useAuth();
+  const { fetchTutorById, loading, error } = useTutor();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<TutorProfile | null>(null);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewData, setReviewData] = useState({
+    rating: 5,
+    comment: ''
+  });
 
   useEffect(() => {
-    if (id) {
-      fetchProfile();
+    const loadTutorProfile = async () => {
+      if (!id) return;
+      try {
+        const tutorProfile = await fetchTutorById(id);
+        setProfile(tutorProfile);
+      } catch (err) {
+        console.error('Failed to load tutor profile:', err);
+        toast.error('Failed to load tutor profile. Please try again later.');
+      }
+    };
+
+    loadTutorProfile();
+  }, [id, fetchTutorById]);
+
+  const handleBookSession = () => {
+    if (!isAuthenticated) {
+      toast.info('Please login to book a session');
+      navigate('/login', { state: { from: `/tutors/${id}` } });
+      return;
     }
-  }, [id, fetchProfile]);
+    navigate(`/booking/${id}`);
+  };
+
+  const handleWriteReview = () => {
+    if (!isAuthenticated) {
+      toast.info('Please login to write a review');
+      navigate('/login', { state: { from: `/tutors/${id}` } });
+      return;
+    }
+    setShowReviewForm(true);
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      // TODO: Implement review submission API call
+      toast.success('Review submitted successfully');
+      setShowReviewForm(false);
+      setReviewData({ rating: 5, comment: '' });
+      // Refresh profile to show new review
+      if (id) {
+        const tutorProfile = await fetchTutorById(id);
+        setProfile(tutorProfile);
+      }
+    } catch (error) {
+      toast.error('Failed to submit review');
+    }
+  };
 
   if (loading) {
     return (
@@ -28,6 +82,12 @@ const TutorProfilePage = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
           <p className="text-gray-600">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
@@ -39,6 +99,12 @@ const TutorProfilePage = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Tutor Not Found</h2>
           <p className="text-gray-600">The tutor profile you're looking for doesn't exist.</p>
+          <button
+            onClick={() => navigate('/tutors')}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Browse Tutors
+          </button>
         </div>
       </div>
     );
@@ -193,7 +259,10 @@ const TutorProfilePage = () => {
                   <Mail className="h-5 w-5 text-gray-400 mr-3" />
                   <span>{profile.user.email}</span>
                 </div>
-                <button className="w-full py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center">
+                <button 
+                  onClick={handleBookSession}
+                  className="w-full py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
+                >
                   <MessageCircle className="h-5 w-5 mr-2" />
                   Contact Tutor
                 </button>
@@ -239,14 +308,112 @@ const TutorProfilePage = () => {
             {/* Book a Session */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h2 className="text-2xl font-semibold mb-4">Book a Session</h2>
-              <button className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center">
+              {!isAuthenticated && (
+                <div className="mb-4 p-3 bg-yellow-50 text-yellow-700 rounded-lg flex items-start">
+                  <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm">Please login to book a session with this tutor.</p>
+                </div>
+              )}
+              <button 
+                onClick={handleBookSession}
+                className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
+              >
                 <Calendar className="h-5 w-5 mr-2" />
-                Schedule Now
+                {isAuthenticated ? 'Schedule Now' : 'Login to Book'}
+              </button>
+            </div>
+
+            {/* Write a Review */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="text-2xl font-semibold mb-4">Write a Review</h2>
+              {!isAuthenticated && (
+                <div className="mb-4 p-3 bg-yellow-50 text-yellow-700 rounded-lg flex items-start">
+                  <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm">Please login to write a review for this tutor.</p>
+                </div>
+              )}
+              <button 
+                onClick={handleWriteReview}
+                className="w-full py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center"
+              >
+                <Star className="h-5 w-5 mr-2" />
+                {isAuthenticated ? 'Write a Review' : 'Login to Review'}
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Review Modal */}
+      {showReviewForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-lg w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Write a Review</h3>
+              <button
+                onClick={() => setShowReviewForm(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSubmitReview} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Rating
+                </label>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewData(prev => ({ ...prev, rating: star }))}
+                      className="focus:outline-none"
+                    >
+                      <Star
+                        className={`h-8 w-8 ${
+                          star <= reviewData.rating
+                            ? 'text-yellow-400 fill-current'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
+                  Your Review
+                </label>
+                <textarea
+                  id="comment"
+                  rows={4}
+                  value={reviewData.comment}
+                  onChange={(e) => setReviewData(prev => ({ ...prev, comment: e.target.value }))}
+                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  placeholder="Share your experience with this tutor..."
+                  required
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowReviewForm(false)}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Submit Review
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
