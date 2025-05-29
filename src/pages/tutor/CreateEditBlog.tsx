@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTutor } from '../../contexts/TutorContext';
 import { toast } from 'react-toastify';
@@ -29,6 +29,7 @@ const CreateEditBlog = () => {
   const [tagInput, setTagInput] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const quillRef = useRef(null);
 
   useEffect(() => {
     const loadBlogData = async () => {
@@ -131,7 +132,7 @@ const CreateEditBlog = () => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/upload/profile-photo`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -139,14 +140,17 @@ const CreateEditBlog = () => {
         body: formData
       });
 
-      if (!response.ok) throw new Error('Upload failed');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Upload failed');
+      }
 
       const data = await response.json();
-      setFormData(prev => ({ ...prev, featuredImage: data.url }));
-      setImagePreview(data.url);
+      setFormData(prev => ({ ...prev, featuredImage: data.data.url }));
+      setImagePreview(data.data.url);
       toast.success('Image uploaded successfully');
-    } catch (error) {
-      toast.error('Failed to upload image');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to upload image');
     }
   };
 
@@ -210,12 +214,14 @@ const CreateEditBlog = () => {
               <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
                 Content
               </label>
-              <ReactQuill
-                value={formData.content}
-                onChange={(content: string) => setFormData(prev => ({ ...prev, content }))}
-                className="h-64 mb-12"
-                placeholder="Write your blog content here..."
-              />
+              <div ref={quillRef}>
+                <ReactQuill
+                  value={formData.content}
+                  onChange={(content: string) => setFormData(prev => ({ ...prev, content }))}
+                  className="h-64 mb-12"
+                  placeholder="Write your blog content here..."
+                />
+              </div>
             </div>
 
             <div>
