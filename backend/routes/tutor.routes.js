@@ -21,12 +21,11 @@ const router = express.Router();
 
 // Public routes
 router.get('/', getTutors);
-router.get('/:id', getTutor);
 
 // Protected routes
 router.use(protect);
 
-// Profile routes
+// Profile routes - must come before /:id routes
 router.get('/profile', getTutorByUserId);
 router.put('/profile', authorize('tutor'), updateTutorProfile);
 router.delete('/profile', authorize('tutor'), deleteTutorProfile);
@@ -37,7 +36,8 @@ router.post('/blogs', authorize('tutor'), createBlog);
 router.put('/blogs/:id', authorize('tutor'), updateBlog);
 router.delete('/blogs/:id', authorize('tutor'), deleteBlog);
 
-// Other protected routes
+// Parameterized routes - must come after specific routes
+router.get('/:id', getTutor);
 router.get('/:id/availability', getTutorAvailability);
 router.get('/:id/reviews', getTutorReviews);
 router.get('/:id/stats', getTutorStats);

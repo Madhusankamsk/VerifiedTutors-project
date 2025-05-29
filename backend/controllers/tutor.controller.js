@@ -525,6 +525,20 @@ export const getTutorByUserId = async (req, res) => {
       .populate('locations', 'name');
 
     if (!tutor) {
+      // If user is a tutor but profile doesn't exist, create one
+      if (req.user.role === 'tutor') {
+        const newTutor = await Tutor.create({
+          user: req.user.id,
+          status: 'active'
+        });
+        
+        const populatedTutor = await Tutor.findById(newTutor._id)
+          .populate('user', 'name email profileImage')
+          .populate('subjects.subject', 'name category educationLevel')
+          .populate('locations', 'name');
+          
+        return res.json(populatedTutor);
+      }
       return res.status(404).json({ message: 'Tutor profile not found' });
     }
 

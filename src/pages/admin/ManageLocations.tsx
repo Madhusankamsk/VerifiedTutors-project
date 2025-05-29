@@ -83,8 +83,6 @@ const ManageLocations = () => {
         isActive: true
       };
 
-      console.log('Submitting location data:', locationData);
-
       if (editingLocation) {
         await updateLocation(editingLocation._id, locationData);
         toast.success('Location updated successfully');

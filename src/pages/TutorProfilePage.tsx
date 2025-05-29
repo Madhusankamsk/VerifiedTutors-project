@@ -96,7 +96,6 @@ const TutorProfilePage: React.FC = () => {
       profileImage: review.student.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.student.name)}`
     }
   }));
-  console.log("mappedReviews", mappedReviews);
   if (loading) {
     return (
         <div className=" bg-gray-50 flex items-center justify-center">

@@ -356,9 +356,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`${API_URL}/api/locations`);
-      console.log('Fetched locations:', response.data); // Debug log
-      
+      const response = await axios.get(`${API_URL}/api/locations`);      
       // Handle the new response structure
       const locationsData = response.data.tree || [];
       setLocations(locationsData);

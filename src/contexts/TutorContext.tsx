@@ -232,7 +232,12 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setError('No profile data received');
       }
     } catch (err: any) {
-      if (err.response?.status === 404) {
+      if (err.response?.status === 401) {
+        // Token expired or invalid
+        localStorage.removeItem('token');
+        setProfile(null);
+        setError('Session expired. Please login again.');
+      } else if (err.response?.status === 404) {
         setProfile(null);
         setError(null);
       } else {

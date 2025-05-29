@@ -26,7 +26,6 @@ export const ReviewList: React.FC<ReviewListProps> = ({
   totalReviews,
 }) => {
   const [expandedReviews, setExpandedReviews] = useState<Set<string>>(new Set());
-  console.log("reviews", reviews);
   const toggleReview = (reviewId: string) => {
     setExpandedReviews(prev => {
       const newSet = new Set(prev);

@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { UNSAFE_NavigationContext as NavigationContext } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { TutorProvider } from './contexts/TutorContext';
 import { AdminProvider } from './contexts/AdminContext';
@@ -46,7 +47,7 @@ import StudentDashboard from './pages/student/StudentDashboard';
 
 const App = () => {
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <LocationProvider>
           <SubjectProvider>
