@@ -136,6 +136,7 @@ interface TutorContextType {
   // Reviews & Ratings
   reviews: TutorReview[];
   fetchReviews: () => Promise<void>;
+  addReview: (tutorId: string, rating: number, comment: string) => Promise<void>;
   
   // Blog Management
   blogs: TutorBlog[];
@@ -733,6 +734,36 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [profile?._id]);
 
+  const addReview = useCallback(async (tutorId: string, rating: number, comment: string) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/ratings`,
+        { 
+          tutorId,
+          rating, 
+          review: comment
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+      
+      // Refresh reviews after adding new one
+      await fetchReviews();
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to add review';
+      throw new Error(errorMessage);
+    }
+  }, [fetchReviews]);
+
   // Stats & Analytics
   const fetchStats = useCallback(async () => {
     if (!profile?._id) return;
@@ -865,6 +896,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     removeLocation,
     reviews,
     fetchReviews,
+    addReview,
     stats,
     fetchStats,
     searchTutors

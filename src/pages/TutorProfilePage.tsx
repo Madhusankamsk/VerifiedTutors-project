@@ -1,15 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useTutor, TutorProfile } from '../contexts/TutorContext';
+import { useTutor, TutorProfile, TutorReview } from '../contexts/TutorContext';
 import { useAuth } from '../contexts/AuthContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { Star, MapPin, BookOpen, GraduationCap, Briefcase, FileText, User, Clock, Video, Home, Users, MessageCircle, Calendar, CheckCircle, Phone, Mail, AlertCircle, X } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { ReviewList } from '../components/ReviewList';
+import { Rating } from '../components/Rating';
 
 const TutorProfilePage: React.FC = () => {
   const { id } = useParams();
   const { isAuthenticated, user } = useAuth();
-  const { fetchTutorById, loading, error } = useTutor();
+  const { 
+    fetchTutorById, 
+    loading, 
+    error,
+    reviews,
+    fetchReviews,
+    addReview
+  } = useTutor();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<TutorProfile | null>(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -24,6 +33,7 @@ const TutorProfilePage: React.FC = () => {
       try {
         const tutorProfile = await fetchTutorById(id);
         setProfile(tutorProfile);
+        await fetchReviews();
       } catch (err) {
         console.error('Failed to load tutor profile:', err);
         toast.error('Failed to load tutor profile. Please try again later.');
@@ -31,7 +41,7 @@ const TutorProfilePage: React.FC = () => {
     };
 
     loadTutorProfile();
-  }, [id, fetchTutorById]);
+  }, [id, fetchTutorById, fetchReviews]);
 
   const handleBookSession = () => {
     if (!isAuthenticated) {
@@ -53,20 +63,39 @@ const TutorProfilePage: React.FC = () => {
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!id) return;
+    
     try {
-      // TODO: Implement review submission API call
+      await addReview(id, reviewData.rating, reviewData.comment);
       toast.success('Review submitted successfully');
       setShowReviewForm(false);
       setReviewData({ rating: 5, comment: '' });
-      // Refresh profile to show new review
-      if (id) {
-        const tutorProfile = await fetchTutorById(id);
-        setProfile(tutorProfile);
+      // Refresh profile and reviews
+      const tutorProfile = await fetchTutorById(id);
+      setProfile(tutorProfile);
+      await fetchReviews();
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to submit review';
+      if (error.response?.data?.existingRating) {
+        toast.error('You have already reviewed this tutor');
+        setShowReviewForm(false);
+      } else {
+        toast.error(errorMessage);
       }
-    } catch (error) {
-      toast.error('Failed to submit review');
+      console.error('Review submission error:', error);
     }
   };
+
+  const mappedReviews = reviews.map(review => ({
+    id: review._id,
+    rating: review.rating,
+    comment: review.comment,
+    createdAt: review.createdAt,
+    user: {
+      name: review.studentName,
+      profileImage: `https://ui-avatars.com/api/?name=${encodeURIComponent(review.studentName)}`
+    }
+  }));
 
   if (loading) {
     return (
@@ -243,6 +272,13 @@ const TutorProfilePage: React.FC = () => {
                 ))}
               </div>
             </div>
+
+            {/* Reviews Section */}
+            <ReviewList
+              reviews={mappedReviews}
+              averageRating={profile.rating}
+              totalReviews={profile.totalReviews}
+            />
           </div>
 
           {/* Sidebar */}
@@ -332,80 +368,81 @@ const TutorProfilePage: React.FC = () => {
                   <p className="text-sm">Please login to write a review for this tutor.</p>
                 </div>
               )}
-              <button 
-                onClick={handleWriteReview}
-                className="w-full py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center"
-              >
-                <Star className="h-5 w-5 mr-2" />
-                {isAuthenticated ? 'Write a Review' : 'Login to Review'}
-              </button>
+              {isAuthenticated && (
+                <button
+                  onClick={handleWriteReview}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Star className="h-5 w-5" />
+                  Write a Review
+                </button>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Review Modal */}
+      {/* Review Form Modal */}
       {showReviewForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full p-6">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl p-6 max-w-lg w-full">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold">Write a Review</h3>
               <button
                 onClick={() => setShowReviewForm(false)}
                 className="text-gray-500 hover:text-gray-700"
               >
-                <X className="h-5 w-5" />
+                <X className="h-6 w-6" />
               </button>
             </div>
-            <form onSubmit={handleSubmitReview} className="space-y-4">
-              <div>
+            <form onSubmit={handleSubmitReview}>
+              <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Rating
                 </label>
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setReviewData(prev => ({ ...prev, rating: star }))}
-                      className="focus:outline-none"
-                    >
-                      <Star
-                        className={`h-8 w-8 ${
-                          star <= reviewData.rating
-                            ? 'text-yellow-400 fill-current'
-                            : 'text-gray-300'
-                        }`}
-                      />
-                    </button>
-                  ))}
-                </div>
+                <Rating
+                  rating={reviewData.rating}
+                  size="lg"
+                  onChange={(newRating) => setReviewData({ ...reviewData, rating: newRating })}
+                />
               </div>
-              <div>
-                <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
-                  Your Review
+              <div className="mb-4">
+                <label
+                  htmlFor="comment"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Comment
                 </label>
                 <textarea
                   id="comment"
                   rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={reviewData.comment}
-                  onChange={(e) => setReviewData(prev => ({ ...prev, comment: e.target.value }))}
-                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  onChange={(e) =>
+                    setReviewData({ ...reviewData, comment: e.target.value })
+                  }
                   placeholder="Share your experience with this tutor..."
                   required
+                  minLength={10}
                 />
+                {reviewData.comment.length > 0 && reviewData.comment.length < 10 && (
+                  <p className="mt-1 text-sm text-red-600">
+                    Comment must be at least 10 characters long
+                  </p>
+                )}
               </div>
-              <div className="flex justify-end gap-3">
+              <div className="flex justify-end gap-4">
                 <button
                   type="button"
                   onClick={() => setShowReviewForm(false)}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-4 py-2 text-gray-700 hover:text-gray-900"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  disabled={reviewData.rating < 1 || reviewData.comment.length < 10}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Submit Review
                 </button>
