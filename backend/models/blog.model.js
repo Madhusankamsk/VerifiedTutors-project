@@ -34,6 +34,11 @@ const blogSchema = new mongoose.Schema({
     },
     default: 'draft',
   },
+  likes: {
+    type: Number,
+    default: 0,
+    min: [0, 'Likes cannot be negative']
+  },
   createdAt: {
     type: Date,
     default: Date.now,

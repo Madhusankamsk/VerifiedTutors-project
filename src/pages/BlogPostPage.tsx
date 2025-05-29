@@ -1,20 +1,45 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useBlog } from '../contexts/BlogContext';
 import { Heart, ArrowLeft } from 'lucide-react';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const BlogPostPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { posts, likePost } = useBlog();
-  
-  const post = posts.find(p => p.id === id);
+  const { getBlogById, likeBlog } = useBlog();
+  const [post, setPost] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!post) {
+  useEffect(() => {
+    const fetchPost = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const data = await getBlogById(id);
+        setPost(data);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to fetch blog post');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPost();
+  }, [id, getBlogById]);
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  if (error || !post) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Post Not Found</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">
+            {error || 'Post Not Found'}
+          </h1>
           <button
             onClick={() => navigate('/blogs')}
             className="text-blue-600 hover:text-blue-800"
@@ -40,32 +65,36 @@ const BlogPostPage: React.FC = () => {
         <article className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="relative aspect-[21/9]">
             <img
-              src={post.image}
+              src={post.featuredImage}
               alt={post.title}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-              <span className="inline-block bg-white/90 text-gray-800 px-3 py-1 rounded-full text-sm font-medium mb-4">
-                {post.category}
-              </span>
+              {post.tags && post.tags.length > 0 && (
+                <span className="inline-block bg-white/90 text-gray-800 px-3 py-1 rounded-full text-sm font-medium mb-4">
+                  {post.tags[0]}
+                </span>
+              )}
               <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                    {post.author.charAt(0)}
+                    {post.author.name.charAt(0)}
                   </div>
                   <div>
-                    <p className="font-medium">{post.author}</p>
-                    <p className="text-sm text-gray-200">{new Date(post.date).toLocaleDateString()}</p>
+                    <p className="font-medium">{post.author.name}</p>
+                    <p className="text-sm text-gray-200">
+                      {new Date(post.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
                 </div>
                 <button
-                  onClick={() => likePost(post.id)}
+                  onClick={() => likeBlog(post._id)}
                   className="flex items-center space-x-1 text-white hover:text-red-400 transition-colors"
                 >
                   <Heart className="w-6 h-6" />
-                  <span>{post.likes}</span>
+                  <span>{post.likes || 0}</span>
                 </button>
               </div>
             </div>
@@ -74,7 +103,6 @@ const BlogPostPage: React.FC = () => {
           <div className="p-8">
             <div className="prose prose-lg max-w-none">
               <p>{post.content}</p>
-              {/* Add more content sections here */}
             </div>
           </div>
         </article>

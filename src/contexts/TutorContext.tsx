@@ -100,6 +100,8 @@ export interface TutorBlog {
   author: string;
   createdAt: string;
   updatedAt: string;
+  featuredImage: string;
+  status: 'draft' | 'published';
 }
 
 export interface Favorite {

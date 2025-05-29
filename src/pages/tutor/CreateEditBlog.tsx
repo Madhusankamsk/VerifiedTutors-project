@@ -3,56 +3,58 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTutor } from '../../contexts/TutorContext';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { X, ArrowLeft, Save } from 'lucide-react';
+import { X, ArrowLeft, Save, Image as ImageIcon } from 'lucide-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 interface BlogFormData {
   title: string;
   content: string;
   tags: string[];
+  featuredImage: string;
+  status: 'draft' | 'published';
 }
 
 const CreateEditBlog = () => {
-  const { blogId } = useParams<{ blogId: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { blogs, loading, error, createBlog, updateBlog, fetchBlogs } = useTutor();
   const [formData, setFormData] = useState<BlogFormData>({
     title: '',
     content: '',
-    tags: []
+    tags: [],
+    featuredImage: '',
+    status: 'draft'
   });
   const [tagInput, setTagInput] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [imagePreview, setImagePreview] = useState<string>('');
 
   useEffect(() => {
     const loadBlogData = async () => {
-      if (!blogId) {
+      if (!id) {
         setIsLoading(false);
         return;
       }
 
       try {
         setIsLoading(true);
-        // First try to find the blog in the existing blogs array
-        let blog = blogs.find(b => b._id === blogId);
-        
-        // If not found, fetch blogs and try again
-        if (!blog) {
-          await fetchBlogs();
-          blog = blogs.find(b => b._id === blogId);
-        }
-
+        await fetchBlogs();
+        const blog = blogs.find(b => b._id === id);
         if (blog) {
           setFormData({
             title: blog.title,
             content: blog.content,
-            tags: blog.tags || []
+            tags: blog.tags || [],
+            featuredImage: blog.featuredImage || '',
+            status: blog.status || 'draft'
           });
+          setImagePreview(blog.featuredImage || '');
         } else {
           toast.error('Blog not found');
           navigate('/tutor/blogs');
         }
       } catch (error) {
-        console.error('Error loading blog:', error);
         toast.error('Failed to load blog data');
         navigate('/tutor/blogs');
       } finally {
@@ -61,13 +63,26 @@ const CreateEditBlog = () => {
     };
 
     loadBlogData();
-  }, [blogId, fetchBlogs, navigate, blogs]);
+  }, [id, fetchBlogs, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate title length
+    if (formData.title.length > 100) {
+      toast.error('Title cannot be more than 100 characters');
+      return;
+    }
+
+    // Validate content
+    if (formData.content.trim().length < 50) {
+      toast.error('Content must be at least 50 characters long');
+      return;
+    }
+
     try {
-      if (blogId) {
-        await updateBlog(blogId, formData);
+      if (id) {
+        await updateBlog(id, formData);
         toast.success('Blog updated successfully');
       } else {
         await createBlog(formData);
@@ -94,6 +109,45 @@ const CreateEditBlog = () => {
       ...prev,
       tags: prev.tags.filter(tag => tag !== tagToRemove)
     }));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+
+      const data = await response.json();
+      setFormData(prev => ({ ...prev, featuredImage: data.url }));
+      setImagePreview(data.url);
+      toast.success('Image uploaded successfully');
+    } catch (error) {
+      toast.error('Failed to upload image');
+    }
   };
 
   if (loading || isLoading) {
@@ -124,10 +178,10 @@ const CreateEditBlog = () => {
             Back to Blogs
           </button>
           <h1 className="text-3xl font-bold text-gray-900">
-            {blogId ? 'Edit Blog' : 'Create New Blog'}
+            {id ? 'Edit Blog' : 'Create New Blog'}
           </h1>
           <p className="mt-2 text-sm text-gray-500">
-            {blogId ? 'Update your existing blog post' : 'Share your knowledge with the community'}
+            {id ? 'Update your existing blog post' : 'Share your knowledge with the community'}
           </p>
         </div>
 
@@ -144,23 +198,92 @@ const CreateEditBlog = () => {
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 className="block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
                 placeholder="Enter a descriptive title"
+                maxLength={100}
                 required
               />
+              <p className="mt-1 text-sm text-gray-500">
+                {formData.title.length}/100 characters
+              </p>
             </div>
 
             <div>
               <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
                 Content
               </label>
-              <textarea
-                id="content"
+              <ReactQuill
                 value={formData.content}
-                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                rows={12}
-                className="block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
+                onChange={(content: string) => setFormData(prev => ({ ...prev, content }))}
+                className="h-64 mb-12"
                 placeholder="Write your blog content here..."
-                required
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Featured Image
+              </label>
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
+                <div className="space-y-1 text-center">
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="mx-auto h-32 w-auto object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImagePreview('');
+                          setFormData(prev => ({ ...prev, featuredImage: '' }));
+                        }}
+                        className="absolute -top-2 -right-2 p-1 bg-red-100 rounded-full text-red-600 hover:bg-red-200"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                      <div className="flex text-sm text-gray-600">
+                        <label
+                          htmlFor="image-upload"
+                          className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
+                        >
+                          <span>Upload an image</span>
+                          <input
+                            id="image-upload"
+                            name="image-upload"
+                            type="file"
+                            className="sr-only"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                          />
+                        </label>
+                        <p className="pl-1">or drag and drop</p>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        PNG, JPG, GIF up to 5MB
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                Status
+              </label>
+              <select
+                id="status"
+                value={formData.status}
+                onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'draft' | 'published' }))}
+                className="block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
+              >
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+              </select>
             </div>
 
             <div>
@@ -224,7 +347,7 @@ const CreateEditBlog = () => {
                 className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium shadow-sm"
               >
                 <Save className="w-4 h-4 mr-2" />
-                {blogId ? 'Update Blog' : 'Create Blog'}
+                {id ? 'Update Blog' : 'Create Blog'}
               </button>
             </div>
           </form>
