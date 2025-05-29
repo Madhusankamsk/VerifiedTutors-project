@@ -81,12 +81,15 @@ export interface TutorSubject {
 
 export interface TutorReview {
   _id: string;
-  studentId: string;
-  studentName: string;
+  student: {
+    _id: string;
+    name: string;
+    profileImage?: string;
+  };
   rating: number;
-  comment: string;
-  createdAt: string;
+  review: string;
   isVerified: boolean;
+  createdAt: string;
 }
 
 export interface TutorBlog {
@@ -135,7 +138,7 @@ interface TutorContextType {
   
   // Reviews & Ratings
   reviews: TutorReview[];
-  fetchReviews: () => Promise<void>;
+  fetchReviews: (tutorId?: string) => Promise<void>;
   addReview: (tutorId: string, rating: number, comment: string) => Promise<void>;
   
   // Blog Management
@@ -706,8 +709,9 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   // Reviews & Ratings
-  const fetchReviews = useCallback(async () => {
-    if (!profile?._id) {
+  const fetchReviews = useCallback(async (tutorId?: string) => {
+    const targetTutorId = tutorId || profile?._id;
+    if (!targetTutorId) {
       setReviews([]);
       return;
     }
@@ -716,18 +720,17 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLoading(true);
       setError(null);
       
-      const response = await axios.get(`${API_URL}/api/tutors/${profile._id}/reviews`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      setReviews(response.data);
-    } catch (err: any) {
-      if (err.response?.status !== 404) {
-        const errorMessage = err.response?.data?.message || 'Failed to fetch reviews';
-        setError(errorMessage);
-        console.error('Reviews fetch error:', err);
+      const response = await axios.get(`${API_URL}/api/tutors/${targetTutorId}/reviews`);
+      if (response.data && Array.isArray(response.data)) {
+        setReviews(response.data);
+      } else {
+        setReviews([]);
+        console.error('Invalid reviews data format:', response.data);
       }
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to fetch reviews';
+      setError(errorMessage);
+      console.error('Reviews fetch error:', err);
       setReviews([]);
     } finally {
       setLoading(false);

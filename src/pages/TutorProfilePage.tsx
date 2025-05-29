@@ -33,7 +33,7 @@ const TutorProfilePage: React.FC = () => {
       try {
         const tutorProfile = await fetchTutorById(id);
         setProfile(tutorProfile);
-        await fetchReviews();
+        await fetchReviews(id);
       } catch (err) {
         console.error('Failed to load tutor profile:', err);
         toast.error('Failed to load tutor profile. Please try again later.');
@@ -73,7 +73,7 @@ const TutorProfilePage: React.FC = () => {
       // Refresh profile and reviews
       const tutorProfile = await fetchTutorById(id);
       setProfile(tutorProfile);
-      await fetchReviews();
+      await fetchReviews(id);
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Failed to submit review';
       if (error.response?.data?.existingRating) {
@@ -89,14 +89,14 @@ const TutorProfilePage: React.FC = () => {
   const mappedReviews = reviews.map(review => ({
     id: review._id,
     rating: review.rating,
-    comment: review.comment,
+    comment: review.review,
     createdAt: review.createdAt,
     user: {
-      name: review.studentName,
-      profileImage: `https://ui-avatars.com/api/?name=${encodeURIComponent(review.studentName)}`
+      name: review.student.name,
+      profileImage: review.student.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.student.name)}`
     }
   }));
-
+  console.log("mappedReviews", mappedReviews);
   if (loading) {
     return (
         <div className=" bg-gray-50 flex items-center justify-center">

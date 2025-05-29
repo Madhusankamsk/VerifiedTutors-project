@@ -26,7 +26,7 @@ export const ReviewList: React.FC<ReviewListProps> = ({
   totalReviews,
 }) => {
   const [expandedReviews, setExpandedReviews] = useState<Set<string>>(new Set());
-
+  console.log("reviews", reviews);
   const toggleReview = (reviewId: string) => {
     setExpandedReviews(prev => {
       const newSet = new Set(prev);
@@ -55,66 +55,72 @@ export const ReviewList: React.FC<ReviewListProps> = ({
         </div>
       </div>
 
-      <div className="space-y-6">
-        {reviews.map((review) => {
-          const isReviewExpanded = isExpanded(review.id);
-          const commentPreview = review.comment.length > 150 && !isReviewExpanded
-            ? review.comment.substring(0, 150) + '...'
-            : review.comment;
+      {reviews.length > 0 ? (
+        <div className="space-y-6">
+          {reviews.map((review) => {
+            const isReviewExpanded = isExpanded(review.id);
+            const commentPreview = review.comment.length > 150 && !isReviewExpanded
+              ? review.comment.substring(0, 150) + '...'
+              : review.comment;
 
-          return (
-            <div key={review.id} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
-                  {review.user.profileImage ? (
-                    <img
-                      src={review.user.profileImage}
-                      alt={review.user.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-blue-100">
-                      <span className="text-lg font-semibold text-blue-600">
-                        {review.user.name.charAt(0)}
+            return (
+              <div key={review.id} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
+                    {review.user.profileImage ? (
+                      <img
+                        src={review.user.profileImage}
+                        alt={review.user.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-blue-100">
+                        <span className="text-lg font-semibold text-blue-600">
+                          {review.user.name.charAt(0)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium">{review.user.name}</h3>
+                      <span className="text-sm text-gray-500">
+                        {formatDistanceToNow(new Date(review.createdAt), { addSuffix: true })}
                       </span>
                     </div>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium">{review.user.name}</h3>
-                    <span className="text-sm text-gray-500">
-                      {formatDistanceToNow(new Date(review.createdAt), { addSuffix: true })}
-                    </span>
-                  </div>
-                  <div className="mt-1">
-                    <Rating rating={review.rating} readOnly size="sm" />
-                  </div>
-                  <div className="mt-2">
-                    <p className="text-gray-600 whitespace-pre-line">{commentPreview}</p>
-                    {review.comment.length > 150 && (
-                      <button
-                        onClick={() => toggleReview(review.id)}
-                        className="mt-2 text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
-                      >
-                        {isReviewExpanded ? (
-                          <>
-                            Show less <ChevronUp className="w-4 h-4" />
-                          </>
-                        ) : (
-                          <>
-                            Read more <ChevronDown className="w-4 h-4" />
-                          </>
-                        )}
-                      </button>
-                    )}
+                    <div className="mt-1">
+                      <Rating rating={review.rating} readOnly size="sm" />
+                    </div>
+                    <div className="mt-2">
+                      <p className="text-gray-600 whitespace-pre-line">{commentPreview}</p>
+                      {review.comment.length > 150 && (
+                        <button
+                          onClick={() => toggleReview(review.id)}
+                          className="mt-2 text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+                        >
+                          {isReviewExpanded ? (
+                            <>
+                              Show less <ChevronUp className="w-4 h-4" />
+                            </>
+                          ) : (
+                            <>
+                              Read more <ChevronDown className="w-4 h-4" />
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <p className="text-gray-500">No reviews yet.</p>
+        </div>
+      )}
     </div>
   );
 }; 
