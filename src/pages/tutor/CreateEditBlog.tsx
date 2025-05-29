@@ -32,8 +32,15 @@ const CreateEditBlog = () => {
 
       try {
         setIsLoading(true);
-        await fetchBlogs();
-        const blog = blogs.find(b => b._id === blogId);
+        // First try to find the blog in the existing blogs array
+        let blog = blogs.find(b => b._id === blogId);
+        
+        // If not found, fetch blogs and try again
+        if (!blog) {
+          await fetchBlogs();
+          blog = blogs.find(b => b._id === blogId);
+        }
+
         if (blog) {
           setFormData({
             title: blog.title,
@@ -45,6 +52,7 @@ const CreateEditBlog = () => {
           navigate('/tutor/blogs');
         }
       } catch (error) {
+        console.error('Error loading blog:', error);
         toast.error('Failed to load blog data');
         navigate('/tutor/blogs');
       } finally {
@@ -53,7 +61,7 @@ const CreateEditBlog = () => {
     };
 
     loadBlogData();
-  }, [blogId, fetchBlogs, navigate]);
+  }, [blogId, fetchBlogs, navigate, blogs]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

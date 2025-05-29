@@ -10,9 +10,10 @@ const TutorDashboard = () => {
     loading, 
     error,  
     blogs,
-    deleteProfile 
+    deleteProfile,
+    reviews,
   } = useTutor();
-
+  
   const handleDeleteProfile = async () => {
     if (window.confirm('Are you sure you want to delete your profile? This action cannot be undone.')) {
       try {
@@ -210,12 +211,34 @@ const TutorDashboard = () => {
           {/* Recent Reviews */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-xl font-bold text-gray-900 mb-6">Recent Reviews</h3>
-            {profile.totalReviews > 0 ? (
+            {reviews && reviews.length > 0 ? (
               <div className="space-y-6">
-                {/* We'll add review display here once the reviews endpoint is implemented */}
-                <div className="text-center py-8">
-                  <p className="text-gray-500">Reviews will be displayed here.</p>
-                </div>
+                {reviews.map((review) => (
+                  <div key={review._id} className="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0">
+                    <div className="flex items-center mb-2">
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${
+                              i < review.rating
+                                ? 'text-yellow-400 fill-yellow-400'
+                                : 'text-gray-200'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm text-gray-500 ml-2">
+                        by {review.student.name}
+                      </span>
+                    </div>
+                    <p className="text-gray-600 text-sm mb-3">{review.review}</p>
+                    <div className="flex items-center text-gray-500 text-sm">
+                      <Calendar className="w-4 h-4 mr-1.5" />
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="text-center py-8">
