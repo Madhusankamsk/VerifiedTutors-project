@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTutor } from '../../contexts/TutorContext';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { X, ArrowLeft, Save, Image as ImageIcon } from 'lucide-react';
+import { X, ArrowLeft, Save, Image as ImageIcon, Eye, EyeOff } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -18,7 +18,7 @@ interface BlogFormData {
 const CreateEditBlog = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { blogs, loading, error, createBlog, updateBlog, fetchBlogs } = useTutor();
+  const { loading, error, createBlog, updateBlog, getBlogById } = useTutor();
   const [formData, setFormData] = useState<BlogFormData>({
     title: '',
     content: '',
@@ -27,44 +27,56 @@ const CreateEditBlog = () => {
     status: 'draft'
   });
   const [tagInput, setTagInput] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
   const quillRef = useRef(null);
 
-  useEffect(() => {
-    const loadBlogData = async () => {
+  // Load blog data if editing
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const fetchBlog = async () => {
       if (!id) {
         setIsLoading(false);
         return;
       }
 
-      try {
-        setIsLoading(true);
-        await fetchBlogs();
-        const blog = blogs.find(b => b._id === id);
-        if (blog) {
-          setFormData({
-            title: blog.title,
-            content: blog.content,
-            tags: blog.tags || [],
-            featuredImage: blog.featuredImage || '',
-            status: blog.status || 'draft'
-          });
-          setImagePreview(blog.featuredImage || '');
-        } else {
-          toast.error('Blog not found');
-          navigate('/tutor/blogs');
-        }
-      } catch (error) {
-        toast.error('Failed to load blog data');
-        navigate('/tutor/blogs');
-      } finally {
-        setIsLoading(false);
-      }
+      setIsLoading(true);
+      // try {
+      //   const blog = await getBlogById(id);
+      //   if (!isMounted) return;
+
+      //   if (blog) {
+      //     setFormData({
+      //       title: blog.title,
+      //       content: blog.content,
+      //       tags: blog.tags || [],
+      //       featuredImage: blog.featuredImage || '',
+      //       status: blog.status || 'draft'
+      //     });
+      //     setImagePreview(blog.featuredImage || '');
+      //   } else {
+      //     toast.error('Blog not found');
+      //     navigate('/tutor/blogs');
+      //   }
+      // } catch (error: any) {
+      //   if (!isMounted) return;
+      //   const errorMessage = error.response?.data?.message || 'Failed to load blog data';
+      //   toast.error(errorMessage);
+      //   navigate('/tutor/blogs');
+      // } finally {
+      //   if (isMounted) {
+      //     setIsLoading(false);
+      //   }
+      // }
     };
 
-    loadBlogData();
-  }, [id, fetchBlogs, navigate]);
+    fetchBlog();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,8 +166,19 @@ const CreateEditBlog = () => {
     }
   };
 
+  const toggleStatus = () => {
+    setFormData(prev => ({
+      ...prev,
+      status: prev.status === 'draft' ? 'published' : 'draft'
+    }));
+  };
+
   if (loading || isLoading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   if (error) {
@@ -164,6 +187,12 @@ const CreateEditBlog = () => {
         <div className="container mx-auto px-4">
           <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6 shadow-sm">
             <p className="text-red-700 font-medium">{error}</p>
+            <button
+              onClick={() => navigate('/tutor/blogs')}
+              className="mt-4 text-primary-600 hover:text-primary-700 font-medium"
+            >
+              Return to Blogs
+            </button>
           </div>
         </div>
       </div>
@@ -347,6 +376,27 @@ const CreateEditBlog = () => {
                 className="inline-flex items-center px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
               >
                 Cancel
+              </button>
+              <button
+                type="button"
+                onClick={toggleStatus}
+                className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors font-medium ${
+                  formData.status === 'draft'
+                    ? 'bg-green-50 text-green-700 hover:bg-green-100'
+                    : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
+                }`}
+              >
+                {formData.status === 'draft' ? (
+                  <>
+                    <Eye className="w-4 h-4 mr-2" />
+                    Publish
+                  </>
+                ) : (
+                  <>
+                    <EyeOff className="w-4 h-4 mr-2" />
+                    Save as Draft
+                  </>
+                )}
               </button>
               <button
                 type="submit"

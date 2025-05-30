@@ -12,7 +12,8 @@ import {
   deleteBlog,
   getTutorByUserId,
   getTutorReviews,
-  getTutorStats
+  getTutorStats,
+  getTutorBlogById
 } from '../controllers/tutor.controller.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 import { validateTutorProfile } from '../middleware/validation.middleware.js';
@@ -32,6 +33,7 @@ router.delete('/profile', authorize('tutor'), deleteTutorProfile);
 
 // Blog routes
 router.get('/blogs', authorize('tutor'), getTutorBlogs);
+router.get('/blogs/:id', authorize('tutor'), getTutorBlogById);
 router.post('/blogs', authorize('tutor'), createBlog);
 router.put('/blogs/:id', authorize('tutor'), updateBlog);
 router.delete('/blogs/:id', authorize('tutor'), deleteBlog);

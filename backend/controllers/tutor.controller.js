@@ -433,10 +433,18 @@ export const getTutorBlogs = async (req, res) => {
       return res.status(404).json({ message: 'Tutor profile not found' });
     }
 
-    const blogs = await Blog.find({ author: tutor._id });
-    res.json(blogs);
+    const blogs = await Blog.find({ author: tutor._id })
+      .sort({ createdAt: -1 });
+    
+    res.json({
+      success: true,
+      data: blogs
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
   }
 };
 
@@ -631,6 +639,39 @@ export const getTutorStats = async (req, res) => {
     res.status(500).json({ 
       message: 'Error fetching tutor statistics',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Get tutor's blog by ID
+// @route   GET /api/tutors/blogs/:id
+// @access  Private/Tutor
+export const getTutorBlogById = async (req, res) => {
+  try {
+    const tutor = await Tutor.findOne({ user: req.user._id });
+    if (!tutor) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Tutor profile not found' 
+      });
+    }
+
+    const blog = await Blog.findOne({ _id: req.params.id, author: tutor._id });
+    if (!blog) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Blog not found' 
+      });
+    }
+
+    res.json({
+      success: true,
+      data: blog
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
     });
   }
 }; 
