@@ -1,47 +1,43 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Heart } from 'lucide-react';
+import { BlogPost } from '../contexts/BlogContext';
 
-interface BlogCardProps {
-  id: string;
-  title: string;
-  content: string;
-  image: string;
+interface BlogCardProps extends Omit<BlogPost, 'author'> {
   author: string;
-  date: string;
-  category: string;
-  likes: number;
   onLike: () => void;
 }
 
 const BlogCard: React.FC<BlogCardProps> = ({
-  id,
+  _id,
   title,
   content,
-  image,
+  featuredImage,
   author,
-  date,
-  category,
-  likes,
+  createdAt,
+  tags,
+  likes = 0,
   onLike,
 }) => {
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-      <Link to={`/blogs/${id}`}>
+      <Link to={`/blogs/${_id}`}>
         <div className="relative aspect-[4/3] overflow-hidden">
           <img
-            src={image}
+            src={featuredImage}
             alt={title}
             className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
           />
-          <div className="absolute top-2 right-2 bg-white/90 px-2 py-1 rounded-full text-sm font-medium">
-            {category}
-          </div>
+          {tags && tags.length > 0 && (
+            <div className="absolute top-2 right-2 bg-white/90 px-2 py-1 rounded-full text-sm font-medium">
+              {tags[0]}
+            </div>
+          )}
         </div>
       </Link>
       
       <div className="p-4">
-        <Link to={`/blogs/${id}`}>
+        <Link to={`/blogs/${_id}`}>
           <h2 className="text-xl font-semibold mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
             {title}
           </h2>
@@ -56,7 +52,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
             </div>
             <div>
               <p className="text-sm font-medium">{author}</p>
-              <p className="text-xs text-gray-500">{new Date(date).toLocaleDateString()}</p>
+              <p className="text-xs text-gray-500">{new Date(createdAt).toLocaleDateString()}</p>
             </div>
           </div>
           

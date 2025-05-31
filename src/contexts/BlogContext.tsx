@@ -1,74 +1,90 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
+import axios from 'axios';
+import { API_URL } from '../config';
 
-interface BlogPost {
-  id: string;
+export interface BlogPost {
+  _id: string;
   title: string;
   content: string;
-  image: string;
-  author: string;
-  date: string;
-  category: string;
-  likes: number;
+  featuredImage: string;
+  author: {
+    _id: string;
+    name: string;
+    profileImage?: string;
+  };
+  tags: string[];
+  status: 'draft' | 'published';
+  createdAt: string;
+  updatedAt: string;
+  readingTime?: number;
+  likes?: number;
 }
 
 interface BlogContextType {
   posts: BlogPost[];
-  addPost: (post: Omit<BlogPost, 'id'>) => void;
-  likePost: (id: string) => void;
+  loading: boolean;
+  error: string | null;
+  fetchBlogs: () => Promise<void>;
+  getBlogById: (id: string) => Promise<BlogPost>;
+  likeBlog: (id: string) => Promise<void>;
 }
 
 const BlogContext = createContext<BlogContextType | undefined>(undefined);
 
 export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [posts, setPosts] = useState<BlogPost[]>([
-    {
-      id: '1',
-      title: 'Getting Started with Online Tutoring',
-      content: 'Learn the basics of online tutoring and how to make the most of your virtual learning experience...Learn the basics of online tutoring and how to make the most of your virtual learning experience...Learn the basics of online tutoring and how to make the most of your virtual learning experience...Learn the basics of online tutoring and how to make the most of your virtual learning experience...Learn the basics of online tutoring and how to make the most of your virtual learning experience...Learn the basics of online tutoring and how to make the most of your virtual learning experience...Learn the basics of online tutoring and how to make the most of your virtual learning experience...Learn the basics of online tutoring and how to make the most of your virtual learning experience...Learn the basics of online tutoring and how to make the most of your virtual learning experience...Learn the basics of online tutoring and how to make the most of your virtual learning experience...Learn the basics of online tutoring and how to make the most of your virtual learning experience...Learn the basics of online tutoring and how to make the most of your virtual learning experience...Learn the basics of online tutoring and how to make the most of your virtual learning experience...Learn the basics of online tutoring and how to make the most of your virtual learning experience...',
-      image: 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=500',
-      author: 'John Doe',
-      date: '2024-03-15',
-      category: 'Education',
-      likes: 42
-    },
-    {
-      id: '2',
-      title: 'Top 10 Study Tips for Success',
-      content: 'Discover proven study techniques that will help you achieve better results in your academic journey...',
-      image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=500',
-      author: 'Jane Smith',
-      date: '2024-03-14',
-      category: 'Study Tips',
-      likes: 38
-    },
-    {
-      id: '3',
-      title: 'The Future of Education',
-      content: 'Explore how technology is shaping the future of education and what it means for students and teachers...',
-      image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=500',
-      author: 'Mike Johnson',
-      date: '2024-03-13',
-      category: 'Technology',
-      likes: 56
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchBlogs = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.get(`${API_URL}/api/blogs`);
+      setPosts(response.data);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to fetch blogs');
+    } finally {
+      setLoading(false);
     }
-  ]);
+  }, []);
 
-  const addPost = (post: Omit<BlogPost, 'id'>) => {
-    const newPost = {
-      ...post,
-      id: Date.now().toString(),
-    };
-    setPosts([newPost, ...posts]);
-  };
+  const getBlogById = useCallback(async (id: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.get(`${API_URL}/api/blogs/${id}`);
+      return response.data;
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to fetch blog');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const likePost = (id: string) => {
-    setPosts(posts.map(post => 
-      post.id === id ? { ...post, likes: post.likes + 1 } : post
-    ));
-  };
+  const likeBlog = useCallback(async (id: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      await axios.post(`${API_URL}/api/blogs/${id}/like`, {}, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      // Update the likes count in the local state
+      setPosts(prev => prev.map(post => 
+        post._id === id ? { ...post, likes: (post.likes || 0) + 1 } : post
+      ));
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to like blog');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   return (
-    <BlogContext.Provider value={{ posts, addPost, likePost }}>
+    <BlogContext.Provider value={{ posts, loading, error, fetchBlogs, getBlogById, likeBlog }}>
       {children}
     </BlogContext.Provider>
   );

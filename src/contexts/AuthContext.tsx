@@ -5,10 +5,10 @@ import { API_URL } from '../config/constants';
 type UserRole = 'admin' | 'tutor' | 'student' | null;
 
 interface User {
-  id: string;
-  email: string;
+  _id: string;
   name: string;
-  role: UserRole;
+  email: string;
+  role: 'student' | 'tutor' | 'admin';
   profileImage?: string;
   socialProvider?: 'google' | null;
 }
@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         setLoading(true);
         const token = localStorage.getItem('token');
-        
+        console.log('token', token);
         if (token) {
           // Set default auth header
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;

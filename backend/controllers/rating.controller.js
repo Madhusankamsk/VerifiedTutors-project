@@ -23,6 +23,25 @@ export const createRating = async (req, res) => {
   try {
     const { tutorId, rating, review } = req.body;
 
+    // Validate input
+    if (!tutorId || !rating || !review) {
+      return res.status(400).json({ 
+        message: 'Please provide all required fields: tutorId, rating, and review' 
+      });
+    }
+
+    if (typeof rating !== 'number' || rating < 1 || rating > 5) {
+      return res.status(400).json({ 
+        message: 'Rating must be a number between 1 and 5' 
+      });
+    }
+
+    if (typeof review !== 'string' || review.trim().length < 10) {
+      return res.status(400).json({ 
+        message: 'Review must be at least 10 characters long' 
+      });
+    }
+
     // Check if tutor exists
     const tutor = await Tutor.findById(tutorId);
     if (!tutor) {
@@ -36,7 +55,15 @@ export const createRating = async (req, res) => {
     });
 
     if (existingRating) {
-      return res.status(400).json({ message: 'You have already rated this tutor' });
+      return res.status(400).json({ 
+        message: 'You have already rated this tutor',
+        existingRating: {
+          id: existingRating._id,
+          rating: existingRating.rating,
+          review: existingRating.review,
+          createdAt: existingRating.createdAt
+        }
+      });
     }
 
     // Create rating
@@ -44,7 +71,7 @@ export const createRating = async (req, res) => {
       tutor: tutorId,
       student: req.user._id,
       rating,
-      review
+      review: review.trim()
     });
 
     // Update tutor's average rating
@@ -57,9 +84,17 @@ export const createRating = async (req, res) => {
     tutor.totalRatings = totalRatings;
     await tutor.save();
 
-    res.status(201).json(newRating);
+    // Populate student info before sending response
+    const populatedRating = await Rating.findById(newRating._id)
+      .populate('student', 'name profileImage');
+
+    res.status(201).json(populatedRating);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Error creating rating:', error);
+    res.status(400).json({ 
+      message: 'Failed to create rating',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 

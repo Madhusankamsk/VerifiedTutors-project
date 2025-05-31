@@ -1,64 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useBlog } from '../contexts/BlogContext';
 import BlogCard from '../components/BlogCard';
 import { Search } from 'lucide-react';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const BlogListPage: React.FC = () => {
-  const { posts, likePost } = useBlog();
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const { posts, loading, error, fetchBlogs, likeBlog } = useBlog();
+  const [selectedTag, setSelectedTag] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const categories = ['All', 'Education', 'Study Tips', 'Technology'];
-  
+  useEffect(() => {
+    fetchBlogs();
+  }, [fetchBlogs]);
+
+  // Get unique tags from all posts
+  const allTags = Array.from(new Set(posts.flatMap(post => post.tags || [])));
+
   const filteredPosts = posts.filter(post => {
-    const matchesCategory = selectedCategory === 'All' || selectedCategory === '' || post.category === selectedCategory;
+    const matchesTag = !selectedTag || (post.tags && post.tags.includes(selectedTag));
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          post.content.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+    return matchesTag && matchesSearch;
   });
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Educational Blog</h1>
-          <p className="text-xl text-blue-100 max-w-2xl">
-            Discover insights, tips, and stories about education, learning, and personal growth.
-          </p>
+          <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6 shadow-sm">
+            <p className="text-red-700 font-medium">{error}</p>
+          </div>
         </div>
       </div>
+    );
+  }
 
-      <div className="container mx-auto px-4 py-8">
+  return (
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="container mx-auto px-4">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Blog</h1>
+          <p className="text-gray-600">Discover insights, tips, and stories from our community of tutors and students.</p>
+        </div>
+
         {/* Search and Filter Section */}
-        <div className="mb-8 space-y-4 md:space-y-0 md:flex md:items-center md:justify-between">
-          {/* Search Bar */}
-          <div className="relative max-w-md w-full">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
+        <div className="mb-8 space-y-4">
+          <div className="relative">
             <input
               type="text"
-              placeholder="Search articles..."
+              placeholder="Search blogs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
             />
+            <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           </div>
 
-          {/* Category Filter */}
           <div className="flex space-x-2 overflow-x-auto pb-2 md:pb-0">
-            {categories.map((category) => (
+            <button
+              onClick={() => setSelectedTag('')}
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                !selectedTag
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              All
+            </button>
+            {allTags.map((tag) => (
               <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
+                key={tag}
+                onClick={() => setSelectedTag(tag)}
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                  selectedCategory === category
+                  selectedTag === tag
                     ? 'bg-blue-600 text-white'
                     : 'bg-white text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                {category}
+                {tag}
               </button>
             ))}
           </div>
@@ -68,10 +91,11 @@ const BlogListPage: React.FC = () => {
         <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
           {filteredPosts.length > 0 ? (
             filteredPosts.map((post) => (
-              <div key={post.id} className="break-inside-avoid">
+              <div key={post._id} className="break-inside-avoid">
                 <BlogCard
                   {...post}
-                  onLike={() => likePost(post.id)}
+                  author={post.author.name}
+                  onLike={() => likeBlog(post._id)}
                 />
               </div>
             ))

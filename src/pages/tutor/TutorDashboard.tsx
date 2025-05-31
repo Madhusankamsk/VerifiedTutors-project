@@ -3,6 +3,7 @@ import { useTutor } from '../../contexts/TutorContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { Star, Users, DollarSign, BookOpen, Edit2, Trash2, Calendar, Clock } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { useState } from 'react';
 
 const TutorDashboard = () => {
   const { 
@@ -10,9 +11,12 @@ const TutorDashboard = () => {
     loading, 
     error,  
     blogs,
-    deleteProfile 
+    deleteProfile,
+    reviews,
   } = useTutor();
-
+  
+  const [activeBlogTab, setActiveBlogTab] = useState<'published' | 'draft'>('published');
+  
   const handleDeleteProfile = async () => {
     if (window.confirm('Are you sure you want to delete your profile? This action cannot be undone.')) {
       try {
@@ -57,6 +61,8 @@ const TutorDashboard = () => {
       </div>
     );
   }
+
+  const filteredBlogs = blogs?.filter(blog => blog.status === activeBlogTab) || [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -163,7 +169,31 @@ const TutorDashboard = () => {
           {/* Recent Blogs */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <h3 className="text-xl font-bold text-gray-900">Recent Blogs</h3>
+              <div className="flex items-center gap-4">
+                <h3 className="text-xl font-bold text-gray-900">Recent Blogs</h3>
+                <div className="flex rounded-lg border border-gray-200 p-1">
+                  <button
+                    onClick={() => setActiveBlogTab('published')}
+                    className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                      activeBlogTab === 'published'
+                        ? 'bg-primary-100 text-primary-700'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Published
+                  </button>
+                  <button
+                    onClick={() => setActiveBlogTab('draft')}
+                    className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                      activeBlogTab === 'draft'
+                        ? 'bg-primary-100 text-primary-700'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Drafts
+                  </button>
+                </div>
+              </div>
               <Link 
                 to="/tutor/blogs/create" 
                 className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
@@ -171,11 +201,18 @@ const TutorDashboard = () => {
                 New Blog
               </Link>
             </div>
-            {blogs && blogs.length > 0 ? (
+            {filteredBlogs.length > 0 ? (
               <div className="space-y-6">
-                {blogs.slice(0, 3).map((blog) => (
+                {filteredBlogs.slice(0, 3).map((blog) => (
                   <div key={blog._id} className="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0">
-                    <h4 className="font-semibold text-gray-900 text-lg mb-2">{blog.title}</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-gray-900 text-lg">{blog.title}</h4>
+                      {blog.status === 'draft' && (
+                        <span className="bg-yellow-50 text-yellow-700 text-xs px-2 py-1 rounded-full font-medium">
+                          Draft
+                        </span>
+                      )}
+                    </div>
                     <p className="text-gray-600 text-sm mb-3 line-clamp-2">{blog.content}</p>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <div className="flex items-center text-gray-500 text-sm">
@@ -196,12 +233,16 @@ const TutorDashboard = () => {
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-500 mb-4">No blog posts yet.</p>
+                <p className="text-gray-500 mb-4">
+                  {activeBlogTab === 'published' 
+                    ? 'No published blog posts yet.'
+                    : 'No draft blog posts yet.'}
+                </p>
                 <Link 
                   to="/tutor/blogs/create" 
                   className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
                 >
-                  Create Your First Blog
+                  Create New Blog
                 </Link>
               </div>
             )}
@@ -210,12 +251,34 @@ const TutorDashboard = () => {
           {/* Recent Reviews */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-xl font-bold text-gray-900 mb-6">Recent Reviews</h3>
-            {profile.totalReviews > 0 ? (
+            {reviews && reviews.length > 0 ? (
               <div className="space-y-6">
-                {/* We'll add review display here once the reviews endpoint is implemented */}
-                <div className="text-center py-8">
-                  <p className="text-gray-500">Reviews will be displayed here.</p>
-                </div>
+                {reviews.map((review) => (
+                  <div key={review._id} className="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0">
+                    <div className="flex items-center mb-2">
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${
+                              i < review.rating
+                                ? 'text-yellow-400 fill-yellow-400'
+                                : 'text-gray-200'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm text-gray-500 ml-2">
+                        by {review.student.name}
+                      </span>
+                    </div>
+                    <p className="text-gray-600 text-sm mb-3">{review.review}</p>
+                    <div className="flex items-center text-gray-500 text-sm">
+                      <Calendar className="w-4 h-4 mr-1.5" />
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="text-center py-8">

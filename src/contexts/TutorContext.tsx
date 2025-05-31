@@ -81,12 +81,15 @@ export interface TutorSubject {
 
 export interface TutorReview {
   _id: string;
-  studentId: string;
-  studentName: string;
+  student: {
+    _id: string;
+    name: string;
+    profileImage?: string;
+  };
   rating: number;
-  comment: string;
-  createdAt: string;
+  review: string;
   isVerified: boolean;
+  createdAt: string;
 }
 
 export interface TutorBlog {
@@ -97,6 +100,8 @@ export interface TutorBlog {
   author: string;
   createdAt: string;
   updatedAt: string;
+  featuredImage: string;
+  status: 'draft' | 'published';
 }
 
 export interface Favorite {
@@ -104,6 +109,19 @@ export interface Favorite {
   tutor: TutorProfile;
   student: string;
   createdAt: string;
+}
+
+interface Blog {
+  _id: string;
+  title: string;
+  content: string;
+  author: string;
+  featuredImage?: string;
+  tags?: string[];
+  status: 'draft' | 'published';
+  likes: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface TutorContextType {
@@ -135,14 +153,16 @@ interface TutorContextType {
   
   // Reviews & Ratings
   reviews: TutorReview[];
-  fetchReviews: () => Promise<void>;
+  fetchReviews: (tutorId?: string) => Promise<void>;
+  addReview: (tutorId: string, rating: number, comment: string) => Promise<void>;
   
   // Blog Management
-  blogs: TutorBlog[];
+  blogs: Blog[];
   fetchBlogs: () => Promise<void>;
-  createBlog: (blogData: Omit<TutorBlog, '_id' | 'author' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  updateBlog: (blogId: string, blogData: Partial<TutorBlog>) => Promise<void>;
-  deleteBlog: (blogId: string) => Promise<void>;
+  getBlogById: (id: string) => Promise<Blog | null>;
+  createBlog: (blogData: Partial<Blog>) => Promise<void>;
+  updateBlog: (id: string, blogData: Partial<Blog>) => Promise<void>;
+  deleteBlog: (id: string) => Promise<void>;
   
   // Favorites Management (for students)
   favorites: Favorite[];
@@ -187,7 +207,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const { user } = useAuth();
   const [profile, setProfile] = useState<TutorProfile | null>(null);
   const [reviews, setReviews] = useState<TutorReview[]>([]);
-  const [blogs, setBlogs] = useState<TutorBlog[]>([]);
+  const [blogs, setBlogs] = useState<Blog[]>([]);
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -228,7 +248,12 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setError('No profile data received');
       }
     } catch (err: any) {
-      if (err.response?.status === 404) {
+      if (err.response?.status === 401) {
+        // Token expired or invalid
+        localStorage.removeItem('token');
+        setProfile(null);
+        setError('Session expired. Please login again.');
+      } else if (err.response?.status === 404) {
         setProfile(null);
         setError(null);
       } else {
@@ -313,26 +338,35 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Blog Management
   const fetchBlogs = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setBlogs([]);
+      return;
+    }
 
     try {
       setLoading(true);
       setError(null);
       const response = await axios.get(`${API_URL}/api/tutors/blogs`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${localStorage.getItem('token')}`
         }
       });
-      setBlogs(response.data);
+      
+      if (response.data.success) {
+        setBlogs(response.data.data);
+      } else {
+        throw new Error(response.data.message || 'Failed to fetch blogs');
+      }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to fetch blogs';
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch blogs';
       setError(errorMessage);
+      setBlogs([]);
     } finally {
       setLoading(false);
     }
   }, [user]);
 
-  const createBlog = useCallback(async (blogData: Omit<TutorBlog, '_id' | 'author' | 'createdAt' | 'updatedAt'>) => {
+  const getBlogById = useCallback(async (id: string): Promise<Blog | null> => {
     if (!user) {
       throw new Error('User not authenticated');
     }
@@ -340,15 +374,20 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.post(`${API_URL}/api/tutors/blogs`, blogData, {
+      const response = await axios.get(`${API_URL}/api/tutors/blogs/${id}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${localStorage.getItem('token')}`
         }
       });
-      setBlogs(prev => [...prev, response.data]);
-      return response.data;
+
+      if (response.data.success) {
+    //    console.log('response.data.data', response.data.data);
+        return response.data.data;
+      } else {
+        throw new Error(response.data.message || 'Failed to fetch blog');
+      }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to create blog';
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch blog';
       setError(errorMessage);
       throw err;
     } finally {
@@ -356,7 +395,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [user]);
 
-  const updateBlog = useCallback(async (blogId: string, blogData: Partial<TutorBlog>) => {
+  const createBlog = useCallback(async (blogData: Partial<Blog>) => {
     if (!user) {
       throw new Error('User not authenticated');
     }
@@ -364,23 +403,25 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.put(`${API_URL}/api/tutors/blogs/${blogId}`, blogData, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      const response = await axios.post(
+        `${API_URL}/api/tutors/blogs`,
+        blogData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
         }
-      });
-      setBlogs(prev => prev.map(blog => blog._id === blogId ? response.data : blog));
-      return response.data;
+      );
+      setBlogs(prev => [...prev, response.data.data]);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to update blog';
-      setError(errorMessage);
+      setError(err.response?.data?.message || 'Failed to create blog');
       throw err;
     } finally {
       setLoading(false);
     }
   }, [user]);
 
-  const deleteBlog = useCallback(async (blogId: string) => {
+  const updateBlog = useCallback(async (id: string, blogData: Partial<Blog>) => {
     if (!user) {
       throw new Error('User not authenticated');
     }
@@ -388,15 +429,45 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      await axios.delete(`${API_URL}/api/tutors/blogs/${blogId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      const response = await axios.put(
+        `${API_URL}/api/tutors/blogs/${id}`,
+        blogData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
         }
-      });
-      setBlogs(prev => prev.filter(blog => blog._id !== blogId));
+      );
+      setBlogs(prev => prev.map(blog => 
+        blog._id === id ? response.data.data : blog
+      ));
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to delete blog';
-      setError(errorMessage);
+      setError(err.response?.data?.message || 'Failed to update blog');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const deleteBlog = useCallback(async (id: string) => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      await axios.delete(
+        `${API_URL}/api/tutors/${user._id}/blogs/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      setBlogs(prev => prev.filter(blog => blog._id !== id));
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to delete blog');
       throw err;
     } finally {
       setLoading(false);
@@ -705,8 +776,9 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   // Reviews & Ratings
-  const fetchReviews = useCallback(async () => {
-    if (!profile?._id) {
+  const fetchReviews = useCallback(async (tutorId?: string) => {
+    const targetTutorId = tutorId || profile?._id;
+    if (!targetTutorId) {
       setReviews([]);
       return;
     }
@@ -715,23 +787,52 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLoading(true);
       setError(null);
       
-      const response = await axios.get(`${API_URL}/api/tutors/${profile._id}/reviews`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      setReviews(response.data);
-    } catch (err: any) {
-      if (err.response?.status !== 404) {
-        const errorMessage = err.response?.data?.message || 'Failed to fetch reviews';
-        setError(errorMessage);
-        console.error('Reviews fetch error:', err);
+      const response = await axios.get(`${API_URL}/api/tutors/${targetTutorId}/reviews`);
+      if (response.data && Array.isArray(response.data)) {
+        setReviews(response.data);
+      } else {
+        setReviews([]);
+        console.error('Invalid reviews data format:', response.data);
       }
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to fetch reviews';
+      setError(errorMessage);
+      console.error('Reviews fetch error:', err);
       setReviews([]);
     } finally {
       setLoading(false);
     }
   }, [profile?._id]);
+
+  const addReview = useCallback(async (tutorId: string, rating: number, comment: string) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/ratings`,
+        { 
+          tutorId,
+          rating, 
+          review: comment
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+      
+      // Refresh reviews after adding new one
+      await fetchReviews();
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to add review';
+      throw new Error(errorMessage);
+    }
+  }, [fetchReviews]);
 
   // Stats & Analytics
   const fetchStats = useCallback(async () => {
@@ -847,6 +948,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     deleteProfile,
     blogs,
     fetchBlogs,
+    getBlogById,
     createBlog,
     updateBlog,
     deleteBlog,
@@ -865,6 +967,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     removeLocation,
     reviews,
     fetchReviews,
+    addReview,
     stats,
     fetchStats,
     searchTutors
