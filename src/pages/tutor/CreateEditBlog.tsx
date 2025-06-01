@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTutor } from '../../contexts/TutorContext';
 import { toast } from 'react-toastify';
@@ -56,52 +56,88 @@ const CreateEditBlog = () => {
   });
 
   // Load blog data if editing
-  React.useEffect(() => {
-    let isMounted = true;
+  // React.useEffect(() => {
+  //   let isMounted = true;
 
-    const fetchBlog = async () => {
-      if (!id) {
-        setIsLoading(false);
-        return;
-      }
+  //   const fetchBlog = async () => {
+  //     if (!id) {
+  //       setIsLoading(false);
+  //       return;
+  //     }
 
-      setIsLoading(true);
-      try {
-        const blog = await getBlogById(id);
-        if (!isMounted) return;
+  //     setIsLoading(true);
+  //     try {
+  //       const blog = await getBlogById(id);
+  //       if (!isMounted) return;
 
-        if (blog) {
-          setFormData({
-            title: blog.title,
-            content: blog.content,
-            tags: blog.tags || [],
-            featuredImage: blog.featuredImage || '',
-            status: blog.status || 'draft'
-          });
-          editor?.commands.setContent(blog.content);
-          setImagePreview(blog.featuredImage || '');
-        } else {
-          toast.error('Blog not found');
-          navigate('/tutor/blogs');
+  //       if (blog) {
+  //         setFormData({
+  //           title: blog.title,
+  //           content: blog.content,
+  //           tags: blog.tags || [],
+  //           featuredImage: blog.featuredImage || '',
+  //           status: blog.status || 'draft'
+  //         });
+  //         if (editor) {
+  //           editor.commands.setContent(blog.content);
+  //         }
+  //         setImagePreview(blog.featuredImage || '');
+  //       } else {
+  //         toast.error('Blog not found');
+  //         navigate('/tutor/blogs');
+  //       }
+  //     } catch (error: any) {
+  //       if (!isMounted) return;
+  //       const errorMessage = error.response?.data?.message || 'Failed to load blog data';
+  //       toast.error(errorMessage);
+  //       navigate('/tutor/blogs');
+  //     } finally {
+  //       if (isMounted) {
+  //         setIsLoading(false);
+  //       }
+  //     }
+  //   };
+
+  //   fetchBlog();
+
+  //   return () => {
+  //     isMounted = false;
+  //   };
+  // }, []);
+
+  const fetchBlog = async () => {
+    if (!id) return;
+    setIsLoading(true);
+    try {
+      const blog = await getBlogById(id);
+      if (blog) {
+        setFormData({
+          title: blog.title,
+          content: blog.content,
+          tags: blog.tags || [],
+          featuredImage: blog.featuredImage || '',
+          status: blog.status || 'draft'
+        });
+        if (editor) {
+          editor.commands.setContent(blog.content);
         }
-      } catch (error: any) {
-        if (!isMounted) return;
-        const errorMessage = error.response?.data?.message || 'Failed to load blog data';
-        toast.error(errorMessage);
+        setImagePreview(blog.featuredImage || '');
+      } else {
+        toast.error('Blog not found');
         navigate('/tutor/blogs');
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
       }
-    };
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to load blog data';
+      toast.error(errorMessage);
+      navigate('/tutor/blogs');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchBlog();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [id, navigate, editor]);
+  }, [id]); // Add id as dependency to ensure it's available
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
