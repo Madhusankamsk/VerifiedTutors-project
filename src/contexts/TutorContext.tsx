@@ -111,7 +111,7 @@ export interface Favorite {
   createdAt: string;
 }
 
-interface Blog {
+export interface Blog {
   _id: string;
   title: string;
   content: string;
@@ -381,7 +381,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
 
       if (response.data.success) {
-    //    console.log('response.data.data', response.data.data);
+        console.log('response.data.data', response.data.data);
         return response.data.data;
       } else {
         throw new Error(response.data.message || 'Failed to fetch blog');
@@ -458,7 +458,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLoading(true);
       setError(null);
       await axios.delete(
-        `${API_URL}/api/tutors/${user._id}/blogs/${id}`,
+        `${API_URL}/api/tutors/blogs/${id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
