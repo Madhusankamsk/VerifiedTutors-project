@@ -11,13 +11,15 @@ export interface BlogPost {
     _id: string;
     name: string;
     profileImage?: string;
-  };
+  } | string; // Can be either populated object or just the ID
   tags: string[];
   status: 'draft' | 'published';
   createdAt: string;
   updatedAt: string;
   readingTime?: number;
-  likes?: number;
+  likes: number;
+  __v?: number;
+  id?: string; // Some APIs return both _id and id
 }
 
 interface BlogContextType {
@@ -53,8 +55,8 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`${API_URL}/api/blogs/${id}`);
-      return response.data;
+      const response = await axios.get(`${API_URL}/api/tutors/blogs/${id}`);
+      return response.data.data; // Handle the nested data structure
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch blog');
       throw err;

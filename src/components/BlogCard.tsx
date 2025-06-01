@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart } from 'lucide-react';
+import { Calendar, Clock, Heart } from 'lucide-react';
 import { BlogPost } from '../contexts/BlogContext';
 
 interface BlogCardProps extends Omit<BlogPost, 'author'> {
-  author: string;
+  author: string | { _id: string; name: string; profileImage?: string };
   onLike: () => void;
 }
 
@@ -18,49 +18,64 @@ const BlogCard: React.FC<BlogCardProps> = ({
   tags,
   likes = 0,
   onLike,
+  status,
+  updatedAt,
 }) => {
+  // Helper function to get author name
+  const getAuthorName = () => {
+    if (typeof author === 'string') {
+      return author;
+    }
+    return author.name;
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-      <Link to={`/blogs/${_id}`}>
-        <div className="relative aspect-[4/3] overflow-hidden">
-          <img
-            src={featuredImage}
-            alt={title}
-            className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
-          />
-          {tags && tags.length > 0 && (
-            <div className="absolute top-2 right-2 bg-white/90 px-2 py-1 rounded-full text-sm font-medium">
-              {tags[0]}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-semibold text-gray-900 line-clamp-1">{title}</h3>
+          {status === 'draft' && (
+            <span className="bg-yellow-50 text-yellow-700 text-xs px-2 py-1 rounded-full font-medium">
+              Draft
+            </span>
+          )}
+        </div>
+
+        <p className="text-gray-600 line-clamp-2">{content}</p>
+
+        {tags && tags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-50 text-primary-700"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+          <div className="flex items-center">
+            <Calendar className="w-4 h-4 mr-1.5" />
+            <span>Created: {new Date(createdAt).toLocaleDateString()}</span>
+          </div>
+          {updatedAt !== createdAt && (
+            <div className="flex items-center">
+              <Clock className="w-4 h-4 mr-1.5" />
+              <span>Updated: {new Date(updatedAt).toLocaleDateString()}</span>
             </div>
           )}
         </div>
-      </Link>
-      
-      <div className="p-4">
-        <Link to={`/blogs/${_id}`}>
-          <h2 className="text-xl font-semibold mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
-            {title}
-          </h2>
-        </Link>
-        
-        <p className="text-gray-600 mb-4 line-clamp-3">{content}</p>
-        
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-              {author.charAt(0)}
-            </div>
-            <div>
-              <p className="text-sm font-medium">{author}</p>
-              <p className="text-xs text-gray-500">{new Date(createdAt).toLocaleDateString()}</p>
-            </div>
-          </div>
-          
+
+        <div className="flex items-center justify-between pt-2">
+          <span className="text-sm text-gray-500">By {getAuthorName()}</span>
           <button
             onClick={onLike}
-            className="flex items-center space-x-1 text-gray-600 hover:text-red-500 transition-colors"
+            className="flex items-center gap-1 text-gray-500 hover:text-red-500 transition-colors"
           >
-            <Heart className="w-5 h-5" />
+            <Heart className="w-4 h-4" />
             <span>{likes}</span>
           </button>
         </div>

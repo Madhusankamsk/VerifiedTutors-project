@@ -3,11 +3,18 @@ import { useBlog } from '../contexts/BlogContext';
 import BlogCard from '../components/BlogCard';
 import { Search } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { useAuth } from '../contexts/AuthContext';
 
 const BlogListPage: React.FC = () => {
   const { posts, loading, error, fetchBlogs, likeBlog } = useBlog();
+  const { user } = useAuth();
   const [selectedTag, setSelectedTag] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
+
+  const getAuthorName = (author: string | { _id: string; name: string; profileImage?: string }) => {
+    return typeof author === 'string' ? author : author.name;
+  };
 
   useEffect(() => {
     fetchBlogs();
@@ -20,7 +27,8 @@ const BlogListPage: React.FC = () => {
     const matchesTag = !selectedTag || (post.tags && post.tags.includes(selectedTag));
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          post.content.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesTag && matchesSearch;
+    const matchesStatus = statusFilter === 'all' || post.status === statusFilter;
+    return matchesTag && matchesSearch && matchesStatus;
   });
 
   if (loading) {
@@ -60,30 +68,69 @@ const BlogListPage: React.FC = () => {
             <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           </div>
 
-          <div className="flex space-x-2 overflow-x-auto pb-2 md:pb-0">
-            <button
-              onClick={() => setSelectedTag('')}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                !selectedTag
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              All
-            </button>
-            {allTags.map((tag) => (
+          <div className="flex flex-wrap gap-2">
+            {/* Status Filter */}
+            <div className="flex rounded-lg border border-gray-200 p-1 bg-white">
               <button
-                key={tag}
-                onClick={() => setSelectedTag(tag)}
+                onClick={() => setStatusFilter('all')}
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                  statusFilter === 'all'
+                    ? 'bg-primary-100 text-primary-700'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setStatusFilter('published')}
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                  statusFilter === 'published'
+                    ? 'bg-primary-100 text-primary-700'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Published
+              </button>
+              {user && (
+                <button
+                  onClick={() => setStatusFilter('draft')}
+                  className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                    statusFilter === 'draft'
+                      ? 'bg-primary-100 text-primary-700'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Drafts
+                </button>
+              )}
+            </div>
+
+            {/* Tag Filters */}
+            <div className="flex space-x-2 overflow-x-auto pb-2 md:pb-0">
+              <button
+                onClick={() => setSelectedTag('')}
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                  selectedTag === tag
+                  !selectedTag
                     ? 'bg-blue-600 text-white'
                     : 'bg-white text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                {tag}
+                All Tags
               </button>
-            ))}
+              {allTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => setSelectedTag(tag)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                    selectedTag === tag
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -94,14 +141,18 @@ const BlogListPage: React.FC = () => {
               <div key={post._id} className="break-inside-avoid">
                 <BlogCard
                   {...post}
-                  author={post.author.name}
+                  author={getAuthorName(post.author)}
                   onLike={() => likeBlog(post._id)}
                 />
               </div>
             ))
           ) : (
             <div className="col-span-full text-center py-12">
-              <p className="text-gray-500 text-lg">No articles found matching your criteria.</p>
+              <p className="text-gray-500 text-lg">
+                {statusFilter === 'draft' 
+                  ? 'No draft posts found.'
+                  : 'No articles found matching your criteria.'}
+              </p>
             </div>
           )}
         </div>

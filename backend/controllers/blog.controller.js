@@ -5,7 +5,17 @@ import Blog from '../models/blog.model.js';
 // @access  Public
 export const getBlogs = async (req, res) => {
   try {
-    const blogs = await Blog.find({ status: 'published' })
+    const query = { status: 'published' };
+    
+    // If user is authenticated, include their draft posts
+    if (req.user) {
+      query.$or = [
+        { status: 'published' },
+        { status: 'draft', author: req.user._id }
+      ];
+    }
+
+    const blogs = await Blog.find(query)
       .populate('author', 'name profileImage')
       .sort({ createdAt: -1 });
     res.json(blogs);
