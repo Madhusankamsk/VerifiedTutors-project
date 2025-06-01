@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../contexts/AuthContext';
-import { AlertCircle, Mail, Lock, Chrome } from 'lucide-react';
+import { AlertCircle, Mail, Lock, Chrome, ArrowRight } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -53,22 +53,30 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 animate-slide-up">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
+      
+      {/* Decorative Elements */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-primary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-secondary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+
+      <div className="max-w-md w-full space-y-8 relative">
         <div className="text-center">
-          <h2 className="mt-6 text-4xl font-extrabold text-gray-900 tracking-tight">
+          <h2 className="mt-6 text-4xl font-extrabold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent tracking-tight">
             Welcome back
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Don't have an account?{' '}
-            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+            <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500 transition-colors">
               Sign up
             </Link>
           </p>
         </div>
         
         {error && (
-          <div className="bg-red-50 p-4 rounded-lg flex items-start border border-red-200">
+          <div className="bg-red-50/80 backdrop-blur-sm p-4 rounded-xl flex items-start border border-red-200 shadow-sm animate-fade-in">
             <AlertCircle className="h-5 w-5 text-red-400 mr-3 mt-0.5 flex-shrink-0" />
             <p className="text-sm text-red-700">{error}</p>
           </div>
@@ -78,7 +86,7 @@ const LoginPage: React.FC = () => {
           <button
             onClick={() => handleSocialLogin('google')}
             disabled={isSubmitting}
-            className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            className="w-full flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 hover:shadow-md transform hover:-translate-y-0.5"
           >
             <Chrome className="h-5 w-5 mr-2 text-red-500" />
             Continue with Google
@@ -87,10 +95,10 @@ const LoginPage: React.FC = () => {
         
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
+            <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-gradient-to-br from-blue-50 via-white to-indigo-50 text-gray-500">
+            <span className="px-4 bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-500">
               Or continue with email
             </span>
           </div>
@@ -99,10 +107,10 @@ const LoginPage: React.FC = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email address
               </label>
-              <div className="mt-1 relative rounded-lg shadow-sm">
+              <div className="relative rounded-xl shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-gray-400" />
                 </div>
@@ -111,20 +119,20 @@ const LoginPage: React.FC = () => {
                   type="email"
                   autoComplete="email"
                   {...register('email')}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                   placeholder="you@example.com"
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                <p className="mt-1 text-sm text-red-600 animate-fade-in">{errors.email.message}</p>
               )}
             </div>
             
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                 Password
               </label>
-              <div className="mt-1 relative rounded-lg shadow-sm">
+              <div className="relative rounded-xl shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
@@ -133,12 +141,12 @@ const LoginPage: React.FC = () => {
                   type="password"
                   autoComplete="current-password"
                   {...register('password')}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                   placeholder="••••••••"
                 />
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                <p className="mt-1 text-sm text-red-600 animate-fade-in">{errors.password.message}</p>
               )}
             </div>
           </div>
@@ -149,7 +157,7 @@ const LoginPage: React.FC = () => {
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded transition-colors duration-200"
               />
               <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
                 Remember me
@@ -157,7 +165,7 @@ const LoginPage: React.FC = () => {
             </div>
 
             <div className="text-sm">
-              <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+              <Link to="/forgot-password" className="font-medium text-primary-600 hover:text-primary-500 transition-colors duration-200">
                 Forgot your password?
               </Link>
             </div>
@@ -167,9 +175,22 @@ const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-70"
+              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed transform hover:-translate-y-0.5 hover:shadow-lg"
             >
-              {isSubmitting ? 'Signing in...' : 'Sign in'}
+              {isSubmitting ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Signing in...
+                </span>
+              ) : (
+                <span className="flex items-center">
+                  Sign in
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </span>
+              )}
             </button>
           </div>
         </form>
