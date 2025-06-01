@@ -83,39 +83,6 @@ const Header: React.FC = () => {
           <div className="flex items-center space-x-2 sm:space-x-4">
             {isAuthenticated ? (
               <>
-                {/* Notifications */}
-                <div className="relative">
-                  <button
-                    onClick={toggleNotifications}
-                    className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full"
-                  >
-                    <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
-                    <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
-                  </button>
-                  
-                  {/* Notifications Dropdown */}
-                  {isNotificationsOpen && (
-                    <div className="origin-top-right absolute right-0 mt-2 w-[280px] sm:w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                      <div className="py-1">
-                        <div className="px-4 py-2 text-sm text-gray-700 border-b">
-                          <p className="font-medium">Notifications</p>
-                        </div>
-                        <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
-                          {/* Sample notifications - replace with actual data */}
-                          <a href="#" className="block px-4 py-3 hover:bg-gray-50 transition-colors duration-150">
-                            <p className="text-sm font-medium text-gray-900">New message from John</p>
-                            <p className="text-xs text-gray-500 mt-1">2 minutes ago</p>
-                          </a>
-                          <a href="#" className="block px-4 py-3 hover:bg-gray-50 transition-colors duration-150">
-                            <p className="text-sm font-medium text-gray-900">Your profile was viewed</p>
-                            <p className="text-xs text-gray-500 mt-1">1 hour ago</p>
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
                 {/* Profile Dropdown */}
                 <div className="relative">
                   <button

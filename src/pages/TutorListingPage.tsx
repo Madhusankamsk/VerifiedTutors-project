@@ -120,16 +120,6 @@ const TutorListingPage: React.FC = () => {
 
   return (
     <div className="bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Find Your Perfect Tutor</h1>
-          <p className="text-xl text-blue-100 max-w-2xl">
-            Connect with expert tutors who can help you achieve your learning goals.
-          </p>
-        </div>
-      </div>
-
       <div className="container mx-auto px-4 py-8">
         {/* Search and Filters */}
         <div className="mb-8 space-y-4">
