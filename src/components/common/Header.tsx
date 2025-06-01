@@ -44,12 +44,12 @@ const Header: React.FC = () => {
     }
   };
 
-  const navItems = [
-    { name: 'Home', path: '/' },
-    { name: 'Find Tutors', path: '/tutors' },
-    { name: 'Courses', path: '/courses' },
-    { name: 'Blog', path: '/blogs' },
-  ];
+  // const navItems = [
+  //   // { name: 'Home', path: '/' },
+  //   // { name: 'Find Tutors', path: '/tutors' },
+  //   // { name: 'Courses', path: '/courses' },
+  //   // { name: 'Blog', path: '/blogs' },
+  // ];
 
   return (
     <header className="bg-white shadow-sm fixed w-full top-0 z-50">
@@ -62,7 +62,7 @@ const Header: React.FC = () => {
             </Link>
             
             {/* Desktop Navigation */}
-            <nav className="hidden md:ml-6 lg:ml-8 md:flex md:space-x-4 lg:space-x-8">
+            {/* <nav className="hidden md:ml-6 lg:ml-8 md:flex md:space-x-4 lg:space-x-8">
               {navItems.map((item) => (
                 <Link
                   key={item.path}
@@ -76,7 +76,7 @@ const Header: React.FC = () => {
                   {item.name}
                 </Link>
               ))}
-            </nav>
+            </nav> */}
           </div>
 
           {/* Right side buttons */}
@@ -148,13 +148,6 @@ const Header: React.FC = () => {
                           <User className="h-4 w-4 mr-2" />
                           Dashboard
                         </Link>
-                        <Link
-                          to="/settings"
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
-                        >
-                          <Settings className="h-4 w-4 mr-2" />
-                          Settings
-                        </Link>
                         <button
                           onClick={handleLogout}
                           className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
@@ -205,7 +198,7 @@ const Header: React.FC = () => {
       {isMenuOpen && (
         <div className="md:hidden bg-white border-t">
           <div className="pt-2 pb-3 space-y-1">
-            {navItems.map((item) => (
+            {/* {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
@@ -218,7 +211,7 @@ const Header: React.FC = () => {
               >
                 {item.name}
               </Link>
-            ))}
+            ))} */}
             {!isAuthenticated && (
               <div className="border-t pt-4 pb-3">
                 <Link

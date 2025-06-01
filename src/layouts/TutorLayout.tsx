@@ -28,11 +28,11 @@ const TutorLayout: React.FC = () => {
       name: 'My Profile', 
       icon: <Icon name="User" className="h-6 w-6" />
     },
-    { 
-      path: '/tutor/blogs', 
-      name: 'My Blogs', 
-      icon: <Icon name="BookOpen" className="h-6 w-6" />
-    },
+    // { 
+    //   path: '/tutor/blogs', 
+    //   name: 'My Blogs', 
+    //   icon: <Icon name="BookOpen" className="h-6 w-6" />
+    // },
     { 
       path: '#', 
       name: 'Logout', 

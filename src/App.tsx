@@ -75,9 +75,9 @@ const App = () => {
                         <Route path="register" element={<RegisterPage />} />
                         <Route path="tutors" element={<TutorListingPage />} />
                         <Route path="tutors/:id" element={<TutorProfilePage />} />
-                        <Route path="courses" element={<CoursesPage />} />
+                        {/* <Route path="courses" element={<CoursesPage />} />
                         <Route path="blogs" element={<BlogListPage />} />
-                        <Route path="blogs/:id" element={<BlogPostPage />} />
+                        <Route path="blogs/:id" element={<BlogPostPage />} /> */}
                       </Route>
 
                       {/* Admin Routes */}
@@ -113,8 +113,8 @@ const App = () => {
                         <Route path="dashboard" element={<TutorDashboard />} />
                         <Route path="profile" element={<EditTutorProfile />} />
                         <Route path="blogs" element={<ManageBlogs />} />
-                        <Route path="blogs/create" element={<CreateEditBlog />} />
-                        <Route path="blogs/edit/:id" element={<CreateEditBlog />} />
+                        {/* <Route path="blogs/create" element={<CreateEditBlog />} />
+                        <Route path="blogs/edit/:id" element={<CreateEditBlog />} /> */}
                       </Route>
 
                       {/* Student Routes */}
