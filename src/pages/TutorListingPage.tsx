@@ -119,10 +119,10 @@ const TutorListingPage: React.FC = () => {
   }
 
   return (
-    <div className="bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gray-50 pt-16 sm:pt-20">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Search and Filters */}
-        <div className="mb-8 space-y-4">
+        <div className="mb-6 sm:mb-8 space-y-4">
           {/* Search Bar */}
           <div className="relative max-w-2xl mx-auto">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -133,7 +133,7 @@ const TutorListingPage: React.FC = () => {
               placeholder="Search tutors by name, subject, or expertise..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="block w-full pl-10 pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
             />
           </div>
 
@@ -143,20 +143,20 @@ const TutorListingPage: React.FC = () => {
               {activeFilters.map(filter => (
                 <div
                   key={filter}
-                  className="flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                  className="flex items-center bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm"
                 >
                   <span>{getFilterLabel(filter, filters[filter as keyof typeof filters])}</span>
                   <button
                     onClick={() => removeFilter(filter)}
                     className="ml-2 hover:text-blue-900"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3 w-3 sm:h-4 sm:w-4" />
                   </button>
                 </div>
               ))}
               <button
                 onClick={resetFilters}
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-xs sm:text-sm text-blue-600 hover:text-blue-800"
               >
                 Clear All
               </button>
@@ -167,46 +167,46 @@ const TutorListingPage: React.FC = () => {
           <div className="flex flex-wrap gap-2 justify-center">
             <button
               onClick={() => handleFilterChange('rating', 4)}
-              className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`flex items-center px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
                 filters.rating === 4
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <Star className="h-4 w-4 mr-1" />
+              <Star className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               4+ Stars
             </button>
             <button
               onClick={() => handleFilterChange('price', { min: 0, max: 50 })}
-              className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`flex items-center px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
                 filters.price.max === 50
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <DollarSign className="h-4 w-4 mr-1" />
+              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               Under $50/hr
             </button>
             <button
               onClick={() => handleFilterChange('availability', 'immediate')}
-              className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`flex items-center px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
                 filters.availability === 'immediate'
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <Clock className="h-4 w-4 mr-1" />
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               Available Now
             </button>
             <button
               onClick={() => handleFilterChange('experience', '5')}
-              className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`flex items-center px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
                 filters.experience === '5'
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <Users className="h-4 w-4 mr-1" />
+              <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               5+ Years Experience
             </button>
           </div>
@@ -215,25 +215,25 @@ const TutorListingPage: React.FC = () => {
           <div className="flex justify-center">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-full shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-white border border-gray-300 rounded-full shadow-sm text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              <SlidersHorizontal className="h-4 w-4 mr-2" />
+              <SlidersHorizontal className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
               Advanced Filters
-              {showFilters ? <ChevronUp className="h-4 w-4 ml-2" /> : <ChevronDown className="h-4 w-4 ml-2" />}
+              {showFilters ? <ChevronUp className="h-3 w-3 sm:h-4 sm:w-4 ml-2" /> : <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 ml-2" />}
             </button>
           </div>
 
           {/* Advanced Filters Panel */}
           {showFilters && (
-            <div className="bg-white rounded-lg shadow-lg p-6 mt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 {/* Subject Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Subject</label>
                   <select
                     value={filters.subject}
                     onChange={(e) => handleFilterChange('subject', e.target.value)}
-                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
                   >
                     <option value="">All Subjects</option>
                     {subjects.map((subject) => (
@@ -246,11 +246,11 @@ const TutorListingPage: React.FC = () => {
 
                 {/* Location Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Location</label>
                   <select
                     value={filters.location}
                     onChange={(e) => handleFilterChange('location', e.target.value)}
-                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
                   >
                     <option value="">All Locations</option>
                     {locations.map((location) => (
@@ -263,28 +263,28 @@ const TutorListingPage: React.FC = () => {
 
                 {/* Price Range Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Price Range (per hour)</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Price Range (per hour)</label>
                   <div className="flex space-x-2">
                     <input
                       type="number"
                       value={filters.price.min}
                       onChange={(e) => handleFilterChange('price', { ...filters.price, min: Number(e.target.value) })}
                       placeholder="Min"
-                      className="w-1/2 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="w-1/2 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
                     />
                     <input
                       type="number"
                       value={filters.price.max}
                       onChange={(e) => handleFilterChange('price', { ...filters.price, max: Number(e.target.value) })}
                       placeholder="Max"
-                      className="w-1/2 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="w-1/2 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
                     />
                   </div>
                 </div>
 
                 {/* Sort Options */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Sort By</label>
                   <select
                     value={`${filters.sortBy}-${filters.sortOrder}`}
                     onChange={(e) => {
@@ -292,7 +292,7 @@ const TutorListingPage: React.FC = () => {
                       handleFilterChange('sortBy', sortBy);
                       handleFilterChange('sortOrder', sortOrder as 'desc' | 'asc');
                     }}
-                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
                   >
                     <option value="rating-desc">Highest Rated</option>
                     <option value="price-asc">Lowest Price</option>
@@ -308,11 +308,11 @@ const TutorListingPage: React.FC = () => {
         {/* Tutor List */}
         <div>
           {loading ? (
-            <div className="flex justify-center py-12">
+            <div className="flex justify-center py-8 sm:py-12">
               <LoadingSpinner size="large" />
             </div>
           ) : tutors.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {tutors.map((tutor) => (
                 <TutorCard
                   key={tutor._id}
@@ -335,14 +335,14 @@ const TutorListingPage: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 bg-white rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No tutors found</h3>
-              <p className="text-gray-500 mb-4">
+            <div className="text-center py-12 sm:py-16 bg-white rounded-lg shadow">
+              <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-2">No tutors found</h3>
+              <p className="text-sm sm:text-base text-gray-500 mb-4">
                 Try adjusting your filters or search terms to find tutors
               </p>
               <button
                 onClick={resetFilters}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
               >
                 Clear All Filters
               </button>
@@ -352,12 +352,12 @@ const TutorListingPage: React.FC = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="mt-8 flex justify-center">
+          <div className="mt-6 sm:mt-8 flex justify-center">
             <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
               <button
                 onClick={() => handleFilterChange('page', Math.max(1, filters.page - 1))}
                 disabled={filters.page === 1}
-                className="relative inline-flex items-center px-4 py-2 rounded-l-lg border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                className="relative inline-flex items-center px-3 sm:px-4 py-2 rounded-l-lg border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
               >
                 Previous
               </button>
@@ -365,7 +365,7 @@ const TutorListingPage: React.FC = () => {
                 <button
                   key={page}
                   onClick={() => handleFilterChange('page', page)}
-                  className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                  className={`relative inline-flex items-center px-3 sm:px-4 py-2 border text-xs sm:text-sm font-medium ${
                     filters.page === page
                       ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
                       : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
@@ -377,7 +377,7 @@ const TutorListingPage: React.FC = () => {
               <button
                 onClick={() => handleFilterChange('page', Math.min(totalPages, filters.page + 1))}
                 disabled={filters.page === totalPages}
-                className="relative inline-flex items-center px-4 py-2 rounded-r-lg border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                className="relative inline-flex items-center px-3 sm:px-4 py-2 rounded-r-lg border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
               >
                 Next
               </button>

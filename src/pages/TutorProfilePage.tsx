@@ -139,14 +139,14 @@ const TutorProfilePage: React.FC = () => {
   }
 
   return (
-    <div className=" bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pt-16 sm:pt-20">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-        <div className="container mx-auto px-4 py-8 md:py-12">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
+        <div className="container mx-auto px-4 py-6 sm:py-8 md:py-12">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-4 sm:gap-6 md:gap-8">
             {/* Profile Image */}
             <div className="relative">
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white shadow-lg">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white shadow-lg">
                 {profile.user.profileImage ? (
                   <img
                     src={profile.user.profileImage}
@@ -155,7 +155,7 @@ const TutorProfilePage: React.FC = () => {
                   />
                 ) : (
                   <div className="w-full h-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-4xl text-blue-600 font-semibold">
+                    <span className="text-3xl sm:text-4xl text-blue-600 font-semibold">
                       {profile.user.name.charAt(0)}
                     </span>
                   </div>
@@ -163,73 +163,73 @@ const TutorProfilePage: React.FC = () => {
               </div>
               {profile.isVerified && (
                 <div className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-1">
-                  <CheckCircle className="h-6 w-6 text-white" />
+                  <CheckCircle className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                 </div>
               )}
             </div>
 
             {/* Profile Info */}
             <div className="flex-1 text-center md:text-left">
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">{profile.user.name}</h1>
-              <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-4">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">{profile.user.name}</h1>
+              <div className="flex flex-wrap justify-center md:justify-start gap-3 sm:gap-4 mb-3 sm:mb-4">
                 <div className="flex items-center">
-                  <Star className="h-5 w-5 text-yellow-400 mr-1" />
-                  <span className="font-medium">{profile.rating.toFixed(1)}</span>
-                  <span className="text-blue-100 ml-1">({profile.totalReviews} reviews)</span>
+                  <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400 mr-1" />
+                  <span className="font-medium text-sm sm:text-base">{profile.rating.toFixed(1)}</span>
+                  <span className="text-blue-100 ml-1 text-sm sm:text-base">({profile.totalReviews} reviews)</span>
                 </div>
                 <div className="flex items-center">
-                  <Users className="h-5 w-5 text-blue-100 mr-1" />
-                  <span>{profile.totalStudents} students</span>
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-100 mr-1" />
+                  <span className="text-sm sm:text-base">{profile.totalStudents} students</span>
                 </div>
                 <div className="flex items-center">
-                  <MapPin className="h-5 w-5 text-blue-100 mr-1" />
-                  <span>{profile.locations.map(loc => loc.name).join(', ')}</span>
+                  <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-blue-100 mr-1" />
+                  <span className="text-sm sm:text-base">{profile.locations.map(loc => loc.name).join(', ')}</span>
                 </div>
               </div>
-              <p className="text-blue-100 text-lg max-w-3xl">{profile.bio}</p>
+              <p className="text-blue-100 text-base sm:text-lg max-w-3xl">{profile.bio}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* About Section */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-2xl font-semibold mb-4">About</h2>
-              <p className="text-gray-600 whitespace-pre-line">{profile.bio}</p>
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">About</h2>
+              <p className="text-sm sm:text-base text-gray-600 whitespace-pre-line">{profile.bio}</p>
             </div>
 
             {/* Subjects & Rates */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-2xl font-semibold mb-4">Subjects & Rates</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">Subjects & Rates</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {profile.subjects.map((subject, index) => (
-                  <div key={index} className="border rounded-lg p-4">
-                    <h3 className="font-medium mb-2">{subject.subject.name}</h3>
+                  <div key={index} className="border rounded-lg p-3 sm:p-4">
+                    <h3 className="font-medium text-sm sm:text-base mb-2">{subject.subject.name}</h3>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                          <Video className="h-4 w-4 text-gray-400 mr-2" />
-                          <span className="text-sm">Online</span>
+                          <Video className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 mr-2" />
+                          <span className="text-xs sm:text-sm">Online</span>
                         </div>
-                        <span className="font-medium">${subject.rates.online}/hr</span>
+                        <span className="font-medium text-sm sm:text-base">${subject.rates.online}/hr</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                          <Home className="h-4 w-4 text-gray-400 mr-2" />
-                          <span className="text-sm">Home Visit</span>
+                          <Home className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 mr-2" />
+                          <span className="text-xs sm:text-sm">Home Visit</span>
                         </div>
-                        <span className="font-medium">${subject.rates.individual}/hr</span>
+                        <span className="font-medium text-sm sm:text-base">${subject.rates.individual}/hr</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                          <Users className="h-4 w-4 text-gray-400 mr-2" />
-                          <span className="text-sm">Group</span>
+                          <Users className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 mr-2" />
+                          <span className="text-xs sm:text-sm">Group</span>
                         </div>
-                        <span className="font-medium">${subject.rates.group}/hr</span>
+                        <span className="font-medium text-sm sm:text-base">${subject.rates.group}/hr</span>
                       </div>
                     </div>
                   </div>
@@ -238,16 +238,16 @@ const TutorProfilePage: React.FC = () => {
             </div>
 
             {/* Education */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-2xl font-semibold mb-4">Education</h2>
-              <div className="space-y-4">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">Education</h2>
+              <div className="space-y-3 sm:space-y-4">
                 {profile.education.map((edu, index) => (
                   <div key={index} className="flex items-start">
-                    <GraduationCap className="h-5 w-5 text-blue-600 mt-1 mr-3" />
+                    <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mt-1 mr-2 sm:mr-3" />
                     <div>
-                      <h3 className="font-medium">{edu.degree}</h3>
-                      <p className="text-gray-600">{edu.institution}</p>
-                      <p className="text-sm text-gray-500">{edu.year}</p>
+                      <h3 className="font-medium text-sm sm:text-base">{edu.degree}</h3>
+                      <p className="text-gray-600 text-xs sm:text-sm">{edu.institution}</p>
+                      <p className="text-xs text-gray-500">{edu.year}</p>
                     </div>
                   </div>
                 ))}
@@ -255,17 +255,17 @@ const TutorProfilePage: React.FC = () => {
             </div>
 
             {/* Experience */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-2xl font-semibold mb-4">Experience</h2>
-              <div className="space-y-4">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">Experience</h2>
+              <div className="space-y-3 sm:space-y-4">
                 {profile.experience.map((exp, index) => (
                   <div key={index} className="flex items-start">
-                    <Briefcase className="h-5 w-5 text-blue-600 mt-1 mr-3" />
+                    <Briefcase className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mt-1 mr-2 sm:mr-3" />
                     <div>
-                      <h3 className="font-medium">{exp.position}</h3>
-                      <p className="text-gray-600">{exp.institution}</p>
-                      <p className="text-sm text-gray-500">{exp.duration}</p>
-                      <p className="text-gray-600 mt-1">{exp.description}</p>
+                      <h3 className="font-medium text-sm sm:text-base">{exp.position}</h3>
+                      <p className="text-gray-600 text-xs sm:text-sm">{exp.institution}</p>
+                      <p className="text-xs text-gray-500">{exp.duration}</p>
+                      <p className="text-gray-600 text-xs sm:text-sm mt-1">{exp.description}</p>
                     </div>
                   </div>
                 ))}
@@ -281,37 +281,37 @@ const TutorProfilePage: React.FC = () => {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Contact Information */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-2xl font-semibold mb-4">Contact Information</h2>
-              <div className="space-y-4">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">Contact Information</h2>
+              <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-center">
-                  <Phone className="h-5 w-5 text-gray-400 mr-3" />
-                  <span>{profile.phone}</span>
+                  <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 mr-2 sm:mr-3" />
+                  <span className="text-sm sm:text-base">{profile.phone}</span>
                 </div>
                 <div className="flex items-center">
-                  <Mail className="h-5 w-5 text-gray-400 mr-3" />
-                  <span>{profile.user.email}</span>
+                  <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 mr-2 sm:mr-3" />
+                  <span className="text-sm sm:text-base">{profile.user.email}</span>
                 </div>
                 <button 
                   onClick={handleBookSession}
-                  className="w-full py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
+                  className="w-full py-2 sm:py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center text-sm sm:text-base"
                 >
-                  <MessageCircle className="h-5 w-5 mr-2" />
+                  <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Contact Tutor
                 </button>
               </div>
             </div>
 
             {/* Teaching Locations */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-2xl font-semibold mb-4">Teaching Locations</h2>
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">Teaching Locations</h2>
               <div className="flex flex-wrap gap-2">
                 {profile.locations.map((location, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                    className="px-2 sm:px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs sm:text-sm"
                   >
                     {location.name}
                   </span>
@@ -321,8 +321,8 @@ const TutorProfilePage: React.FC = () => {
 
             {/* Documents */}
             {profile.documents && profile.documents.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-2xl font-semibold mb-4">Documents</h2>
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">Documents</h2>
                 <div className="space-y-2">
                   {profile.documents.map((doc, index) => (
                     <a
@@ -330,9 +330,9 @@ const TutorProfilePage: React.FC = () => {
                       href={doc.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center text-blue-600 hover:text-blue-800"
+                      className="flex items-center text-blue-600 hover:text-blue-800 text-sm sm:text-base"
                     >
-                      <FileText className="h-5 w-5 mr-2" />
+                      <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       <span>{doc.type}</span>
                     </a>
                   ))}
@@ -341,38 +341,38 @@ const TutorProfilePage: React.FC = () => {
             )}
 
             {/* Book a Session */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-2xl font-semibold mb-4">Book a Session</h2>
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">Book a Session</h2>
               {!isAuthenticated && (
-                <div className="mb-4 p-3 bg-yellow-50 text-yellow-700 rounded-lg flex items-start">
-                  <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm">Please login to book a session with this tutor.</p>
+                <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-yellow-50 text-yellow-700 rounded-lg flex items-start">
+                  <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs sm:text-sm">Please login to book a session with this tutor.</p>
                 </div>
               )}
               <button 
                 onClick={handleBookSession}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
+                className="w-full py-2 sm:py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center text-sm sm:text-base"
               >
-                <Calendar className="h-5 w-5 mr-2" />
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 {isAuthenticated ? 'Schedule Now' : 'Login to Book'}
               </button>
             </div>
 
             {/* Write a Review */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-2xl font-semibold mb-4">Write a Review</h2>
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">Write a Review</h2>
               {!isAuthenticated && (
-                <div className="mb-4 p-3 bg-yellow-50 text-yellow-700 rounded-lg flex items-start">
-                  <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm">Please login to write a review for this tutor.</p>
+                <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-yellow-50 text-yellow-700 rounded-lg flex items-start">
+                  <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs sm:text-sm">Please login to write a review for this tutor.</p>
                 </div>
               )}
               {isAuthenticated && (
                 <button
                   onClick={handleWriteReview}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
                 >
-                  <Star className="h-5 w-5" />
+                  <Star className="h-4 w-4 sm:h-5 sm:w-5" />
                   Write a Review
                 </button>
               )}
@@ -384,19 +384,19 @@ const TutorProfilePage: React.FC = () => {
       {/* Review Form Modal */}
       {showReviewForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 max-w-lg w-full">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">Write a Review</h3>
+          <div className="bg-white rounded-xl p-4 sm:p-6 max-w-lg w-full">
+            <div className="flex justify-between items-center mb-3 sm:mb-4">
+              <h3 className="text-lg sm:text-xl font-semibold">Write a Review</h3>
               <button
                 onClick={() => setShowReviewForm(false)}
                 className="text-gray-500 hover:text-gray-700"
               >
-                <X className="h-6 w-6" />
+                <X className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
             </div>
             <form onSubmit={handleSubmitReview}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="mb-3 sm:mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   Rating
                 </label>
                 <Rating
@@ -405,17 +405,17 @@ const TutorProfilePage: React.FC = () => {
                   onChange={(newRating) => setReviewData({ ...reviewData, rating: newRating })}
                 />
               </div>
-              <div className="mb-4">
+              <div className="mb-3 sm:mb-4">
                 <label
                   htmlFor="comment"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2"
                 >
                   Comment
                 </label>
                 <textarea
                   id="comment"
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                   value={reviewData.comment}
                   onChange={(e) =>
                     setReviewData({ ...reviewData, comment: e.target.value })
@@ -425,23 +425,23 @@ const TutorProfilePage: React.FC = () => {
                   minLength={10}
                 />
                 {reviewData.comment.length > 0 && reviewData.comment.length < 10 && (
-                  <p className="mt-1 text-sm text-red-600">
+                  <p className="mt-1 text-xs sm:text-sm text-red-600">
                     Comment must be at least 10 characters long
                   </p>
                 )}
               </div>
-              <div className="flex justify-end gap-4">
+              <div className="flex justify-end gap-3 sm:gap-4">
                 <button
                   type="button"
                   onClick={() => setShowReviewForm(false)}
-                  className="px-4 py-2 text-gray-700 hover:text-gray-900"
+                  className="px-3 sm:px-4 py-2 text-gray-700 hover:text-gray-900 text-sm sm:text-base"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={reviewData.rating < 1 || reviewData.comment.length < 10}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                 >
                   Submit Review
                 </button>
