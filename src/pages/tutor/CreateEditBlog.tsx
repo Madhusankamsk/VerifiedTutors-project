@@ -3,9 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTutor } from '../../contexts/TutorContext';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { X, ArrowLeft, Save, Image as ImageIcon, Eye, EyeOff } from 'lucide-react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import { X, ArrowLeft, Save, Image as ImageIcon, Eye, EyeOff, Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, Image as ImageIcon2 } from 'lucide-react';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import TiptapLink from '@tiptap/extension-link';
+import TiptapImage from '@tiptap/extension-image';
+import TextAlign from '@tiptap/extension-text-align';
+import TiptapUnderline from '@tiptap/extension-underline';
 
 interface BlogFormData {
   title: string;
@@ -29,7 +33,27 @@ const CreateEditBlog = () => {
   const [tagInput, setTagInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
-  const quillRef = useRef(null);
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      TiptapUnderline,
+      TiptapLink.configure({
+        openOnClick: false,
+      }),
+      TiptapImage,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+    ],
+    content: formData.content,
+    onUpdate: ({ editor }) => {
+      setFormData(prev => ({
+        ...prev,
+        content: editor.getHTML()
+      }));
+    },
+  });
 
   // Load blog data if editing
   React.useEffect(() => {
@@ -42,33 +66,34 @@ const CreateEditBlog = () => {
       }
 
       setIsLoading(true);
-      // try {
-      //   const blog = await getBlogById(id);
-      //   if (!isMounted) return;
+      try {
+        const blog = await getBlogById(id);
+        if (!isMounted) return;
 
-      //   if (blog) {
-      //     setFormData({
-      //       title: blog.title,
-      //       content: blog.content,
-      //       tags: blog.tags || [],
-      //       featuredImage: blog.featuredImage || '',
-      //       status: blog.status || 'draft'
-      //     });
-      //     setImagePreview(blog.featuredImage || '');
-      //   } else {
-      //     toast.error('Blog not found');
-      //     navigate('/tutor/blogs');
-      //   }
-      // } catch (error: any) {
-      //   if (!isMounted) return;
-      //   const errorMessage = error.response?.data?.message || 'Failed to load blog data';
-      //   toast.error(errorMessage);
-      //   navigate('/tutor/blogs');
-      // } finally {
-      //   if (isMounted) {
-      //     setIsLoading(false);
-      //   }
-      // }
+        if (blog) {
+          setFormData({
+            title: blog.title,
+            content: blog.content,
+            tags: blog.tags || [],
+            featuredImage: blog.featuredImage || '',
+            status: blog.status || 'draft'
+          });
+          editor?.commands.setContent(blog.content);
+          setImagePreview(blog.featuredImage || '');
+        } else {
+          toast.error('Blog not found');
+          navigate('/tutor/blogs');
+        }
+      } catch (error: any) {
+        if (!isMounted) return;
+        const errorMessage = error.response?.data?.message || 'Failed to load blog data';
+        toast.error(errorMessage);
+        navigate('/tutor/blogs');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
     };
 
     fetchBlog();
@@ -76,7 +101,7 @@ const CreateEditBlog = () => {
     return () => {
       isMounted = false;
     };
-  }, [id, navigate]);
+  }, [id, navigate, editor]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -243,13 +268,93 @@ const CreateEditBlog = () => {
               <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
                 Content
               </label>
-              <div ref={quillRef}>
-                <ReactQuill
-                  value={formData.content}
-                  onChange={(content: string) => setFormData(prev => ({ ...prev, content }))}
-                  className="h-64 mb-12"
-                  placeholder="Write your blog content here..."
-                />
+              <div className="border border-gray-200 rounded-lg">
+                <div className="border-b border-gray-200 p-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => editor?.chain().focus().toggleBold().run()}
+                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive('bold') ? 'bg-gray-100' : ''}`}
+                  >
+                    <Bold className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => editor?.chain().focus().toggleItalic().run()}
+                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive('italic') ? 'bg-gray-100' : ''}`}
+                  >
+                    <Italic className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => editor?.chain().focus().toggleUnderline().run()}
+                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive('underline') ? 'bg-gray-100' : ''}`}
+                  >
+                    <UnderlineIcon className="w-4 h-4" />
+                  </button>
+                  <div className="w-px h-6 bg-gray-200 mx-2" />
+                  <button
+                    type="button"
+                    onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive('bulletList') ? 'bg-gray-100' : ''}`}
+                  >
+                    <List className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive('orderedList') ? 'bg-gray-100' : ''}`}
+                  >
+                    <ListOrdered className="w-4 h-4" />
+                  </button>
+                  <div className="w-px h-6 bg-gray-200 mx-2" />
+                  <button
+                    type="button"
+                    onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive({ textAlign: 'left' }) ? 'bg-gray-100' : ''}`}
+                  >
+                    <AlignLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive({ textAlign: 'center' }) ? 'bg-gray-100' : ''}`}
+                  >
+                    <AlignCenter className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive({ textAlign: 'right' }) ? 'bg-gray-100' : ''}`}
+                  >
+                    <AlignRight className="w-4 h-4" />
+                  </button>
+                  <div className="w-px h-6 bg-gray-200 mx-2" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = window.prompt('Enter URL');
+                      if (url) {
+                        editor?.chain().focus().setLink({ href: url }).run();
+                      }
+                    }}
+                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive('link') ? 'bg-gray-100' : ''}`}
+                  >
+                    <LinkIcon className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = window.prompt('Enter image URL');
+                      if (url) {
+                        editor?.chain().focus().setImage({ src: url }).run();
+                      }
+                    }}
+                    className="p-2 rounded hover:bg-gray-100"
+                  >
+                    <ImageIcon2 className="w-4 h-4" />
+                  </button>
+                </div>
+                <EditorContent editor={editor} className="prose max-w-none p-4 min-h-[200px]" />
               </div>
             </div>
 

@@ -353,6 +353,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
       
       if (response.data.success) {
+        console.log('response.data.data', response.data.data);
         setBlogs(response.data.data);
       } else {
         throw new Error(response.data.message || 'Failed to fetch blogs');

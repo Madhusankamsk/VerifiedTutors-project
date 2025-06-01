@@ -23,7 +23,7 @@ const ManageBlogs = () => {
   };
 
   const filteredBlogs = React.useMemo(() => {
-    return blogs?.filter(blog => blog.status === activeTab) || [];
+    return blogs?.filter(blog => blog?.status === activeTab) || [];
   }, [blogs, activeTab]);
 
   if (loading) {
