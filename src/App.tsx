@@ -8,6 +8,7 @@ import { SubjectProvider } from './contexts/SubjectContext';
 import { BlogProvider } from './contexts/BlogContext';
 import { RatingProvider } from './contexts/RatingContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import PublicRoute from './components/common/PublicRoute';
 import RoleRoute from './components/common/RoleRoute';
 import { Toaster } from 'react-hot-toast';
 import { ToastContainer } from 'react-toastify';
@@ -71,8 +72,16 @@ const App = () => {
                       {/* Public Routes */}
                       <Route path="/" element={<MainLayout />}>
                         <Route index element={<HomePage />} />
-                        <Route path="login" element={<LoginPage />} />
-                        <Route path="register" element={<RegisterPage />} />
+                        <Route path="login" element={
+                          <PublicRoute>
+                            <LoginPage />
+                          </PublicRoute>
+                        } />
+                        <Route path="register" element={
+                          <PublicRoute>
+                            <RegisterPage />
+                          </PublicRoute>
+                        } />
                         <Route path="tutors" element={<TutorListingPage />} />
                         <Route path="tutors/:id" element={<TutorProfilePage />} />
                         {/* <Route path="courses" element={<CoursesPage />} />

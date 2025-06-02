@@ -2,8 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Search, CheckCircle, Star, Award, BookOpen } from 'lucide-react';
 import { SUBJECT_AREAS } from '../config/constants';
+import { useAuth } from '../contexts/AuthContext';
 
 const HomePage: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section */}
@@ -25,12 +28,14 @@ const HomePage: React.FC = () => {
               >
                 Find a Tutor
               </Link>
-              <Link 
-                to="/register" 
-                className="btn bg-accent-500 text-white hover:bg-accent-600 px-8 py-4 text-lg text-center rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-              >
-                Become a Tutor
-              </Link>
+              {!isAuthenticated && (
+                <Link 
+                  to="/register" 
+                  className="btn bg-accent-500 text-white hover:bg-accent-600 px-8 py-4 text-lg text-center rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                >
+                  Become a Tutor
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -185,12 +190,14 @@ const HomePage: React.FC = () => {
             >
               Browse Tutors
             </Link>
-            <Link 
-              to="/register" 
-              className="btn bg-accent-500 text-white hover:bg-accent-600 px-8 py-4 text-lg text-center rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-            >
-              Sign Up Now
-            </Link>
+            {!isAuthenticated && (
+              <Link 
+                to="/register" 
+                className="btn bg-accent-500 text-white hover:bg-accent-600 px-8 py-4 text-lg text-center rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              >
+                Sign Up Now
+              </Link>
+            )}
           </div>
         </div>
       </div>
