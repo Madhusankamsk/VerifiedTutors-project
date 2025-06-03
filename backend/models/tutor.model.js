@@ -38,6 +38,11 @@ const tutorSchema = new mongoose.Schema({
       default: '',
     }
   },
+  teachingMediums: [{
+    type: String,
+    enum: ['english', 'sinhala', 'tamil'],
+    default: []
+  }],
   education: [{
     degree: {
       type: String,

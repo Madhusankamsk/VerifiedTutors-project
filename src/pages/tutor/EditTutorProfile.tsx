@@ -25,6 +25,7 @@ interface FormData {
     facebook: string;
     linkedin: string;
   };
+  teachingMediums: string[];
   education: Array<{
     degree: string;
     institution: string;
@@ -92,6 +93,7 @@ const EditTutorProfile: React.FC = () => {
       facebook: '',
       linkedin: ''
     },
+    teachingMediums: [],
     education: [],
     experience: [],
     subjects: [],
@@ -131,6 +133,7 @@ const EditTutorProfile: React.FC = () => {
           facebook: '',
           linkedin: ''
         },
+        teachingMediums: profile.teachingMediums || [],
         education: profile.education || [],
         experience: profile.experience || [],
         subjects: profile.subjects.map(s => ({
@@ -189,6 +192,7 @@ const EditTutorProfile: React.FC = () => {
         bio: formData.bio,
         gender: formData.gender,
         socialMedia: formData.socialMedia,
+        teachingMediums: formData.teachingMediums,
         education: formData.education,
         experience: formData.experience,
         subjects: formData.subjects.map(s => {
@@ -479,11 +483,16 @@ const EditTutorProfile: React.FC = () => {
   };
 
   const handleMediumToggle = (mediumId: string) => {
-    setSelectedMediums(prev => 
-      prev.includes(mediumId)
-        ? prev.filter(id => id !== mediumId)
-        : [...prev, mediumId]
-    );
+    setFormData(prev => {
+      const newTeachingMediums = prev.teachingMediums.includes(mediumId)
+        ? prev.teachingMediums.filter(id => id !== mediumId)
+        : [...prev.teachingMediums, mediumId];
+      
+      return {
+        ...prev,
+        teachingMediums: newTeachingMediums
+      };
+    });
   };
 
   if (loading) {
@@ -718,7 +727,7 @@ const EditTutorProfile: React.FC = () => {
                           type="button"
                           onClick={() => handleMediumToggle(medium.id)}
                           className={`flex items-center px-4 py-2 rounded-xl border transition-all duration-200 ${
-                            selectedMediums.includes(medium.id)
+                            formData.teachingMediums.includes(medium.id)
                               ? 'bg-primary-50 border-primary-200 text-primary-700'
                               : 'bg-white border-gray-200 text-gray-600 hover:border-primary-200'
                           }`}

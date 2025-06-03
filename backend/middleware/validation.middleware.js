@@ -33,6 +33,12 @@ export const validateTutorProfile = (req, res, next) => {
         'string.base': 'LinkedIn username must be a string'
       })
     }).default({}),
+    teachingMediums: Joi.array().items(
+      Joi.string().valid('english', 'sinhala', 'tamil')
+    ).messages({
+      'array.base': 'Teaching mediums must be an array',
+      'any.only': 'Invalid teaching medium'
+    }),
     education: Joi.array().items(
       Joi.object({
         degree: Joi.string().required().messages({

@@ -23,6 +23,7 @@ export interface TutorProfile {
     facebook: string;
     linkedin: string;
   };
+  teachingMediums: string[];
   education: {
     degree: string;
     institution: string;

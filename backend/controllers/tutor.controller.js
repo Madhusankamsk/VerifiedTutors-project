@@ -265,6 +265,7 @@ export const updateTutorProfile = async (req, res) => {
           bio: req.body.bio,
           gender: req.body.gender,
           socialMedia: req.body.socialMedia,
+          teachingMediums: req.body.teachingMediums,
           education: req.body.education,
           experience: req.body.experience,
           subjects: req.body.subjects,
