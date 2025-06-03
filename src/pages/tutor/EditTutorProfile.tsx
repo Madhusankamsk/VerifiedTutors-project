@@ -76,6 +76,8 @@ const EditTutorProfile: React.FC = () => {
     subjects: [],
     locations: []
   });
+  const [initialFormData, setInitialFormData] = useState<FormData | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [selectedMediums, setSelectedMediums] = useState<string[]>([]);
@@ -96,7 +98,7 @@ const EditTutorProfile: React.FC = () => {
     }
 
     if (profile) {
-      setFormData({
+      const newFormData = {
         phone: profile.phone || '',
         bio: profile.bio || '',
         gender: profile.gender || 'Male',
@@ -120,7 +122,9 @@ const EditTutorProfile: React.FC = () => {
                     l.level === 2 ? (locations.find(p => p._id === l.parent) as Location)?.name || '' :
                     (locations.find(p => p._id === (locations.find(p2 => p2._id === l.parent) as Location)?.parent) as Location)?.name || ''
         })) || []
-      });
+      };
+      setFormData(newFormData);
+      setInitialFormData(newFormData);
       
       // Set the profile image if it exists
       if (profile.user?.profileImage) {
@@ -128,6 +132,21 @@ const EditTutorProfile: React.FC = () => {
       }
     }
   }, [profile, locations, user, navigate]);
+
+  // Add effect to track form changes
+  useEffect(() => {
+    if (initialFormData) {
+      const hasFormChanges = JSON.stringify(formData) !== JSON.stringify(initialFormData);
+      setHasChanges(hasFormChanges);
+    }
+  }, [formData, initialFormData]);
+
+  const handleDiscard = () => {
+    if (initialFormData) {
+      setFormData(initialFormData);
+      setHasChanges(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -364,14 +383,26 @@ const EditTutorProfile: React.FC = () => {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
               Edit Profile
             </h1>
-            <button
-              type="submit"
-              form="profile-form"
-              className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-            >
-              <Save className="w-5 h-5 mr-2" />
-              Save Changes
-            </button>
+            {hasChanges && (
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={handleDiscard}
+                  className="inline-flex items-center px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                >
+                  <X className="w-5 h-5 mr-2" />
+                  Discard Changes
+                </button>
+                <button
+                  type="submit"
+                  form="profile-form"
+                  className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                >
+                  <Save className="w-5 h-5 mr-2" />
+                  Save Changes
+                </button>
+              </div>
+            )}
           </div>
 
           <form id="profile-form" onSubmit={handleSubmit} className="space-y-8">
