@@ -49,18 +49,53 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ selectedLocations, 
   };
 
   const handleLocationSelect = (location: Location) => {
-    const tutorLocation: TutorLocation = {
-      _id: location._id,
-      name: location.name,
-      province: location.level === 1 ? location.name : 
-                location.level === 2 ? (locations.find(l => l._id === location.parent) as Location)?.name || '' :
-                (locations.find(l => l._id === (locations.find(p => p._id === location.parent) as Location)?.parent) as Location)?.name || ''
-    };
+    // Prevent selection of cities (level 1)
+    if (location.level === 1) {
+      return;
+    }
 
     const exists = selectedLocations.some(loc => loc._id === location._id);
-    const newLocations = exists 
-      ? selectedLocations.filter(loc => loc._id !== location._id)
-      : [...selectedLocations, tutorLocation];
+    let newLocations = [...selectedLocations];
+
+    if (exists) {
+      // If removing a town, also remove all its hometowns
+      if (location.level === 2) {
+        const hometowns = location.children || [];
+        newLocations = newLocations.filter(loc => 
+          loc._id !== location._id && 
+          !hometowns.some(hometown => hometown._id === loc._id)
+        );
+      } else {
+        // If removing a hometown, just remove it
+        newLocations = newLocations.filter(loc => loc._id !== location._id);
+      }
+    } else {
+      // If selecting a town, add it and all its hometowns
+      if (location.level === 2) {
+        const hometowns = location.children || [];
+        const townLocation: TutorLocation = {
+          _id: location._id,
+          name: location.name,
+          province: (locations.find(l => l._id === location.parent) as Location)?.name || ''
+        };
+        
+        const hometownLocations: TutorLocation[] = hometowns.map(hometown => ({
+          _id: hometown._id,
+          name: hometown.name,
+          province: (locations.find(l => l._id === location.parent) as Location)?.name || ''
+        }));
+
+        newLocations = [...newLocations, townLocation, ...hometownLocations];
+      } else {
+        // If selecting a hometown, just add it
+        const hometownLocation: TutorLocation = {
+          _id: location._id,
+          name: location.name,
+          province: (locations.find(l => l._id === (locations.find(p => p._id === location.parent) as Location)?.parent) as Location)?.name || ''
+        };
+        newLocations = [...newLocations, hometownLocation];
+      }
+    }
     
     onLocationsChange(newLocations);
   };
@@ -109,20 +144,7 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ selectedLocations, 
                     <ChevronRight className="w-4 h-4" />
                   )}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleLocationSelect(city)}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-md ${
-                    isLocationSelected(city._id)
-                      ? 'bg-primary-50 text-primary-700'
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <span>{city.name}</span>
-                  {isLocationSelected(city._id) && (
-                    <Check className="w-4 h-4" />
-                  )}
-                </button>
+                <span className="px-3 py-2 text-gray-700">{city.name}</span>
               </div>
             </div>
             
@@ -196,31 +218,22 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ selectedLocations, 
 
       {/* Selected Locations Display */}
       {selectedLocations.length > 0 && (
-        <div className="mt-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Selected Locations</h3>
-          <div className="flex flex-wrap gap-2">
-            {selectedLocations.map(location => (
-              <div
-                key={location._id}
-                className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary-50 text-primary-700"
+        <div className="flex flex-wrap gap-2">
+          {selectedLocations.map(location => (
+            <div
+              key={location._id}
+              className="flex items-center space-x-1 px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm"
+            >
+              <span>{location.name}</span>
+              <button
+                type="button"
+                onClick={() => handleLocationSelect({ _id: location._id, name: location.name, level: 2 } as Location)}
+                className="hover:text-primary-900"
               >
-                <span>{location.name}</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Find the actual location object from the locations list
-                    const actualLocation = locations.find(loc => loc._id === location._id);
-                    if (actualLocation) {
-                      handleLocationSelect(actualLocation);
-                    }
-                  }}
-                  className="ml-2 text-primary-500 hover:text-primary-700"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
         </div>
       )}
     </div>
