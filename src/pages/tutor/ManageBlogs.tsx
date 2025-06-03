@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useTutor } from '../../contexts/TutorContext';
-import { Edit2, Trash2, Plus, Calendar, Clock } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { toast } from 'react-toastify';
 import { useState } from 'react';
 import React from 'react';
+import BlogCard from '../../components/blog/BlogCard';
 
 const ManageBlogs = () => {
   const { blogs, loading, error, deleteBlog } = useTutor();
@@ -22,7 +23,7 @@ const ManageBlogs = () => {
   };
 
   const filteredBlogs = React.useMemo(() => {
-    return blogs?.filter(blog => blog.status === activeTab) || [];
+    return blogs?.filter(blog => blog?.status === activeTab) || [];
   }, [blogs, activeTab]);
 
   if (loading) {
@@ -91,63 +92,9 @@ const ManageBlogs = () => {
           </div>
 
           {filteredBlogs.length > 0 ? (
-            <div className="divide-y divide-gray-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
               {filteredBlogs.map((blog) => (
-                <div key={blog._id} className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-xl font-semibold text-gray-900">{blog.title}</h3>
-                        {blog.status === 'draft' && (
-                          <span className="bg-yellow-50 text-yellow-700 text-xs px-2 py-1 rounded-full font-medium">
-                            Draft
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-gray-600 mb-4 line-clamp-2">{blog.content}</p>
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                        <div className="flex items-center">
-                          <Calendar className="w-4 h-4 mr-1.5" />
-                          <span>Created: {new Date(blog.createdAt).toLocaleDateString()}</span>
-                        </div>
-                        {blog.updatedAt !== blog.createdAt && (
-                          <div className="flex items-center">
-                            <Clock className="w-4 h-4 mr-1.5" />
-                            <span>Updated: {new Date(blog.updatedAt).toLocaleDateString()}</span>
-                          </div>
-                        )}
-                      </div>
-                      {blog.tags && blog.tags.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {blog.tags.map((tag, index) => (
-                            <span
-                              key={index}
-                              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-50 text-primary-700"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Link
-                        to={`/tutor/blogs/edit/${blog._id}`}
-                        className="inline-flex items-center justify-center px-4 py-2 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors font-medium"
-                      >
-                        <Edit2 className="w-4 h-4 mr-2" />
-                        Edit
-                      </Link>
-                      <button
-                        onClick={() => handleDeleteBlog(blog._id)}
-                        className="inline-flex items-center justify-center px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors font-medium"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <BlogCard key={blog._id} blog={blog} onDelete={handleDeleteBlog} />
               ))}
             </div>
           ) : (

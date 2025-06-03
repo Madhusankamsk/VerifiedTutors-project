@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../contexts/AuthContext';
-import { AlertCircle, User, Mail, Lock, Chrome, ArrowRight, ArrowLeft } from 'lucide-react';
+import { AlertCircle, User, Mail, Lock, Chrome, ArrowRight, ArrowLeft, GraduationCap, BookOpen } from 'lucide-react';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -100,12 +100,12 @@ const RegisterPage: React.FC = () => {
       {Array.from({ length: totalSteps }).map((_, index) => (
         <div key={index} className="flex items-center">
           <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
               currentStep > index + 1
-                ? 'bg-blue-600 text-white'
+                ? 'bg-primary-600 text-white shadow-lg'
                 : currentStep === index + 1
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-600'
+                ? 'bg-primary-600 text-white shadow-lg ring-4 ring-primary-100'
+                : 'bg-gray-100 text-gray-400'
             }`}
           >
             {currentStep > index + 1 ? (
@@ -118,8 +118,8 @@ const RegisterPage: React.FC = () => {
           </div>
           {index < totalSteps - 1 && (
             <div
-              className={`w-16 h-1 ${
-                currentStep > index + 1 ? 'bg-blue-600' : 'bg-gray-200'
+              className={`w-16 h-1 transition-all duration-300 ${
+                currentStep > index + 1 ? 'bg-primary-600' : 'bg-gray-200'
               }`}
             />
           )}
@@ -134,10 +134,10 @@ const RegisterPage: React.FC = () => {
         return (
           <div className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                 Full Name
               </label>
-              <div className="mt-1 relative rounded-lg shadow-sm">
+              <div className="relative rounded-xl shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-gray-400" />
                 </div>
@@ -146,20 +146,20 @@ const RegisterPage: React.FC = () => {
                   type="text"
                   autoComplete="name"
                   {...register('name')}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                   placeholder="John Doe"
                 />
               </div>
               {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                <p className="mt-1 text-sm text-red-600 animate-fade-in">{errors.name.message}</p>
               )}
             </div>
             
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email address
               </label>
-              <div className="mt-1 relative rounded-lg shadow-sm">
+              <div className="relative rounded-xl shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-gray-400" />
                 </div>
@@ -168,12 +168,12 @@ const RegisterPage: React.FC = () => {
                   type="email"
                   autoComplete="email"
                   {...register('email')}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                   placeholder="you@example.com"
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                <p className="mt-1 text-sm text-red-600 animate-fade-in">{errors.email.message}</p>
               )}
             </div>
           </div>
@@ -182,10 +182,10 @@ const RegisterPage: React.FC = () => {
         return (
           <div className="space-y-4">
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                 Password
               </label>
-              <div className="mt-1 relative rounded-lg shadow-sm">
+              <div className="relative rounded-xl shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
@@ -194,20 +194,20 @@ const RegisterPage: React.FC = () => {
                   type="password"
                   autoComplete="new-password"
                   {...register('password')}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                   placeholder="••••••••"
                 />
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                <p className="mt-1 text-sm text-red-600 animate-fade-in">{errors.password.message}</p>
               )}
             </div>
             
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
                 Confirm Password
               </label>
-              <div className="mt-1 relative rounded-lg shadow-sm">
+              <div className="relative rounded-xl shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
@@ -216,12 +216,12 @@ const RegisterPage: React.FC = () => {
                   type="password"
                   autoComplete="new-password"
                   {...register('confirmPassword')}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                   placeholder="••••••••"
                 />
               </div>
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                <p className="mt-1 text-sm text-red-600 animate-fade-in">{errors.confirmPassword.message}</p>
               )}
             </div>
           </div>
@@ -235,10 +235,10 @@ const RegisterPage: React.FC = () => {
               </label>
               <div className="grid grid-cols-2 gap-4">
                 <div 
-                  className={`border rounded-lg p-4 cursor-pointer text-center transition-all ${
+                  className={`border-2 rounded-xl p-6 cursor-pointer text-center transition-all duration-300 hover:shadow-lg ${
                     selectedRole === 'student' 
-                      ? 'border-blue-500 bg-blue-50 shadow-sm' 
-                      : 'border-gray-300 hover:bg-gray-50'
+                      ? 'border-primary-500 bg-primary-50 shadow-md' 
+                      : 'border-gray-200 hover:border-primary-200 hover:bg-gray-50'
                   }`}
                   onClick={() => setValue('role', 'student')}
                 >
@@ -249,15 +249,16 @@ const RegisterPage: React.FC = () => {
                     {...register('role')} 
                     className="sr-only"
                   />
-                  <span className="block font-medium text-gray-900">Student</span>
-                  <span className="text-xs text-gray-500">Looking for tutors</span>
+                  <BookOpen className="w-8 h-8 mx-auto mb-3 text-primary-600" />
+                  <span className="block font-medium text-gray-900 text-lg">Student</span>
+                  <span className="text-sm text-gray-500 mt-1">Looking for tutors</span>
                 </div>
                 
                 <div 
-                  className={`border rounded-lg p-4 cursor-pointer text-center transition-all ${
+                  className={`border-2 rounded-xl p-6 cursor-pointer text-center transition-all duration-300 hover:shadow-lg ${
                     selectedRole === 'tutor' 
-                      ? 'border-blue-500 bg-blue-50 shadow-sm' 
-                      : 'border-gray-300 hover:bg-gray-50'
+                      ? 'border-primary-500 bg-primary-50 shadow-md' 
+                      : 'border-gray-200 hover:border-primary-200 hover:bg-gray-50'
                   }`}
                   onClick={() => setValue('role', 'tutor')}
                 >
@@ -268,8 +269,9 @@ const RegisterPage: React.FC = () => {
                     {...register('role')} 
                     className="sr-only"
                   />
-                  <span className="block font-medium text-gray-900">Tutor</span>
-                  <span className="text-xs text-gray-500">Offer tutoring services</span>
+                  <GraduationCap className="w-8 h-8 mx-auto mb-3 text-primary-600" />
+                  <span className="block font-medium text-gray-900 text-lg">Tutor</span>
+                  <span className="text-sm text-gray-500 mt-1">Offer tutoring services</span>
                 </div>
               </div>
             </div>
@@ -281,22 +283,30 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 animate-slide-up">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
+      
+      {/* Decorative Elements */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-primary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-secondary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+
+      <div className="max-w-md w-full space-y-8 relative">
         <div className="text-center">
-          <h2 className="mt-6 text-4xl font-extrabold text-gray-900 tracking-tight">
+          <h2 className="mt-6 text-4xl font-extrabold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent tracking-tight">
             Create your account
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Already have an account?{' '}
-            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+            <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500 transition-colors duration-200">
               Sign in
             </Link>
           </p>
         </div>
         
         {error && (
-          <div className="bg-red-50 p-4 rounded-lg flex items-start border border-red-200">
+          <div className="bg-red-50/80 backdrop-blur-sm p-4 rounded-xl flex items-start border border-red-200 shadow-sm animate-fade-in">
             <AlertCircle className="h-5 w-5 text-red-400 mr-3 mt-0.5 flex-shrink-0" />
             <p className="text-sm text-red-700">{error}</p>
           </div>
@@ -306,7 +316,7 @@ const RegisterPage: React.FC = () => {
           <button
             onClick={() => handleSocialLogin('google')}
             disabled={isSubmitting}
-            className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            className="w-full flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 hover:shadow-md transform hover:-translate-y-0.5"
           >
             <Chrome className="h-5 w-5 mr-2 text-red-500" />
             Continue with Google
@@ -315,10 +325,10 @@ const RegisterPage: React.FC = () => {
         
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
+            <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-gradient-to-br from-blue-50 via-white to-indigo-50 text-gray-500">
+            <span className="px-4 bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-500">
               Or continue with email
             </span>
           </div>
@@ -333,7 +343,7 @@ const RegisterPage: React.FC = () => {
               <button
                 type="button"
                 onClick={prevStep}
-                className="flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="flex items-center px-4 py-2.5 border border-gray-200 rounded-xl shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 hover:shadow-md transform hover:-translate-y-0.5"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
@@ -344,7 +354,7 @@ const RegisterPage: React.FC = () => {
               <button
                 type="button"
                 onClick={nextStep}
-                className="ml-auto flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="ml-auto flex items-center px-6 py-2.5 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg"
               >
                 Next
                 <ArrowRight className="h-4 w-4 ml-2" />
@@ -353,20 +363,33 @@ const RegisterPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="ml-auto flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-70"
+                className="ml-auto flex items-center px-6 py-2.5 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed transform hover:-translate-y-0.5 hover:shadow-lg"
               >
-                {isSubmitting ? 'Creating Account...' : 'Create Account'}
+                {isSubmitting ? (
+                  <span className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating Account...
+                  </span>
+                ) : (
+                  <span className="flex items-center">
+                    Create Account
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </span>
+                )}
               </button>
             )}
           </div>
           
           <p className="text-xs text-center text-gray-500">
             By signing up, you agree to our{' '}
-            <Link to="/terms" className="text-blue-600 hover:text-blue-500 transition-colors">
+            <Link to="/terms" className="text-primary-600 hover:text-primary-500 transition-colors duration-200">
               Terms of Service
             </Link>
             {' '}and{' '}
-            <Link to="/privacy" className="text-blue-600 hover:text-blue-500 transition-colors">
+            <Link to="/privacy" className="text-primary-600 hover:text-primary-500 transition-colors duration-200">
               Privacy Policy
             </Link>
           </p>

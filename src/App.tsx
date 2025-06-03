@@ -8,6 +8,7 @@ import { SubjectProvider } from './contexts/SubjectContext';
 import { BlogProvider } from './contexts/BlogContext';
 import { RatingProvider } from './contexts/RatingContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import PublicRoute from './components/common/PublicRoute';
 import RoleRoute from './components/common/RoleRoute';
 import { Toaster } from 'react-hot-toast';
 import { ToastContainer } from 'react-toastify';
@@ -71,13 +72,21 @@ const App = () => {
                       {/* Public Routes */}
                       <Route path="/" element={<MainLayout />}>
                         <Route index element={<HomePage />} />
-                        <Route path="login" element={<LoginPage />} />
-                        <Route path="register" element={<RegisterPage />} />
+                        <Route path="login" element={
+                          <PublicRoute>
+                            <LoginPage />
+                          </PublicRoute>
+                        } />
+                        <Route path="register" element={
+                          <PublicRoute>
+                            <RegisterPage />
+                          </PublicRoute>
+                        } />
                         <Route path="tutors" element={<TutorListingPage />} />
                         <Route path="tutors/:id" element={<TutorProfilePage />} />
-                        <Route path="courses" element={<CoursesPage />} />
+                        {/* <Route path="courses" element={<CoursesPage />} />
                         <Route path="blogs" element={<BlogListPage />} />
-                        <Route path="blogs/:id" element={<BlogPostPage />} />
+                        <Route path="blogs/:id" element={<BlogPostPage />} /> */}
                       </Route>
 
                       {/* Admin Routes */}
@@ -113,8 +122,8 @@ const App = () => {
                         <Route path="dashboard" element={<TutorDashboard />} />
                         <Route path="profile" element={<EditTutorProfile />} />
                         <Route path="blogs" element={<ManageBlogs />} />
-                        <Route path="blogs/create" element={<CreateEditBlog />} />
-                        <Route path="blogs/edit/:id" element={<CreateEditBlog />} />
+                        {/* <Route path="blogs/create" element={<CreateEditBlog />} />
+                        <Route path="blogs/edit/:id" element={<CreateEditBlog />} /> */}
                       </Route>
 
                       {/* Student Routes */}
