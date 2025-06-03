@@ -207,11 +207,11 @@ const EditTutorProfile: React.FC = () => {
     // Validate file sizes and types
     const validFiles = files.filter(file => {
       if (file.size > 5 * 1024 * 1024) {
-        toast.error(`${file.name} is larger than 2MB`);
+        toast.error(`${file.name} is larger than 5MB`);
         return false;
       }
-      if (!['application/pdf', 'image/jpeg', 'image/png'].includes(file.type)) {
-        toast.error(`${file.name} is not a supported file type. Please upload PDF, JPG, or PNG files.`);
+      if (!['image/jpeg', 'image/png'].includes(file.type)) {
+        toast.error(`${file.name} is not a supported file type. Please upload JPG or PNG files only.`);
         return false;
       }
       return true;
@@ -1007,9 +1007,14 @@ const EditTutorProfile: React.FC = () => {
 
               {/* Document Upload Area */}
               <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Documents
-                </label>
+                <div className="block text-sm font-medium text-yellow-700 mb-2">
+                  <span className="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    Tip: Upload photos of your identity, qualification and certification for Earn <span className="font-bold text-primary-600">VERIFIED</span> Badge
+                  </span>
+                </div>
                 <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:border-primary-500 transition-colors duration-200">
                   <div className="space-y-2 text-center">
                     <Upload className="mx-auto h-12 w-12 text-gray-400" />
@@ -1025,14 +1030,14 @@ const EditTutorProfile: React.FC = () => {
                           className="sr-only"
                           onChange={handleDocumentSelect}
                           multiple
-                          accept=".pdf,.jpg,.jpeg,.png"
+                          accept=".jpg,.jpeg,.png"
                           disabled={uploading || selectedDocuments.length >= 5}
                         />
                       </label>
                       <p className="pl-1">or drag and drop</p>
                     </div>
                     <p className="text-xs text-gray-500">
-                      PDF, JPG, PNG up to 5MB each (max 5 documents)
+                      JPG, PNG up to 5MB each (max 5 documents)
                     </p>
                   </div>
                 </div>
@@ -1050,22 +1055,16 @@ const EditTutorProfile: React.FC = () => {
                           <span className="text-sm text-gray-600">Document {index + 1}</span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <a
-                            href={doc.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            type="button"
+                            onClick={() => window.open(doc.url, '_blank')}
                             className="text-primary-600 hover:text-primary-700"
                           >
                             <Eye className="w-4 h-4" />
-                          </a>
+                          </button>
                           <button
                             type="button"
-                            onClick={() => {
-                              setFormData(prev => ({
-                                ...prev,
-                                documents: prev.documents.filter(d => d.id !== doc.id)
-                              }));
-                            }}
+                            onClick={() => handleDeleteDocument(doc.id)}
                             className="text-red-500 hover:text-red-700"
                           >
                             <Trash2 className="w-4 h-4" />
