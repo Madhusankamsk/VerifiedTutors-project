@@ -294,29 +294,6 @@ const TutorProfilePage: React.FC = () => {
               </div>
             )}
 
-            {/* Documents */}
-            {profile.documents && profile.documents.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-                <h2 className="text-2xl sm:text-3xl font-semibold mb-4 text-gray-900">Documents</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {profile.documents.map((doc, index) => (
-                    <div key={doc.id} className="flex items-center p-4 rounded-xl bg-gray-50 border border-gray-200 hover:shadow-md transition-all duration-200">
-                      <FileText className="w-6 h-6 text-primary-600 mr-3" />
-                      <span className="text-gray-700">Document {index + 1}</span>
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ml-auto text-primary-600 hover:text-primary-700"
-                      >
-                        <Eye className="w-5 h-5" />
-                      </a>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Subjects & Rates */}
             <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
               <h2 className="text-2xl sm:text-3xl font-semibold mb-6 text-gray-900">Subjects & Rates</h2>
@@ -433,27 +410,6 @@ const TutorProfilePage: React.FC = () => {
                 ))}
               </div>
             </div>
-
-            {/* Documents */}
-            {profile.documents && profile.documents.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-                <h2 className="text-2xl sm:text-3xl font-semibold mb-6 text-gray-900">Documents</h2>
-                <div className="space-y-3">
-                  {profile.documents.map((doc, index) => (
-                    <a
-                      key={index}
-                      href={doc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center p-3 rounded-lg text-primary-600 hover:bg-primary-50 transition-colors duration-200"
-                    >
-                      <FileText className="h-5 w-5 mr-3" />
-                      <span className="font-medium">{doc.type}</span>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Book a Session */}
             <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
