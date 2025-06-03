@@ -4,11 +4,16 @@ import { useLocations, Location } from '../../contexts/LocationContext';
 import { useSubjects, Subject } from '../../contexts/SubjectContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
-import { X, Plus, Save, Trash2, MapPin, BookOpen, GraduationCap, Briefcase, User, Phone, Mail, Clock, Upload, Camera, Globe, Languages } from 'lucide-react';
+import { X, Plus, Save, Trash2, MapPin, BookOpen, GraduationCap, Briefcase, User, Phone, Mail, Clock, Upload, Camera, Globe, Languages, FileText, Eye } from 'lucide-react';
 import LocationSelector from '../../components/location/LocationSelector';
 import SubjectSelector from '../../components/subject/SubjectSelector';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useNavigate } from 'react-router-dom';
+
+interface Document {
+  id: string;
+  url: string;
+}
 
 interface FormData {
   phone: string;
@@ -47,6 +52,10 @@ interface FormData {
     name: string;
     province: string;
   }>;
+  documents: Array<{
+    id: string;
+    url: string;
+  }>;
 }
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -74,10 +83,12 @@ const EditTutorProfile: React.FC = () => {
     education: [],
     experience: [],
     subjects: [],
-    locations: []
+    locations: [],
+    documents: []
   });
   const [initialFormData, setInitialFormData] = useState<FormData | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const [selectedDocuments, setSelectedDocuments] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [selectedMediums, setSelectedMediums] = useState<string[]>([]);
@@ -121,6 +132,10 @@ const EditTutorProfile: React.FC = () => {
           province: l.level === 1 ? l.name : 
                     l.level === 2 ? (locations.find(p => p._id === l.parent) as Location)?.name || '' :
                     (locations.find(p => p._id === (locations.find(p2 => p2._id === l.parent) as Location)?.parent) as Location)?.name || ''
+        })) || [],
+        documents: profile.documents.map(d => ({
+          id: d.id,
+          url: d.url
         })) || []
       };
       setFormData(newFormData);
@@ -150,7 +165,8 @@ const EditTutorProfile: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {      const apiData: Partial<TutorProfile> = {
+    try {
+      const apiData: Partial<TutorProfile> = {
         phone: formData.phone,
         bio: formData.bio,
         gender: formData.gender,
@@ -167,7 +183,8 @@ const EditTutorProfile: React.FC = () => {
             availability: s.availability
           };
         }),
-        locations: formData.locations.map(l => l._id) as unknown as Location[]
+        locations: formData.locations.map(l => l._id) as unknown as Location[],
+        documents: formData.documents
       };
       await updateProfile(apiData);
       toast.success('Profile updated successfully');
@@ -178,30 +195,121 @@ const EditTutorProfile: React.FC = () => {
     }
   };
 
-  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    
+    // Check if adding new files would exceed the 5 document limit
+    if (selectedDocuments.length + files.length > 5) {
+      toast.error('You can only upload up to 5 documents');
+      return;
+    }
+
+    // Validate file sizes and types
+    const validFiles = files.filter(file => {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} is larger than 2MB`);
+        return false;
+      }
+      if (!['application/pdf', 'image/jpeg', 'image/png'].includes(file.type)) {
+        toast.error(`${file.name} is not a supported file type. Please upload PDF, JPG, or PNG files.`);
+        return false;
+      }
+      return true;
+    });
+
+    setSelectedDocuments(prev => [...prev, ...validFiles]);
+  };
+
+  const handleDocumentUpload = async () => {
+    if (selectedDocuments.length === 0) {
+      toast.error('Please select at least one document to upload');
+      return;
+    }
 
     try {
       setUploading(true);
-      await uploadDocument(file, 'qualification');
-      toast.success('Document uploaded successfully');
+      const formData = new FormData();
+      
+      // Append each file to FormData
+      selectedDocuments.forEach((file) => {
+        formData.append('documents', file);
+      });
+
+      console.log('Uploading documents:', selectedDocuments.map(f => f.name));
+
+      // Upload documents
+      const response = await fetch('http://localhost:5000/api/upload/verification-docs', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+      // Get the raw response text first
+      const responseText = await response.text();
+      console.log('Raw response:', responseText);
+
+      if (!response.ok) {
+        throw new Error(responseText || 'Failed to upload documents');
+      }
+
+      // Try to parse the response text as JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Failed to parse response as JSON:', e);
+        throw new Error('Invalid server response format');
+      }
+      
+      if (!data.success || !data.data) {
+        throw new Error(data.message || 'Failed to upload documents');
+      }
+      
+      // Update formData with new documents
+      setFormData(prev => ({
+        ...prev,
+        documents: [
+          ...(prev.documents || []),
+          ...data.data.map((doc: any) => ({
+            id: doc.id,
+            url: doc.url
+          }))
+        ]
+      }));
+
+      toast.success('Documents uploaded successfully');
+      setSelectedDocuments([]);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to upload document');
+      console.error('Document upload error:', error);
+      toast.error(error.message || 'Failed to upload documents');
     } finally {
       setUploading(false);
     }
   };
 
-  const handleDocumentDelete = async (documentId: string) => {
-    if (window.confirm('Are you sure you want to delete this document?')) {
-      try {
-        await deleteDocument(documentId);
-        toast.success('Document deleted successfully');
-      } catch (error: any) {
-        toast.error(error.response?.data?.message || 'Failed to delete document');
-      }
+  const handleDeleteDocument = async (documentId: string) => {
+    if (!window.confirm('Are you sure you want to delete this document?')) {
+      return;
     }
+
+    try {
+      setUploading(true);
+      await deleteDocument(documentId);
+      toast.success('Document deleted successfully');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete document');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeSelectedDocument = (index: number) => {
+    setSelectedDocuments(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubjectSelect = (selectedSubjects: Array<{ _id: string; name: string; category: string }>) => {
@@ -849,66 +957,125 @@ const EditTutorProfile: React.FC = () => {
                 <Upload className="w-5 h-5 mr-2 text-primary-600" />
                 Documents
               </h2>
-              <div className="space-y-4">
-                {profile?.documents.map((doc) => (
-                  <div key={doc._id} className="flex items-center justify-between p-4 bg-white/50 backdrop-blur-sm rounded-xl border border-gray-100 hover:shadow-md transition-all duration-200">
-                    <div className="flex items-center">
-                      <span className="text-sm font-medium text-gray-900">{doc.type}</span>
-                      {doc.verified && (
-                        <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Verified
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary-600 hover:text-primary-700 transition-colors duration-200"
-                      >
-                        View
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => handleDocumentDelete(doc._id)}
-                        className="text-red-600 hover:text-red-700 transition-colors duration-200"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Upload New Document
-                  </label>
-                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:border-primary-500 transition-colors duration-200">
-                    <div className="space-y-2 text-center">
-                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                      <div className="flex text-sm text-gray-600">
-                        <label
-                          htmlFor="document-upload"
-                          className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
+              
+              {/* Selected Documents Preview */}
+              {selectedDocuments.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">Selected Documents ({selectedDocuments.length}/5)</h3>
+                  <div className="space-y-2">
+                    {selectedDocuments.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <FileText className="w-5 h-5 text-gray-400" />
+                          <span className="text-sm text-gray-600">{file.name}</span>
+                          <span className="text-xs text-gray-500">
+                            ({(file.size / (1024 * 1024)).toFixed(2)}MB)
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeSelectedDocument(index)}
+                          className="text-red-500 hover:text-red-700"
                         >
-                          <span>Upload a file</span>
-                          <input
-                            id="document-upload"
-                            type="file"
-                            className="sr-only"
-                            onChange={handleDocumentUpload}
-                            disabled={uploading}
-                          />
-                        </label>
-                        <p className="pl-1">or drag and drop</p>
+                          <X className="w-4 h-4" />
+                        </button>
                       </div>
-                      <p className="text-xs text-gray-500">
-                        PDF, JPG, PNG up to 10MB
-                      </p>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleDocumentUpload}
+                    disabled={uploading}
+                    className="mt-4 w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {uploading ? (
+                      <>
+                        <div className="w-4 h-4 mr-2">
+                          <LoadingSpinner size="small" />
+                        </div>
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload Documents
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {/* Document Upload Area */}
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Documents
+                </label>
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:border-primary-500 transition-colors duration-200">
+                  <div className="space-y-2 text-center">
+                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                    <div className="flex text-sm text-gray-600">
+                      <label
+                        htmlFor="document-upload"
+                        className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
+                      >
+                        <span>Select files</span>
+                        <input
+                          id="document-upload"
+                          type="file"
+                          className="sr-only"
+                          onChange={handleDocumentSelect}
+                          multiple
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          disabled={uploading || selectedDocuments.length >= 5}
+                        />
+                      </label>
+                      <p className="pl-1">or drag and drop</p>
                     </div>
+                    <p className="text-xs text-gray-500">
+                      PDF, JPG, PNG up to 5MB each (max 5 documents)
+                    </p>
                   </div>
                 </div>
               </div>
+
+              {/* Existing Documents */}
+              {formData.documents && formData.documents.length > 0 && (
+                <div className="mt-8">
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">Uploaded Documents</h3>
+                  <div className="space-y-2">
+                    {formData.documents.map((doc, index) => (
+                      <div key={doc.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <FileText className="w-5 h-5 text-gray-400" />
+                          <span className="text-sm text-gray-600">Document {index + 1}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <a
+                            href={doc.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary-600 hover:text-primary-700"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                documents: prev.documents.filter(d => d.id !== doc.id)
+                              }));
+                            }}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </form>
         </div>

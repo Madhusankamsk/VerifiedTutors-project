@@ -99,19 +99,10 @@ const tutorSchema = new mongoose.Schema({
     required: true,
   }],
   documents: [{
-    type: {
-      type: String,
-      enum: ['qualification', 'identity', 'other'],
-      required: true,
-    },
     url: {
       type: String,
       required: true,
-    },
-    verified: {
-      type: Boolean,
-      default: false,
-    },
+    }
   }],
   rating: {
     type: Number,

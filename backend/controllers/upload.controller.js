@@ -23,32 +23,41 @@ export const uploadProfilePhoto = asyncHandler(async (req, res) => {
 // @route   POST /api/upload/verification-docs
 // @access  Private
 export const uploadVerificationDocs = asyncHandler(async (req, res) => {
-  if (!req.files || req.files.length === 0) {
-    res.status(400);
-    throw new Error('No files uploaded');
+  try {
+    if (!req.files || req.files.length === 0) {
+      res.status(400);
+      throw new Error('No files uploaded');
+    }
+
+    const results = req.files.map(file => ({
+      id: file.filename,
+      url: file.path
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: results,
+      message: 'Documents uploaded successfully'
+    });
+  } catch (error) {
+    console.error('Document upload error:', error);
+    res.status(error.status || 500).json({
+      success: false,
+      message: error.message || 'Failed to upload documents'
+    });
   }
-
-  const results = req.files.map(file => ({
-    url: file.path,
-    publicId: file.filename
-  }));
-
-  res.status(200).json({
-    success: true,
-    data: results
-  });
 });
 
 // @desc    Delete uploaded image
-// @route   DELETE /api/upload/:publicId
+// @route   DELETE /api/upload/:id
 // @access  Private
 export const deleteImage = asyncHandler(async (req, res) => {
-  const { publicId } = req.params;
+  const { id } = req.params;
 
-  await cloudinary.uploader.destroy(publicId);
+  await cloudinary.uploader.destroy(id);
 
   res.status(200).json({
     success: true,
-    message: 'Image deleted successfully'
+    message: 'Document deleted successfully'
   });
 }); 

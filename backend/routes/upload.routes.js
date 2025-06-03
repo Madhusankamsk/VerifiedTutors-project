@@ -11,6 +11,6 @@ const router = express.Router();
 
 router.post('/profile-photo', protect, upload.single('photo'), uploadProfilePhoto);
 router.post('/verification-docs', protect, upload.array('documents', 5), uploadVerificationDocs);
-router.delete('/:publicId', protect, deleteImage);
+router.delete('/:id', protect, deleteImage);
 
 export default router; 

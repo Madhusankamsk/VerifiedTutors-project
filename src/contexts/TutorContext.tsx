@@ -45,10 +45,8 @@ export interface TutorProfile {
   }[];
   locations: Location[];
   documents: {
-    _id: string;
-    type: 'qualification' | 'identity' | 'other';
+    id: string;
     url: string;
-    verified: boolean;
   }[];
   rating: number;
   totalReviews: number;
@@ -297,7 +295,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-
+      console.log('response.data', response.data);
       if (response.data) {
         setProfile(response.data.tutor);
         return response.data;
@@ -713,7 +711,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
       setProfile(prev => {
         if (!prev) return null;
-        const updatedDocuments = prev.documents.filter(doc => doc._id !== documentId);
+        const updatedDocuments = prev.documents.filter(doc => doc.id !== documentId);
         return { ...prev, documents: updatedDocuments };
       });
     } catch (err: any) {
