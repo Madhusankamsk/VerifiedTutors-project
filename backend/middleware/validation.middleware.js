@@ -19,6 +19,20 @@ export const validateTutorProfile = (req, res, next) => {
     bio: Joi.string().max(1000).allow('').messages({
       'string.max': 'Bio cannot exceed 1000 characters'
     }),
+    socialMedia: Joi.object({
+      instagram: Joi.string().allow('').messages({
+        'string.base': 'Instagram username must be a string'
+      }),
+      youtube: Joi.string().allow('').messages({
+        'string.base': 'YouTube channel must be a string'
+      }),
+      facebook: Joi.string().allow('').messages({
+        'string.base': 'Facebook username must be a string'
+      }),
+      linkedin: Joi.string().allow('').messages({
+        'string.base': 'LinkedIn username must be a string'
+      })
+    }).default({}),
     education: Joi.array().items(
       Joi.object({
         degree: Joi.string().required().messages({

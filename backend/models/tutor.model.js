@@ -20,6 +20,24 @@ const tutorSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  socialMedia: {
+    instagram: {
+      type: String,
+      default: '',
+    },
+    youtube: {
+      type: String,
+      default: '',
+    },
+    facebook: {
+      type: String,
+      default: '',
+    },
+    linkedin: {
+      type: String,
+      default: '',
+    }
+  },
   education: [{
     degree: {
       type: String,

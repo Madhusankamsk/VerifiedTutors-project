@@ -17,6 +17,12 @@ export interface TutorProfile {
   phone: string;
   gender: 'Male' | 'Female' | 'Other';
   bio: string;
+  socialMedia: {
+    instagram: string;
+    youtube: string;
+    facebook: string;
+    linkedin: string;
+  };
   education: {
     degree: string;
     institution: string;

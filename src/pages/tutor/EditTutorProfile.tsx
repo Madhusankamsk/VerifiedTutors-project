@@ -19,6 +19,12 @@ interface FormData {
   phone: string;
   bio: string;
   gender: 'Male' | 'Female' | 'Other';
+  socialMedia: {
+    instagram: string;
+    youtube: string;
+    facebook: string;
+    linkedin: string;
+  };
   education: Array<{
     degree: string;
     institution: string;
@@ -80,6 +86,12 @@ const EditTutorProfile: React.FC = () => {
     phone: '',
     bio: '',
     gender: 'Male',
+    socialMedia: {
+      instagram: '',
+      youtube: '',
+      facebook: '',
+      linkedin: ''
+    },
     education: [],
     experience: [],
     subjects: [],
@@ -113,6 +125,12 @@ const EditTutorProfile: React.FC = () => {
         phone: profile.phone || '',
         bio: profile.bio || '',
         gender: profile.gender || 'Male',
+        socialMedia: profile.socialMedia || {
+          instagram: '',
+          youtube: '',
+          facebook: '',
+          linkedin: ''
+        },
         education: profile.education || [],
         experience: profile.experience || [],
         subjects: profile.subjects.map(s => ({
@@ -170,6 +188,7 @@ const EditTutorProfile: React.FC = () => {
         phone: formData.phone,
         bio: formData.bio,
         gender: formData.gender,
+        socialMedia: formData.socialMedia,
         education: formData.education,
         experience: formData.experience,
         subjects: formData.subjects.map(s => {
@@ -593,6 +612,97 @@ const EditTutorProfile: React.FC = () => {
                         <option value="Female">Female</option>
                         <option value="Other">Other</option>
                       </select>
+                    </div>
+                  </div>
+
+                  {/* Social Media Links */}
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Social Media Links</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="instagram" className="block text-sm font-medium text-gray-700 mb-1">
+                          Instagram
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span className="text-gray-500">@</span>
+                          </div>
+                          <input
+                            type="text"
+                            id="instagram"
+                            value={formData.socialMedia.instagram}
+                            onChange={(e) => setFormData(prev => ({
+                              ...prev,
+                              socialMedia: { ...prev.socialMedia, instagram: e.target.value }
+                            }))}
+                            className="pl-8 w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                            placeholder="username"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label htmlFor="youtube" className="block text-sm font-medium text-gray-700 mb-1">
+                          YouTube
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span className="text-gray-500">@</span>
+                          </div>
+                          <input
+                            type="text"
+                            id="youtube"
+                            value={formData.socialMedia.youtube}
+                            onChange={(e) => setFormData(prev => ({
+                              ...prev,
+                              socialMedia: { ...prev.socialMedia, youtube: e.target.value }
+                            }))}
+                            className="pl-8 w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                            placeholder="channel"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label htmlFor="facebook" className="block text-sm font-medium text-gray-700 mb-1">
+                          Facebook
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span className="text-gray-500">@</span>
+                          </div>
+                          <input
+                            type="text"
+                            id="facebook"
+                            value={formData.socialMedia.facebook}
+                            onChange={(e) => setFormData(prev => ({
+                              ...prev,
+                              socialMedia: { ...prev.socialMedia, facebook: e.target.value }
+                            }))}
+                            className="pl-8 w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                            placeholder="username"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label htmlFor="linkedin" className="block text-sm font-medium text-gray-700 mb-1">
+                          LinkedIn
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span className="text-gray-500">@</span>
+                          </div>
+                          <input
+                            type="text"
+                            id="linkedin"
+                            value={formData.socialMedia.linkedin}
+                            onChange={(e) => setFormData(prev => ({
+                              ...prev,
+                              socialMedia: { ...prev.socialMedia, linkedin: e.target.value }
+                            }))}
+                            className="pl-8 w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                            placeholder="username"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
 
