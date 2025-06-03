@@ -76,7 +76,11 @@ const TutorDashboard = () => {
             <div className="flex items-center space-x-8">
               <div className="h-24 w-24 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center flex-shrink-0 shadow-lg transform hover:scale-105 transition-transform duration-200">
                 <span className="text-white font-bold text-3xl">
-                  {profile.user.name.charAt(0)}
+                  {profile.user.profileImage ? (
+                    <img src={profile.user.profileImage} alt="Profile" className="w-full h-full object-cover rounded-2xl" />
+                  ) : (
+                    profile.user.name.charAt(0)
+                  )}
                 </span>
               </div>
               <div>

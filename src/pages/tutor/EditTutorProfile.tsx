@@ -65,7 +65,7 @@ const EditTutorProfile: React.FC = () => {
   const { profile, loading, error, updateProfile, uploadDocument, deleteDocument } = useTutor();
   const { locations } = useLocations();
   const { subjects } = useSubjects();
-  const { user } = useAuth();
+  const { user, uploadProfilePhoto } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     phone: '',
@@ -121,13 +121,17 @@ const EditTutorProfile: React.FC = () => {
                     (locations.find(p => p._id === (locations.find(p2 => p2._id === l.parent) as Location)?.parent) as Location)?.name || ''
         })) || []
       });
+      
+      // Set the profile image if it exists
+      if (profile.user?.profileImage) {
+        setProfileImage(profile.user.profileImage);
+      }
     }
   }, [profile, locations, user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const apiData: Partial<TutorProfile> = {
+    try {      const apiData: Partial<TutorProfile> = {
         phone: formData.phone,
         bio: formData.bio,
         gender: formData.gender,
@@ -299,14 +303,30 @@ const EditTutorProfile: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
     try {
       setIsUploading(true);
-      // Add your image upload logic here
-      const imageUrl = URL.createObjectURL(file);
+      console.log('Starting profile photo upload...');
+      
+      const imageUrl = await uploadProfilePhoto(file);
+      console.log('Profile photo uploaded successfully:', imageUrl);
+      
       setProfileImage(imageUrl);
       toast.success('Profile picture updated successfully');
-    } catch (error) {
-      toast.error('Failed to upload profile picture');
+    } catch (error: any) {
+      console.error('Profile photo upload error:', error);
+      toast.error(error.message || 'Failed to upload profile picture');
     } finally {
       setIsUploading(false);
     }
@@ -363,20 +383,23 @@ const EditTutorProfile: React.FC = () => {
                   <div className="relative group">
                     <div className="w-40 h-40 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center overflow-hidden">
                       {profileImage ? (
-                        <img
-                          src={profileImage}
-                          alt="Profile"
-                          className="w-full h-full object-cover"
-                        />
+                        <img src={profileImage} alt="Profile" className="w-full h-full object-cover rounded-2xl" />
                       ) : (
-                        <User className="w-20 h-20 text-white/80" />
+                        <div className="w-full h-full flex items-center justify-center">
+                          <User className="w-10 h-10 text-white" />
+                        </div>
                       )}
                     </div>
                     <label
                       htmlFor="profile-image"
-                      className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-2xl cursor-pointer"
+                      className={`absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-2xl cursor-pointer ${
+                        isUploading ? 'cursor-not-allowed opacity-50' : ''
+                      }`}
                     >
-                      <Camera className="w-8 h-8 text-white" />
+                      <div className="flex flex-col items-center">
+                        <Camera className="w-8 h-8 text-white mb-1" />
+                        <span className="text-white text-sm font-medium">Change Photo</span>
+                      </div>
                     </label>
                     <input
                       id="profile-image"
@@ -386,7 +409,15 @@ const EditTutorProfile: React.FC = () => {
                       onChange={handleProfileImageUpload}
                       disabled={isUploading}
                     />
+                    {isUploading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-2xl">
+                        <div className="animate-spin rounded-full h-8 w-8 border-4 border-white border-t-transparent"></div>
+                      </div>
+                    )}
                   </div>
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    Max file size: 5MB. Supported formats: JPG, PNG, GIF
+                  </p>
                 </div>
 
                 {/* Basic Information */}

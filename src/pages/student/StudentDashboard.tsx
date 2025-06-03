@@ -1,7 +1,10 @@
 import React from 'react';
 import { Calendar, Clock, BookOpen, MessageSquare, ChevronRight, TrendingUp, Award, Users } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 const StudentDashboard = () => {
+  const { user } = useAuth();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100 py-8 relative overflow-hidden">
       {/* Background Pattern */}
@@ -19,7 +22,22 @@ const StudentDashboard = () => {
           </h1>
           <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-500">Welcome back,</span>
-            <span className="font-medium text-gray-900">John Doe</span>
+            <div className="flex items-center space-x-3">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center overflow-hidden shadow-md">
+                {user?.profileImage ? (
+                  <img
+                    src={user.profileImage}
+                    alt={user.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-white font-bold text-lg">
+                    {user?.name.charAt(0)}
+                  </span>
+                )}
+              </div>
+              <span className="font-medium text-gray-900">{user?.name}</span>
+            </div>
           </div>
         </div>
         

@@ -147,7 +147,7 @@ const TutorProfilePage: React.FC = () => {
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6 sm:gap-8 md:gap-10">
             {/* Profile Image */}
             <div className="relative">
-              <div className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden border-4 border-white shadow-xl transform hover:scale-105 transition-transform duration-300">
+              <div className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-2xl overflow-hidden border-4 border-white shadow-xl transform hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-primary-500 to-primary-600">
                 {profile.user.profileImage ? (
                   <img
                     src={profile.user.profileImage}
@@ -155,8 +155,8 @@ const TutorProfilePage: React.FC = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-primary-100 flex items-center justify-center">
-                    <span className="text-4xl sm:text-5xl text-primary-600 font-semibold">
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-4xl sm:text-5xl text-white font-semibold">
                       {profile.user.name.charAt(0)}
                     </span>
                   </div>
