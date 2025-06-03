@@ -79,21 +79,31 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ selectedLocations, 
           province: (locations.find(l => l._id === location.parent) as Location)?.name || ''
         };
         
-        const hometownLocations: TutorLocation[] = hometowns.map(hometown => ({
-          _id: hometown._id,
-          name: hometown.name,
-          province: (locations.find(l => l._id === location.parent) as Location)?.name || ''
-        }));
+        // Only add hometowns that aren't already selected
+        const hometownLocations: TutorLocation[] = hometowns
+          .filter(hometown => !selectedLocations.some(loc => loc._id === hometown._id))
+          .map(hometown => ({
+            _id: hometown._id,
+            name: hometown.name,
+            province: (locations.find(l => l._id === location.parent) as Location)?.name || ''
+          }));
 
-        newLocations = [...newLocations, townLocation, ...hometownLocations];
+        // Only add the town if it's not already selected
+        if (!selectedLocations.some(loc => loc._id === townLocation._id)) {
+          newLocations = [...newLocations, townLocation, ...hometownLocations];
+        } else {
+          newLocations = [...newLocations, ...hometownLocations];
+        }
       } else {
-        // If selecting a hometown, just add it
-        const hometownLocation: TutorLocation = {
-          _id: location._id,
-          name: location.name,
-          province: (locations.find(l => l._id === (locations.find(p => p._id === location.parent) as Location)?.parent) as Location)?.name || ''
-        };
-        newLocations = [...newLocations, hometownLocation];
+        // If selecting a hometown, just add it if not already selected
+        if (!selectedLocations.some(loc => loc._id === location._id)) {
+          const hometownLocation: TutorLocation = {
+            _id: location._id,
+            name: location.name,
+            province: (locations.find(l => l._id === (locations.find(p => p._id === location.parent) as Location)?.parent) as Location)?.name || ''
+          };
+          newLocations = [...newLocations, hometownLocation];
+        }
       }
     }
     
