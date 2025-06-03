@@ -1,7 +1,7 @@
+import './config/env.config.js';
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 
 // Route imports
@@ -19,7 +19,7 @@ import uploadRoutes from './routes/upload.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 // Initialize app
-dotenv.config();
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
