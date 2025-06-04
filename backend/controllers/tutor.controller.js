@@ -17,6 +17,7 @@ export const getTutors = async (req, res) => {
       search,
       location,
       educationLevel,
+      medium,
       page = 1,
       limit = 10,
       sortBy = 'rating',
@@ -53,6 +54,11 @@ export const getTutors = async (req, res) => {
     // Filter by education level
     if (educationLevel) {
       query['subjects.subject.educationLevel'] = educationLevel;
+    }
+
+    // Filter by teaching medium
+    if (medium) {
+      query.teachingMediums = { $in: [medium.toLowerCase()] };
     }
 
     // Search by name, bio, or subjects

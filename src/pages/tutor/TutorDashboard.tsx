@@ -29,7 +29,7 @@ const TutorDashboard = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <LoadingSpinner/>;
   }
 
   if (error) {

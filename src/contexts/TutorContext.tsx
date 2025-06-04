@@ -191,6 +191,8 @@ interface TutorContextType {
     price?: { min: number; max: number };
     location?: string;
     educationLevel?: string;
+    medium?: string;
+    search?: string;
     page?: number;
     limit?: number;
     sortBy?: string;
@@ -878,6 +880,8 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     price?: { min: number; max: number };
     location?: string;
     educationLevel?: string;
+    medium?: string;
+    search?: string;
     page?: number;
     limit?: number;
     sortBy?: string;
@@ -895,6 +899,8 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       if (params.location) queryParams.append('location', params.location);
       if (params.educationLevel) queryParams.append('educationLevel', params.educationLevel);
+      if (params.medium) queryParams.append('medium', params.medium);
+      if (params.search) queryParams.append('search', params.search);
       if (params.page) queryParams.append('page', params.page.toString());
       if (params.limit) queryParams.append('limit', params.limit.toString());
       if (params.sortBy) queryParams.append('sortBy', params.sortBy);

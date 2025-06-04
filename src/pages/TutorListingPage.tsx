@@ -1,49 +1,81 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTutor, TutorProfile } from '../contexts/TutorContext';
 import { useSubjects } from '../contexts/SubjectContext';
 import { useLocations } from '../contexts/LocationContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import TutorCard from '../components/common/TutorCard';
-import { Search, ChevronDown, ChevronUp, Star, DollarSign, X, SlidersHorizontal, Clock, Users, Sparkles } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Star, DollarSign, X, SlidersHorizontal, Clock, Users, Sparkles, Languages } from 'lucide-react';
+
+interface Filters {
+  subject: string;
+  rating: number;
+  price: { min: number; max: number };
+  location: string;
+  educationLevel: string;
+  medium: string;
+  page: number;
+  limit: number;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+  availability: string;
+  experience: string;
+  search: string;
+}
 
 const TutorListingPage: React.FC = () => {
-  const { searchTutors, loading, error } = useTutor();
-  const { subjects } = useSubjects();
+  const { searchTutors } = useTutor();
   const { locations } = useLocations();
-  const [tutors, setTutors] = useState<TutorProfile[]>([]);
-  const [filters, setFilters] = useState({
+  const { subjects } = useSubjects();
+  const [filters, setFilters] = useState<Filters>({
     subject: '',
     rating: 0,
-    price: { min: 0, max: 1000 },
+    price: { min: 0, max: 10000 },
     location: '',
     educationLevel: '',
+    medium: '',
     page: 1,
-    limit: 12,
+    limit: 10,
     sortBy: 'rating',
-    sortOrder: 'desc' as 'desc' | 'asc',
+    sortOrder: 'desc',
     availability: 'all',
-    experience: 'all'
+    experience: 'all',
+    search: ''
   });
-  const [showFilters, setShowFilters] = useState(false);
-  const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [tutors, setTutors] = useState<TutorProfile[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [showFilters, setShowFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
-  const fetchTutors = async () => {
+  const fetchTutors = useCallback(async () => {
     try {
-      const result = await searchTutors(filters);
-      setTutors(result.tutors);
-      setTotalPages(result.pagination.pages);
-    } catch (err) {
-      console.error('Failed to fetch tutors:', err);
+      setLoading(true);
+      setError(null);
+      const response = await searchTutors({
+        ...filters,
+        search: searchQuery
+      });
+      setTutors(response.tutors);
+      setTotalPages(response.pagination.pages);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch tutors');
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [filters, searchQuery, searchTutors]);
 
   useEffect(() => {
-    fetchTutors();
-  }, [filters]);
+    const debounceTimer = setTimeout(() => {
+      fetchTutors();
+    }, 500);
 
-  const handleFilterChange = (key: string, value: any) => {
+    return () => clearTimeout(debounceTimer);
+  }, [fetchTutors]);
+
+  const handleFilterChange = (key: keyof Filters, value: any) => {
     setFilters(prev => ({
       ...prev,
       [key]: value,
@@ -76,35 +108,39 @@ const TutorListingPage: React.FC = () => {
       price: { min: 0, max: 1000 },
       location: '',
       educationLevel: '',
+      medium: '',
       page: 1,
       limit: 12,
       sortBy: 'rating',
       sortOrder: 'desc',
       availability: 'all',
-      experience: 'all'
+      experience: 'all',
+      search: ''
     });
     setSearchQuery('');
     setActiveFilters([]);
   };
 
-  const getFilterLabel = (key: string, value: any): string => {
+  const getFilterLabel = (key: keyof Filters): string => {
     switch (key) {
       case 'subject':
-        return `Subject: ${subjects.find(s => s._id === value)?.name || value}`;
+        return `Subject: ${subjects.find(s => s._id === filters.subject)?.name || 'Subject'}`;
       case 'rating':
-        return `Rating: ${value}+ Stars`;
+        return `Rating: ${filters.rating}+ Stars`;
       case 'price':
-        return `Price: $${value.min}-$${value.max}/hr`;
+        return `Price: $${filters.price.min}-$${filters.price.max}/hr`;
       case 'location':
-        return `Location: ${locations.find(l => l._id === value)?.name || value}`;
+        return `Location: ${locations.find(l => l._id === filters.location)?.name || 'Location'}`;
       case 'educationLevel':
-        return `Education: ${value}`;
+        return `Education: ${filters.educationLevel || 'Education Level'}`;
+      case 'medium':
+        return `Medium: ${filters.medium ? filters.medium.charAt(0).toUpperCase() + filters.medium.slice(1) : 'Medium'}`;
       case 'availability':
-        return `Availability: ${value}`;
+        return `Availability: ${filters.availability}`;
       case 'experience':
-        return `Experience: ${value}+ years`;
+        return `Experience: ${filters.experience}+ years`;
       default:
-        return `${key}: ${value}`;
+        return `${key}: ${filters[key as keyof Filters]}`;
     }
   };
 
@@ -153,7 +189,7 @@ const TutorListingPage: React.FC = () => {
                   key={filter}
                   className="flex items-center bg-primary-50/80 backdrop-blur-sm text-primary-700 px-4 sm:px-5 py-2 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5"
                 >
-                  <span>{getFilterLabel(filter, filters[filter as keyof typeof filters])}</span>
+                  <span>{getFilterLabel(filter as keyof Filters)}</span>
                   <button
                     onClick={() => removeFilter(filter)}
                     className="ml-2 hover:text-primary-900 transition-colors"
@@ -196,26 +232,37 @@ const TutorListingPage: React.FC = () => {
               Under $50/hr
             </button>
             <button
-              onClick={() => handleFilterChange('availability', 'immediate')}
+              onClick={() => handleFilterChange('medium', 'english')}
               className={`flex items-center px-5 sm:px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                filters.availability === 'immediate'
+                filters.medium === 'english'
                   ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
                   : 'bg-white/80 backdrop-blur-sm text-gray-600 hover:bg-gray-50 shadow-sm hover:shadow-md'
               }`}
             >
-              <Clock className="h-4 w-4 mr-2" />
-              Available Now
+              <Languages className="h-4 w-4 mr-2" />
+              English Medium
             </button>
             <button
-              onClick={() => handleFilterChange('experience', '5')}
+              onClick={() => handleFilterChange('medium', 'sinhala')}
               className={`flex items-center px-5 sm:px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                filters.experience === '5'
+                filters.medium === 'sinhala'
                   ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
                   : 'bg-white/80 backdrop-blur-sm text-gray-600 hover:bg-gray-50 shadow-sm hover:shadow-md'
               }`}
             >
-              <Users className="h-4 w-4 mr-2" />
-              5+ Years Experience
+              <Languages className="h-4 w-4 mr-2" />
+              Sinhala Medium
+            </button>
+            <button
+              onClick={() => handleFilterChange('medium', 'tamil')}
+              className={`flex items-center px-5 sm:px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                filters.medium === 'tamil'
+                  ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
+                  : 'bg-white/80 backdrop-blur-sm text-gray-600 hover:bg-gray-50 shadow-sm hover:shadow-md'
+              }`}
+            >
+              <Languages className="h-4 w-4 mr-2" />
+              Tamil Medium
             </button>
           </div>
 
@@ -266,6 +313,21 @@ const TutorListingPage: React.FC = () => {
                         {location.name}
                       </option>
                     ))}
+                  </select>
+                </div>
+
+                {/* Medium Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Teaching Medium</label>
+                  <select
+                    value={filters.medium}
+                    onChange={(e) => handleFilterChange('medium', e.target.value)}
+                    className="w-full rounded-xl border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm transition-all duration-200 hover:shadow-md bg-white/50 backdrop-blur-sm"
+                  >
+                    <option value="">All Mediums</option>
+                    <option value="english">English</option>
+                    <option value="sinhala">Sinhala</option>
+                    <option value="tamil">Tamil</option>
                   </select>
                 </div>
 
