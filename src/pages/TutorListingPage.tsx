@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTutor, TutorProfile } from '../contexts/TutorContext';
 import { useSubjects } from '../contexts/SubjectContext';
 import { useLocations } from '../contexts/LocationContext';
@@ -34,7 +34,7 @@ const TutorListingPage: React.FC = () => {
     educationLevel: '',
     medium: '',
     page: 1,
-    limit: 10,
+    limit: 20,
     sortBy: 'rating',
     sortOrder: 'desc',
     availability: 'all',
@@ -44,36 +44,79 @@ const TutorListingPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [tutors, setTutors] = useState<TutorProfile[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
-  const fetchTutors = useCallback(async () => {
+  const fetchTutors = useCallback(async (isLoadMore = false) => {
     try {
-      setLoading(true);
+      if (isLoadMore) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
       const response = await searchTutors({
         ...filters,
         search: searchQuery
       });
-      setTutors(response.tutors);
+      
+      if (isLoadMore) {
+        setTutors(prev => [...prev, ...response.tutors]);
+      } else {
+        setTutors(response.tutors);
+      }
+      
       setTotalPages(response.pagination.pages);
+      setHasMore(response.pagination.page < response.pagination.pages);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch tutors');
     } finally {
-      setLoading(false);
+      if (isLoadMore) {
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
     }
   }, [filters, searchQuery, searchTutors]);
 
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      fetchTutors();
+      setFilters(prev => ({ ...prev, page: 1 }));
+      fetchTutors(false);
     }, 500);
 
     return () => clearTimeout(debounceTimer);
-  }, [fetchTutors]);
+  }, [filters.subject, filters.rating, filters.price, filters.location, 
+      filters.educationLevel, filters.medium, filters.sortBy, filters.sortOrder, 
+      filters.availability, filters.experience, searchQuery]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          setFilters(prev => ({ ...prev, page: prev.page + 1 }));
+          fetchTutors(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => {
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current);
+      }
+    };
+  }, [hasMore, loadingMore, loading, fetchTutors]);
 
   const handleFilterChange = (key: keyof Filters, value: any) => {
     setFilters(prev => ({
@@ -110,7 +153,7 @@ const TutorListingPage: React.FC = () => {
       educationLevel: '',
       medium: '',
       page: 1,
-      limit: 12,
+      limit: 20,
       sortBy: 'rating',
       sortOrder: 'desc',
       availability: 'all',
@@ -376,34 +419,46 @@ const TutorListingPage: React.FC = () => {
         </div>
 
         {/* Tutor List */}
-        <div>
-          {loading ? (
+        <div className="mt-8">
+          {loading && !loadingMore ? (
             <div className="flex justify-center py-12 sm:py-16">
               <LoadingSpinner size="large" />
             </div>
           ) : tutors.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
-              {tutors.map((tutor) => (
-                <TutorCard
-                  key={tutor._id}
-                  tutor={{
-                    id: tutor._id,
-                    name: tutor.user.name,
-                    profileImage: tutor.user.profileImage,
-                    subjects: tutor.subjects.map(s => s.subject.name),
-                    location: tutor.locations[0]?.name || 'Not specified',
-                    rating: tutor.rating,
-                    reviewCount: tutor.totalReviews,
-                    verified: tutor.isVerified,
-                    hourlyRate: {
-                      online: tutor.subjects[0]?.rates.online || 0,
-                      homeVisit: tutor.subjects[0]?.rates.individual || 0,
-                      group: tutor.subjects[0]?.rates.group || 0
-                    }
-                  }}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
+                {tutors.map((tutor) => (
+                  <TutorCard
+                    key={tutor._id}
+                    tutor={{
+                      id: tutor._id,
+                      name: tutor.user.name,
+                      profileImage: tutor.user.profileImage,
+                      subjects: tutor.subjects.map(s => s.subject.name),
+                      location: tutor.locations[0]?.name || 'Not specified',
+                      rating: tutor.rating,
+                      reviewCount: tutor.totalReviews,
+                      verified: tutor.isVerified,
+                      hourlyRate: {
+                        online: tutor.subjects[0]?.rates.online || 0,
+                        homeVisit: tutor.subjects[0]?.rates.individual || 0,
+                        group: tutor.subjects[0]?.rates.group || 0
+                      }
+                    }}
+                  />
+                ))}
+              </div>
+              
+              {/* Loading indicator for infinite scroll */}
+              {loadingMore && (
+                <div className="flex justify-center py-8">
+                  <LoadingSpinner size="medium" />
+                </div>
+              )}
+              
+              {/* Observer target for infinite scroll */}
+              <div ref={observerTarget} className="h-4" />
+            </>
           ) : (
             <div className="text-center py-16 sm:py-20 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100">
               <Sparkles className="w-12 h-12 text-primary-500 mx-auto mb-4" />
@@ -420,41 +475,6 @@ const TutorListingPage: React.FC = () => {
             </div>
           )}
         </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="mt-8 sm:mt-12 flex justify-center">
-            <nav className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px">
-              <button
-                onClick={() => handleFilterChange('page', Math.max(1, filters.page - 1))}
-                disabled={filters.page === 1}
-                className="relative inline-flex items-center px-4 py-2 rounded-l-xl border border-gray-200 bg-white/80 backdrop-blur-sm text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-all duration-200"
-              >
-                Previous
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  onClick={() => handleFilterChange('page', page)}
-                  className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-all duration-200 ${
-                    filters.page === page
-                      ? 'z-10 bg-primary-50 border-primary-500 text-primary-600'
-                      : 'bg-white/80 backdrop-blur-sm border-gray-200 text-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-              <button
-                onClick={() => handleFilterChange('page', Math.min(totalPages, filters.page + 1))}
-                disabled={filters.page === totalPages}
-                className="relative inline-flex items-center px-4 py-2 rounded-r-xl border border-gray-200 bg-white/80 backdrop-blur-sm text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-all duration-200"
-              >
-                Next
-              </button>
-            </nav>
-          </div>
-        )}
       </div>
     </div>
   );
