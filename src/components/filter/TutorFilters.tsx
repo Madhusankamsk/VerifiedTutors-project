@@ -59,36 +59,38 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
     setFilters(prev => ({ ...prev, educationLevel: level }));
     setActiveLayer(2);
     onFilterChange({ ...filters, educationLevel: level });
-    // Collapse education level section after selection
-    setExpandedSections(prev => prev.filter(l => l !== 1));
+    // Collapse education level section and expand subjects section
+    setExpandedSections(prev => prev.filter(l => l !== 1).concat(2));
   };
 
   const handleSubjectSelect = (subjects: string[]) => {
     setFilters(prev => ({ ...prev, subjects }));
     setActiveLayer(3);
     onFilterChange({ ...filters, subjects });
-    // Collapse subject section after selection
-    setExpandedSections(prev => prev.filter(l => l !== 2));
+    // Collapse subjects section and expand teaching mode section
+    setExpandedSections(prev => prev.filter(l => l !== 2).concat(3));
   };
 
   const handleTeachingModeSelect = (mode: string) => {
     setFilters(prev => ({ ...prev, teachingMode: mode }));
     if (mode === 'ONLINE') {
       setActiveLayer(5); // Skip location layer for online mode
+      // Collapse teaching mode section and expand extra filters section
+      setExpandedSections(prev => prev.filter(l => l !== 3).concat(5));
     } else {
       setActiveLayer(4);
+      // Collapse teaching mode section and expand location section
+      setExpandedSections(prev => prev.filter(l => l !== 3).concat(4));
     }
     onFilterChange({ ...filters, teachingMode: mode });
-    // Collapse teaching mode section after selection
-    setExpandedSections(prev => prev.filter(l => l !== 3));
   };
 
   const handleLocationSelect = (location: FilterState['location']) => {
     setFilters(prev => ({ ...prev, location }));
     setActiveLayer(5);
     onFilterChange({ ...filters, location });
-    // Collapse location section after selection
-    setExpandedSections(prev => prev.filter(l => l !== 4));
+    // Collapse location section and expand extra filters section
+    setExpandedSections(prev => prev.filter(l => l !== 4).concat(5));
   };
 
   const handleExtraFiltersChange = (extraFilters: FilterState['extraFilters']) => {
