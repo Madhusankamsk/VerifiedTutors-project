@@ -11,13 +11,13 @@ import Session from '../models/session.model.js';
 export const getTutors = async (req, res) => {
   try {
     const {
-      subject,
-      rating,
-      price,
-      search,
-      location,
       educationLevel,
-      medium,
+      subjects,
+      teachingMode,
+      location,
+      minRating,
+      priceRange,
+      femaleOnly,
       page = 1,
       limit = 10,
       sortBy = 'rating',
@@ -27,47 +27,59 @@ export const getTutors = async (req, res) => {
     let query = {};
     const sortOptions = {};
 
-    // Filter by subject
-    if (subject) {
-      query['subjects.subject'] = subject;
-    }
-
-    // Filter by minimum rating
-    if (rating) {
-      query.rating = { $gte: Number(rating) };
-    }
-
-    // Filter by price range
-    if (price) {
-      const [minPrice, maxPrice] = price.split('-').map(Number);
-      query['subjects.rates.individual'] = {
-        $gte: minPrice || 0,
-        $lte: maxPrice || Number.MAX_SAFE_INTEGER
-      };
-    }
-
-    // Filter by location
-    if (location) {
-      query.locations = location;
-    }
-
     // Filter by education level
     if (educationLevel) {
       query['subjects.subject.educationLevel'] = educationLevel;
     }
 
-    // Filter by teaching medium
-    if (medium) {
-      query.teachingMediums = { $in: [medium.toLowerCase()] };
+    // Filter by subjects
+    if (subjects) {
+      const subjectArray = Array.isArray(subjects) ? subjects : [subjects];
+      query['subjects.subject'] = { $in: subjectArray };
     }
 
-    // Search by name, bio, or subjects
-    if (search) {
-      query.$or = [
-        { 'user.name': { $regex: search, $options: 'i' } },
-        { bio: { $regex: search, $options: 'i' } },
-        { 'subjects.subject.name': { $regex: search, $options: 'i' } }
-      ];
+    // Filter by teaching mode
+    if (teachingMode) {
+      if (teachingMode === 'ONLINE') {
+        query['subjects.rates.online'] = { $gt: 0 };
+      } else if (teachingMode === 'INDIVIDUAL') {
+        query['subjects.rates.individual'] = { $gt: 0 };
+      } else if (teachingMode === 'GROUP') {
+        query['subjects.rates.group'] = { $gt: 0 };
+      }
+    }
+
+    // Filter by location
+    if (location) {
+      const { city, town, hometown } = JSON.parse(location);
+      if (city) {
+        query['locations.city'] = city;
+      }
+      if (town) {
+        query['locations.town'] = town;
+      }
+      if (hometown) {
+        query['locations.hometown'] = hometown;
+      }
+    }
+
+    // Filter by minimum rating
+    if (minRating) {
+      query.rating = { $gte: Number(minRating) };
+    }
+
+    // Filter by price range
+    if (priceRange) {
+      const [min, max] = JSON.parse(priceRange);
+      query['subjects.rates.individual'] = {
+        $gte: min || 0,
+        $lte: max || Number.MAX_SAFE_INTEGER
+      };
+    }
+
+    // Filter by gender
+    if (femaleOnly === 'true') {
+      query.gender = 'Female';
     }
 
     // Set sort options

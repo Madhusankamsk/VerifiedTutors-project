@@ -13,6 +13,7 @@ export interface Subject {
   createdAt: string;
 }
 
+
 interface SubjectContextType {
   subjects: Subject[];
   loading: boolean;
@@ -33,6 +34,7 @@ export const SubjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setError(null);
       const response = await axios.get(`${API_URL}/api/subjects`);
       setSubjects(response.data);
+      console.log("Subjects",response.data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch subjects';
       setError(errorMessage);
