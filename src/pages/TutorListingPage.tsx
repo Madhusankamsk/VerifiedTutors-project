@@ -134,6 +134,24 @@ const TutorListingPage: React.FC = () => {
   }, [hasMore, loadingMore, loading, fetchTutors]);
 
   const handleFilterChange = (newFilters: FilterState) => {
+    // Reset all filters to initial state
+    setFilters({
+      subject: '',
+      rating: 0,
+      price: { min: 0, max: 1000 },
+      location: '',
+      educationLevel: '',
+      medium: '',
+      page: 1,
+      limit: 20,
+      sortBy: 'rating',
+      sortOrder: 'desc',
+      availability: 'all',
+      experience: 'all',
+      search: ''
+    });
+
+    // Update filters with new values
     setFilters(prev => ({
       ...prev,
       educationLevel: newFilters.educationLevel || '',

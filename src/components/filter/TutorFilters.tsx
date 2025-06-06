@@ -91,10 +91,16 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
   };
 
   const handleClearAll = () => {
+    // Reset all filters to initial state
     setFilters(initialFilterState);
+    // Reset active layer to first step
     setActiveLayer(1);
+    // Show only first two sections
     setVisibleSections([1, 2]);
-    onFilterChange(initialFilterState); // This will trigger the fetch in parent
+    // Close mobile filter if open
+    setIsMobileFiltersOpen(false);
+    // Trigger filter change to fetch tutors with reset filters
+    onFilterChange(initialFilterState);
   };
 
   const renderFilterTags = () => {
@@ -222,7 +228,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
       filters.extraFilters.priceRange[1] < 1000;
 
     return (
-      <div className="w-full bg-white rounded-lg shadow-lg p-4 space-y-4">
+      <div className="w-full bg-white rounded-lg space-y-4">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold">Filter Tutors</h2>
           {hasActiveFilters && (
@@ -344,7 +350,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
       {isMobileFiltersOpen && (
         <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
           <div className="absolute inset-y-0 right-0 w-full max-w-sm bg-white overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
+            <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between z-10">
               <h2 className="text-xl font-semibold">Filter Tutors</h2>
               <button
                 onClick={() => setIsMobileFiltersOpen(false)}
@@ -353,7 +359,9 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
                 <X className="h-6 w-6" />
               </button>
             </div>
-            {renderFilterContent()}
+            <div className="p-4">
+              {renderFilterContent()}
+            </div>
           </div>
         </div>
       )}
