@@ -72,9 +72,9 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
     setActiveLayer(4);
     onFilterChange({ ...filters, teachingMode: newMode });
     if (newMode === 'ONLINE') {
-      setVisibleSections([4, 5]); // Skip location for online mode
+      setVisibleSections([5]); // Skip location for online mode, show extra filters
     } else {
-      setVisibleSections([4, 5]); // Show location and extra filters
+      setVisibleSections([4]); // Show only location for offline mode
     }
   };
 
@@ -82,7 +82,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
     setFilters(prev => ({ ...prev, location }));
     setActiveLayer(5);
     onFilterChange({ ...filters, location });
-    setVisibleSections([5]); // Show only extra filters
+    setVisibleSections([5]); // Show extra filters after location is selected
   };
 
   const handleExtraFiltersChange = (extraFilters: FilterState['extraFilters']) => {
@@ -320,7 +320,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
         )}
 
         {/* Extra Filters Section */}
-        {visibleSections.includes(5) && activeLayer >= 5 && filters.teachingMode && (
+        {visibleSections.includes(5) && activeLayer >= 5 && (
           <div className="border rounded-lg overflow-hidden bg-white">
             {renderSectionHeader(5, 'Additional Filters')}
             <div className="p-4 bg-gray-50">
@@ -337,10 +337,112 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
   return (
     <>
+      {/* Desktop Horizontal Filters */}
+      <div className="hidden lg:block">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          {/* Header Section */}
+          <div className="px-4 py-3 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-primary-600" />
+                <h2 className="text-base font-semibold text-gray-900">Quick Filters</h2>
+              </div>
+              {renderFilterTags().length > 0 && (
+                <button
+                  onClick={handleClearAll}
+                  className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Clear All
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Active Filter Tags */}
+          {renderFilterTags().length > 0 && (
+            <div className="px-4 py-2.5 border-b border-gray-100 bg-gray-50/50">
+              <div className="flex flex-wrap gap-1.5">
+                {renderFilterTags().map((tag) => (
+                  <div
+                    key={tag.key}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-primary-100 text-primary-700 rounded-full text-xs font-medium shadow-sm ${
+                      !tag.canRemove ? 'opacity-75' : ''
+                    }`}
+                  >
+                    <span>{tag.label}</span>
+                    {tag.canRemove && (
+                      <button
+                        onClick={tag.onRemove}
+                        className="hover:bg-primary-50 rounded-full p-0.5 -mr-0.5 transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Horizontal Filter Sections */}
+          <div className="grid grid-cols-5 divide-x divide-gray-100">
+            {/* Education Level */}
+            <div className="p-4">
+              <EducationLevelFilter
+                selectedLevel={filters.educationLevel}
+                onSelect={handleEducationLevelSelect}
+              />
+            </div>
+
+            {/* Subject */}
+            {filters.educationLevel && (
+              <div className="p-4">
+                <SubjectFilter
+                  selectedSubjects={filters.subjects}
+                  educationLevel={filters.educationLevel}
+                  onSelect={handleSubjectSelect}
+                />
+              </div>
+            )}
+
+            {/* Teaching Mode */}
+            {filters.subjects.length > 0 && (
+              <div className="p-4">
+                <TeachingModeFilter
+                  selectedMode={filters.teachingMode}
+                  onSelect={handleTeachingModeSelect}
+                />
+              </div>
+            )}
+
+            {/* Location */}
+            {filters.teachingMode && filters.teachingMode !== 'ONLINE' && (
+              <div className="p-4">
+                <LocationFilter
+                  selectedLocation={filters.location}
+                  onSelect={handleLocationSelect}
+                />
+              </div>
+            )}
+
+            {/* Extra Filters */}
+            {filters.teachingMode && (
+              <div className="p-4">
+                <ExtraFilters
+                  filters={filters.extraFilters}
+                  onChange={handleExtraFiltersChange}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Mobile Filter Button */}
       <button
         onClick={() => setIsMobileFiltersOpen(true)}
-        className="lg:hidden fixed bottom-4 right-4 z-50 bg-primary-600 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 hover:bg-primary-700 transition-colors"
+        className="lg:hidden fixed bottom-4 right-4 z-50 bg-primary-600 text-white px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 hover:bg-primary-700 transition-colors"
       >
         <Filter className="h-5 w-5" />
         Filters
@@ -365,11 +467,6 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
           </div>
         </div>
       )}
-
-      {/* Desktop Filter Sidebar */}
-      <div className="hidden lg:block">
-        {renderFilterContent()}
-      </div>
     </>
   );
 };

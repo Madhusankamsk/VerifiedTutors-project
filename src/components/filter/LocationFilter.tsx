@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocations, Location } from '../../contexts/LocationContext';
-import { Check } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 interface LocationFilterProps {
   selectedLocation: {
@@ -8,171 +8,189 @@ interface LocationFilterProps {
     town: string;
     hometown: string;
   };
-  onSelect: (location: {
-    city: string;
-    town: string;
-    hometown: string;
-  }) => void;
+  onSelect: (location: { city: string; town: string; hometown: string }) => void;
 }
 
 const LocationFilter: React.FC<LocationFilterProps> = ({ selectedLocation, onSelect }) => {
-  const { locations, loading, error } = useLocations();
-  const [availableTowns, setAvailableTowns] = useState<Location[]>([]);
-  const [availableHometowns, setAvailableHometowns] = useState<Location[]>([]);
+  const { locations } = useLocations();
+  const [activeStep, setActiveStep] = useState<'city' | 'town' | 'hometown'>(
+    selectedLocation.city ? 'town' : 'city'
+  );
 
   // Get cities (level 1 locations)
-  const cities = React.useMemo(() => {
-    if (!Array.isArray(locations)) return [];
-    return locations.filter(loc => loc.level === 1);
-  }, [locations]);
+  const cities = locations.filter(loc => loc.level === 1);
 
-  useEffect(() => {
-    if (selectedLocation.city) {
-      const city = locations.find(loc => loc._id === selectedLocation.city);
-      if (city?.children) {
-        setAvailableTowns(city.children);
-      } else {
-        setAvailableTowns([]);
-      }
-    } else {
-      setAvailableTowns([]);
-    }
-  }, [selectedLocation.city, locations]);
+  // Get towns for selected city
+  const towns = selectedLocation.city
+    ? locations.find(loc => loc._id === selectedLocation.city)?.children || []
+    : [];
 
+  // Get hometowns for selected town
+  const hometowns = selectedLocation.town
+    ? locations
+        .find(loc => loc._id === selectedLocation.city)
+        ?.children?.find(town => town._id === selectedLocation.town)
+        ?.children || []
+    : [];
+
+  // Debug information
   useEffect(() => {
-    if (selectedLocation.town) {
-      const town = availableTowns.find(t => t._id === selectedLocation.town);
-      if (town?.children) {
-        setAvailableHometowns(town.children);
-      } else {
-        setAvailableHometowns([]);
-      }
-    } else {
-      setAvailableHometowns([]);
-    }
-  }, [selectedLocation.town, availableTowns]);
+    console.log('Selected City:', selectedLocation.city);
+    console.log('Available Towns:', towns);
+    console.log('All Locations:', locations);
+  }, [selectedLocation.city, towns, locations]);
 
   const handleCitySelect = (cityId: string) => {
-    const city = cities.find(c => c._id === cityId);
     onSelect({
       city: cityId,
       town: '',
       hometown: ''
     });
+    setActiveStep('town');
   };
 
   const handleTownSelect = (townId: string) => {
-    const town = availableTowns.find(t => t._id === townId);
     onSelect({
       ...selectedLocation,
       town: townId,
       hometown: ''
     });
+    setActiveStep('hometown');
   };
 
   const handleHometownSelect = (hometownId: string) => {
-    const hometown = availableHometowns.find(h => h._id === hometownId);
     onSelect({
       ...selectedLocation,
       hometown: hometownId
     });
   };
 
-  if (loading) {
-    return (
-      <div className="animate-pulse space-y-4">
-        <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-        <div className="space-y-2">
-          <div className="h-6 bg-gray-200 rounded"></div>
-          <div className="h-6 bg-gray-200 rounded"></div>
-          <div className="h-6 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    );
-  }
+  const handleBack = () => {
+    if (activeStep === 'hometown') {
+      setActiveStep('town');
+    } else if (activeStep === 'town') {
+      setActiveStep('city');
+    }
+  };
 
-  if (error) {
-    return (
-      <div className="text-red-600 bg-red-50 p-4 rounded-lg">
-        {error}
-      </div>
-    );
-  }
+  const renderStep = () => {
+    switch (activeStep) {
+      case 'city':
+        return (
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5">
+              <h3 className="font-medium text-gray-700 text-sm">Select City</h3>
+              <span className="text-xs text-gray-400">(Step 1/3)</span>
+            </div>
+            <div className="max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+              <div className="space-y-1">
+                {cities.map(city => (
+                  <button
+                    key={city._id}
+                    onClick={() => handleCitySelect(city._id)}
+                    className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-all ${
+                      selectedLocation.city === city._id
+                        ? 'bg-primary-50 text-primary-700 border border-primary-100 shadow-sm'
+                        : 'hover:bg-gray-50 border border-transparent'
+                    }`}
+                  >
+                    {city.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'town':
+        return (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <h3 className="font-medium text-gray-700 text-sm">Select Town</h3>
+                <span className="text-xs text-gray-400">(Step 2/3)</span>
+              </div>
+              <button
+                onClick={handleBack}
+                className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 px-2 py-1 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                <ChevronRight className="h-3 w-3 rotate-180" />
+                Back
+              </button>
+            </div>
+            <div className="max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+              {towns.length > 0 ? (
+                <div className="space-y-1">
+                  {towns.map(town => (
+                    <button
+                      key={town._id}
+                      onClick={() => handleTownSelect(town._id)}
+                      className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-all ${
+                        selectedLocation.town === town._id
+                          ? 'bg-primary-50 text-primary-700 border border-primary-100 shadow-sm'
+                          : 'hover:bg-gray-50 border border-transparent'
+                      }`}
+                    >
+                      {town.name}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-sm text-gray-500">
+                  No towns available for this city
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 'hometown':
+        return (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <h3 className="font-medium text-gray-700 text-sm">Select Hometown</h3>
+                <span className="text-xs text-gray-400">(Step 3/3)</span>
+              </div>
+              <button
+                onClick={handleBack}
+                className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 px-2 py-1 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                <ChevronRight className="h-3 w-3 rotate-180" />
+                Back
+              </button>
+            </div>
+            <div className="max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+              {hometowns.length > 0 ? (
+                <div className="space-y-1">
+                  {hometowns.map(hometown => (
+                    <button
+                      key={hometown._id}
+                      onClick={() => handleHometownSelect(hometown._id)}
+                      className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-all ${
+                        selectedLocation.hometown === hometown._id
+                          ? 'bg-primary-50 text-primary-700 border border-primary-100 shadow-sm'
+                          : 'hover:bg-gray-50 border border-transparent'
+                      }`}
+                    >
+                      {hometown.name}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-sm text-gray-500">
+                  No hometowns available for this town
+                </div>
+              )}
+            </div>
+          </div>
+        );
+    }
+  };
 
   return (
-    <div className="space-y-4">
-      {/* Cities */}
-      <div>
-        <h4 className="font-medium text-gray-900 mb-2">Cities</h4>
-        <div className="grid grid-cols-2 gap-2">
-          {cities.map(city => (
-            <button
-              key={city._id}
-              onClick={() => handleCitySelect(city._id)}
-              className={`flex items-center justify-between p-2 rounded-lg border ${
-                selectedLocation.city === city._id
-                  ? 'bg-primary-50 border-primary-500 text-primary-700'
-                  : 'border-gray-200 hover:border-primary-300'
-              }`}
-            >
-              <span>{city.name}</span>
-              {selectedLocation.city === city._id && (
-                <Check className="h-4 w-4 text-primary-600" />
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Towns */}
-      {selectedLocation.city && availableTowns.length > 0 && (
-        <div>
-          <h4 className="font-medium text-gray-900 mb-2">Towns</h4>
-          <div className="grid grid-cols-2 gap-2">
-            {availableTowns.map(town => (
-              <button
-                key={town._id}
-                onClick={() => handleTownSelect(town._id)}
-                className={`flex items-center justify-between p-2 rounded-lg border ${
-                  selectedLocation.town === town._id
-                    ? 'bg-primary-50 border-primary-500 text-primary-700'
-                    : 'border-gray-200 hover:border-primary-300'
-                }`}
-              >
-                <span>{town.name}</span>
-                {selectedLocation.town === town._id && (
-                  <Check className="h-4 w-4 text-primary-600" />
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Hometowns */}
-      {selectedLocation.town && availableHometowns.length > 0 && (
-        <div>
-          <h4 className="font-medium text-gray-900 mb-2">Hometowns</h4>
-          <div className="grid grid-cols-2 gap-2">
-            {availableHometowns.map(hometown => (
-              <button
-                key={hometown._id}
-                onClick={() => handleHometownSelect(hometown._id)}
-                className={`flex items-center justify-between p-2 rounded-lg border ${
-                  selectedLocation.hometown === hometown._id
-                    ? 'bg-primary-50 border-primary-500 text-primary-700'
-                    : 'border-gray-200 hover:border-primary-300'
-                }`}
-              >
-                <span>{hometown.name}</span>
-                {selectedLocation.hometown === hometown._id && (
-                  <Check className="h-4 w-4 text-primary-600" />
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+    <div className="w-full">
+      {renderStep()}
     </div>
   );
 };

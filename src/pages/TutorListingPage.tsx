@@ -269,130 +269,125 @@ const TutorListingPage: React.FC = () => {
       <div className="absolute bottom-0 left-1/2 w-64 sm:w-96 h-64 sm:h-96 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 relative">
-        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
-          {/* Filters Sidebar */}
-          <div className="lg:w-80 flex-shrink-0">
-            <TutorFilters onFilterChange={handleFilterChange} />
-          </div>
+        {/* Filters Section - Now at the top */}
+        <div className="mb-6">
+          <TutorFilters onFilterChange={handleFilterChange} />
+        </div>
 
-          {/* Main Content */}
-          <div className="flex-1 min-w-0">
-            {/* Search and Filter Header */}
-            <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 mb-4 sm:mb-6 lg:mb-8">
-              <div className="relative max-w-3xl mx-auto">
-                <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
-                  <Search className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search tutors by name, subject, or expertise..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                />
-              </div>
+        {/* Search Bar */}
+        <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 mb-4 sm:mb-6 lg:mb-8">
+          <div className="relative max-w-3xl mx-auto">
+            <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
             </div>
-
-            {/* Results Count and Sort */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-              <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-lg font-semibold text-gray-900">
-                  {loading ? 'Loading...' : `${tutors.length} Tutors Found`}
-                </h2>
-                {!loading && tutors.length > 0 && (
-                  <span className="px-2 py-1 bg-primary-50 text-primary-700 rounded-full text-xs sm:text-sm">
-                    {filters.sortBy === 'rating' ? 'Top Rated' : 
-                     filters.sortBy === 'price' ? 'Price' : 'Relevance'}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <select
-                  value={`${filters.sortBy}-${filters.sortOrder}`}
-                  onChange={(e) => {
-                    const [sortBy, sortOrder] = e.target.value.split('-');
-                    setFilters(prev => ({
-                      ...prev,
-                      sortBy,
-                      sortOrder: sortOrder as 'asc' | 'desc'
-                    }));
-                  }}
-                  className="w-full sm:w-auto border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="rating-desc">Top Rated</option>
-                  <option value="price-asc">Price: Low to High</option>
-                  <option value="price-desc">Price: High to Low</option>
-                  <option value="experience-desc">Most Experienced</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Tutor Grid */}
-            {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-xl shadow-sm p-4 sm:p-6 animate-pulse">
-                    <div className="flex items-center gap-3 sm:gap-4 mb-4">
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-200 rounded-full"></div>
-                      <div className="flex-1">
-                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="h-3 bg-gray-200 rounded"></div>
-                      <div className="h-3 bg-gray-200 rounded w-5/6"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : tutors.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {tutors.map((tutor) => {
-                  const transformedTutor: TransformedTutor = {
-                    id: tutor._id,
-                    name: tutor.user?.name || 'Unknown Tutor',
-                    profileImage: tutor.user?.profileImage,
-                    subjects: tutor.subjects?.map(s => s.subject?.name).filter(Boolean) || [],
-                    location: tutor.locations?.[0]?.name || 'Not specified',
-                    rating: tutor.rating || 0,
-                    reviewCount: tutor.totalReviews || 0,
-                    verified: tutor.isVerified || false,
-                    hourlyRate: {
-                      online: tutor.subjects?.[0]?.rates?.online || 0,
-                      homeVisit: tutor.subjects?.[0]?.rates?.individual || 0,
-                      group: tutor.subjects?.[0]?.rates?.group || 0
-                    }
-                  };
-                  return <TutorCard key={tutor._id} tutor={transformedTutor} />;
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-8 sm:py-12">
-                <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-100 mb-4">
-                  <Search className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
-                </div>
-                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No tutors found</h3>
-                <p className="text-sm sm:text-base text-gray-500">
-                  Try adjusting your filters or search terms to find what you're looking for.
-                </p>
-              </div>
-            )}
-
-            {/* Loading More Indicator */}
-            {loadingMore && (
-              <div className="mt-6 sm:mt-8 text-center">
-                <div className="inline-flex items-center gap-2 text-sm sm:text-base text-gray-600">
-                  <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-                  Loading more tutors...
-                </div>
-              </div>
-            )}
-
-            {/* Infinite Scroll Trigger */}
-            <div ref={observerTarget} className="h-4" />
+            <input
+              type="text"
+              placeholder="Search tutors by name, subject, or expertise..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+            />
           </div>
         </div>
+
+        {/* Results Count and Sort */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="flex items-center gap-2">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+              {loading ? 'Loading...' : `${tutors.length} Tutors Found`}
+            </h2>
+            {!loading && tutors.length > 0 && (
+              <span className="px-2 py-1 bg-primary-50 text-primary-700 rounded-full text-xs sm:text-sm">
+                {filters.sortBy === 'rating' ? 'Top Rated' : 
+                 filters.sortBy === 'price' ? 'Price' : 'Relevance'}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              value={`${filters.sortBy}-${filters.sortOrder}`}
+              onChange={(e) => {
+                const [sortBy, sortOrder] = e.target.value.split('-');
+                setFilters(prev => ({
+                  ...prev,
+                  sortBy,
+                  sortOrder: sortOrder as 'asc' | 'desc'
+                }));
+              }}
+              className="w-full sm:w-auto border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="rating-desc">Top Rated</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="experience-desc">Most Experienced</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Tutor Grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="bg-white rounded-xl shadow-sm p-4 sm:p-6 animate-pulse">
+                <div className="flex items-center gap-3 sm:gap-4 mb-4">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-200 rounded-full"></div>
+                  <div className="flex-1">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-3 bg-gray-200 rounded"></div>
+                  <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : tutors.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {tutors.map((tutor) => {
+              const transformedTutor: TransformedTutor = {
+                id: tutor._id,
+                name: tutor.user?.name || 'Unknown Tutor',
+                profileImage: tutor.user?.profileImage,
+                subjects: tutor.subjects?.map(s => s.subject?.name).filter(Boolean) || [],
+                location: tutor.locations?.[0]?.name || 'Not specified',
+                rating: tutor.rating || 0,
+                reviewCount: tutor.totalReviews || 0,
+                verified: tutor.isVerified || false,
+                hourlyRate: {
+                  online: tutor.subjects?.[0]?.rates?.online || 0,
+                  homeVisit: tutor.subjects?.[0]?.rates?.individual || 0,
+                  group: tutor.subjects?.[0]?.rates?.group || 0
+                }
+              };
+              return <TutorCard key={tutor._id} tutor={transformedTutor} />;
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-8 sm:py-12">
+            <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-100 mb-4">
+              <Search className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
+            </div>
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No tutors found</h3>
+            <p className="text-sm sm:text-base text-gray-500">
+              Try adjusting your filters or search terms to find what you're looking for.
+            </p>
+          </div>
+        )}
+
+        {/* Loading More Indicator */}
+        {loadingMore && (
+          <div className="mt-6 sm:mt-8 text-center">
+            <div className="inline-flex items-center gap-2 text-sm sm:text-base text-gray-600">
+              <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+              Loading more tutors...
+            </div>
+          </div>
+        )}
+
+        {/* Infinite Scroll Trigger */}
+        <div ref={observerTarget} className="h-4" />
       </div>
     </div>
   );
