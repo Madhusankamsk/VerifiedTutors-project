@@ -5,7 +5,7 @@ import { useLocations } from '../contexts/LocationContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import TutorCard from '../components/common/TutorCard';
 import TutorFilters, { FilterState } from '../components/filter/TutorFilters';
-import { Search, X, Sparkles } from 'lucide-react';
+import { Search, X, Sparkles, SlidersHorizontal } from 'lucide-react';
 
 interface Filters {
   subject: string;
@@ -21,6 +21,22 @@ interface Filters {
   availability: string;
   experience: string;
   search: string;
+}
+
+interface TransformedTutor {
+  id: string;
+  name: string;
+  profileImage?: string;
+  subjects: string[];
+  location: string;
+  rating: number;
+  reviewCount: number;
+  verified: boolean;
+  hourlyRate: {
+    online: number;
+    homeVisit: number;
+    group: number;
+  };
 }
 
 const TutorListingPage: React.FC = () => {
@@ -166,7 +182,7 @@ const TutorListingPage: React.FC = () => {
       availability: 'all',
       experience: 'all',
       search: ''
-    });
+    } as Filters);
     setSearchQuery('');
     setActiveFilters([]);
   };
@@ -239,113 +255,164 @@ const TutorListingPage: React.FC = () => {
 
           {/* Main Content */}
           <div className="flex-1">
-            {/* Search Bar */}
-            <div className="relative max-w-3xl mx-auto mb-8">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search tutors by name, subject, or expertise..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-12 pr-4 py-3.5 sm:py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-base shadow-sm transition-all duration-200 hover:shadow-md bg-white/80 backdrop-blur-sm"
-              />
-            </div>
-
-            {/* Active Filters */}
-            {activeFilters.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-6">
-                {activeFilters.map(filter => (
-                  <div
-                    key={filter}
-                    className="flex items-center bg-primary-50/80 backdrop-blur-sm text-primary-700 px-4 sm:px-5 py-2 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5"
-                  >
-                    <span>{getFilterLabel(filter as keyof Filters)}</span>
-                    <button
-                      onClick={() => resetFilters()}
-                      className="ml-2 hover:text-primary-900 transition-colors"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-                <button
-                  onClick={resetFilters}
-                  className="text-sm text-primary-600 hover:text-primary-800 font-medium transition-colors duration-200"
-                >
-                  Clear All
-                </button>
-              </div>
-            )}
-
-            {/* Tutor List */}
-            <div className="mt-8">
-              {loading && !loadingMore ? (
-                <div className="flex justify-center py-12 sm:py-16">
-                  <LoadingSpinner size="large" />
+            {/* Search and Filter Header */}
+            <div className="bg-white rounded-xl shadow-sm p-4 mb-8">
+              <div className="relative max-w-3xl mx-auto">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400" />
                 </div>
-              ) : tutors.length > 0 ? (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                    {tutors.map((tutor) => {
-                      // Get the first subject with rates, or use default values
-                      const firstSubject = tutor.subjects?.[0];
-                      const rates = firstSubject?.rates || { online: 0, individual: 0, group: 0 };
-                      
-                      // Safely handle user data
-                      const userName = tutor.user?.name || 'Unknown Tutor';
-                      const userImage = tutor.user?.profileImage;
-                      
-                      return (
-                        <TutorCard
-                          key={tutor._id}
-                          tutor={{
-                            id: tutor._id,
-                            name: userName,
-                            profileImage: userImage,
-                            subjects: tutor.subjects?.map(s => s.subject?.name).filter(Boolean) || [],
-                            location: tutor.locations?.[0]?.name || 'Not specified',
-                            rating: tutor.rating || 0,
-                            reviewCount: tutor.totalReviews || 0,
-                            verified: tutor.isVerified || false,
-                            hourlyRate: {
-                              online: rates.online || 0,
-                              homeVisit: rates.individual || 0,
-                              group: rates.group || 0
-                            }
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
-                  
-                  {/* Loading indicator for infinite scroll */}
-                  {loadingMore && (
-                    <div className="flex justify-center py-8">
-                      <LoadingSpinner size="medium" />
+                <input
+                  type="text"
+                  placeholder="Search tutors by name, subject, or expertise..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                />
+              </div>
+
+              {/* Active Filters */}
+              {activeFilters.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {activeFilters.map((filterKey) => (
+                    <div
+                      key={filterKey}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-50 text-primary-700 rounded-full text-sm"
+                    >
+                      <span>{getFilterLabel(filterKey as keyof Filters)}</span>
+                      <button
+                        onClick={() => {
+                          const newFilters = { ...filters };
+                          if (filterKey === 'price') {
+                            newFilters.price = { min: 0, max: 1000 };
+                          } else if (filterKey === 'location') {
+                            newFilters.location = '';
+                          } else if (filterKey === 'rating') {
+                            newFilters.rating = 0;
+                          } else if (filterKey === 'educationLevel') {
+                            newFilters.educationLevel = '';
+                          } else if (filterKey === 'subject') {
+                            newFilters.subject = '';
+                          } else if (filterKey === 'teachingMode') {
+                            newFilters.medium = '';
+                          }
+                          setFilters(newFilters);
+                          setActiveFilters(prev => prev.filter(f => f !== filterKey));
+                        }}
+                        className="hover:bg-primary-100 rounded-full p-0.5"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
                     </div>
-                  )}
-                  
-                  {/* Observer target for infinite scroll */}
-                  <div ref={observerTarget} className="h-4" />
-                </>
-              ) : (
-                <div className="text-center py-16 sm:py-20 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100">
-                  <Sparkles className="w-12 h-12 text-primary-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-medium text-gray-900 mb-3">No tutors found</h3>
-                  <p className="text-base text-gray-500 mb-6">
-                    Try adjusting your filters or search terms to find tutors
-                  </p>
+                  ))}
                   <button
                     onClick={resetFilters}
-                    className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-sm font-medium"
+                    className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1"
                   >
-                    Clear All Filters
+                    <X className="h-4 w-4" />
+                    Clear All
                   </button>
                 </div>
               )}
             </div>
+
+            {/* Results Count and Sort */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {loading ? 'Loading...' : `${tutors.length} Tutors Found`}
+                </h2>
+                {!loading && tutors.length > 0 && (
+                  <span className="px-2 py-1 bg-primary-50 text-primary-700 rounded-full text-sm">
+                    {filters.sortBy === 'rating' ? 'Top Rated' : 
+                     filters.sortBy === 'price' ? 'Price' : 'Relevance'}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={`${filters.sortBy}-${filters.sortOrder}`}
+                  onChange={(e) => {
+                    const [sortBy, sortOrder] = e.target.value.split('-');
+                    setFilters(prev => ({
+                      ...prev,
+                      sortBy,
+                      sortOrder: sortOrder as 'asc' | 'desc'
+                    }));
+                  }}
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="rating-desc">Top Rated</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                  <option value="experience-desc">Most Experienced</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Tutor Grid */}
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-xl shadow-sm p-6 animate-pulse">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-16 h-16 bg-gray-200 rounded-full"></div>
+                      <div className="flex-1">
+                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-gray-200 rounded"></div>
+                      <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : tutors.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {tutors.map((tutor) => {
+                  const transformedTutor: TransformedTutor = {
+                    id: tutor._id,
+                    name: tutor.user?.name || 'Unknown Tutor',
+                    profileImage: tutor.user?.profileImage,
+                    subjects: tutor.subjects?.map(s => s.subject?.name).filter(Boolean) || [],
+                    location: tutor.locations?.[0]?.name || 'Not specified',
+                    rating: tutor.rating || 0,
+                    reviewCount: tutor.totalReviews || 0,
+                    verified: tutor.isVerified || false,
+                    hourlyRate: {
+                      online: tutor.subjects?.[0]?.rates?.online || 0,
+                      homeVisit: tutor.subjects?.[0]?.rates?.individual || 0,
+                      group: tutor.subjects?.[0]?.rates?.group || 0
+                    }
+                  };
+                  return <TutorCard key={tutor._id} tutor={transformedTutor} />;
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                  <Search className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No tutors found</h3>
+                <p className="text-gray-500">
+                  Try adjusting your filters or search terms to find what you're looking for.
+                </p>
+              </div>
+            )}
+
+            {/* Loading More Indicator */}
+            {loadingMore && (
+              <div className="mt-8 text-center">
+                <div className="inline-flex items-center gap-2 text-gray-600">
+                  <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                  Loading more tutors...
+                </div>
+              </div>
+            )}
+
+            {/* Infinite Scroll Trigger */}
+            <div ref={observerTarget} className="h-4" />
           </div>
         </div>
       </div>
