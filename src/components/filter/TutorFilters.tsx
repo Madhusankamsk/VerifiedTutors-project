@@ -141,14 +141,17 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
     if (filters.location.city || filters.location.town || filters.location.hometown) {
       let locationName = '';
       if (filters.location.hometown) {
-        const location = locations.find(l => l._id === filters.location.hometown);
-        locationName = location?.name || filters.location.hometown;
+        const city = locations.find(l => l._id === filters.location.city);
+        const town = city?.children?.find(t => t._id === filters.location.town);
+        const hometown = town?.children?.find(h => h._id === filters.location.hometown);
+        locationName = hometown?.name || filters.location.hometown;
       } else if (filters.location.town) {
-        const location = locations.find(l => l._id === filters.location.town);
-        locationName = location?.name || filters.location.town;
+        const city = locations.find(l => l._id === filters.location.city);
+        const town = city?.children?.find(t => t._id === filters.location.town);
+        locationName = town?.name || filters.location.town;
       } else if (filters.location.city) {
-        const location = locations.find(l => l._id === filters.location.city);
-        locationName = location?.name || filters.location.city;
+        const city = locations.find(l => l._id === filters.location.city);
+        locationName = city?.name || filters.location.city;
       }
 
       tags.push({
