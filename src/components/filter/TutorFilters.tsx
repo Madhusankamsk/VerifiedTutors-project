@@ -139,6 +139,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
             <div className="p-4">
               <SubjectFilter
                 selectedSubjects={filters.subjects}
+                educationLevel={filters.educationLevel}
                 onSelect={handleSubjectSelect}
               />
             </div>

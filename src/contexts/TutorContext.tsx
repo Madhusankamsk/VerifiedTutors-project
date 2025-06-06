@@ -892,14 +892,23 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setError(null);
       
       const queryParams = new URLSearchParams();
-      if (params.subject) queryParams.append('subject', params.subject);
-      if (params.rating) queryParams.append('rating', params.rating.toString());
+      
+      // Add filters only if they have values
+      if (params.subject) queryParams.append('subjects', params.subject);
+      if (params.rating && params.rating > 0) queryParams.append('minRating', params.rating.toString());
       if (params.price) {
-        queryParams.append('price', `${params.price.min}-${params.price.max}`);
+        queryParams.append('priceRange', JSON.stringify([params.price.min, params.price.max]));
       }
-      if (params.location) queryParams.append('location', params.location);
+      if (params.location) {
+        try {
+          const locationObj = JSON.parse(params.location);
+          queryParams.append('location', JSON.stringify(locationObj));
+        } catch (err) {
+          console.error('Error parsing location:', err);
+        }
+      }
       if (params.educationLevel) queryParams.append('educationLevel', params.educationLevel);
-      if (params.medium) queryParams.append('medium', params.medium);
+      if (params.medium) queryParams.append('teachingMode', params.medium.toUpperCase());
       if (params.search) queryParams.append('search', params.search);
       if (params.page) queryParams.append('page', params.page.toString());
       if (params.limit) queryParams.append('limit', params.limit.toString());

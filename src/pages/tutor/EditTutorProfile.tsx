@@ -4,7 +4,7 @@ import { useLocations, Location } from '../../contexts/LocationContext';
 import { useSubjects, Subject } from '../../contexts/SubjectContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
-import { X, Plus, Save, Trash2, MapPin, BookOpen, GraduationCap, Briefcase, User, Phone, Mail, Clock, Upload, Camera, Globe, Languages, FileText, Eye } from 'lucide-react';
+import { X, Plus, Save, Trash2, MapPin, BookOpen, GraduationCap, Briefcase, User, Phone, Mail, Clock, Upload, Camera, Globe, Languages, FileText, Eye, Users, Video } from 'lucide-react';
 import LocationSelector from '../../components/location/LocationSelector';
 import SubjectSelector from '../../components/subject/SubjectSelector';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -940,121 +940,287 @@ const EditTutorProfile: React.FC = () => {
               </div>
             </div>
 
-            {/* Subjects & Rates Section */}
+            {/* Subjects Section */}
             <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 p-8">
-              <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-900">
-                <BookOpen className="w-5 h-5 mr-2 text-primary-600" />
-                Subjects & Rates
-              </h2>
-              <div className="mb-6">
-                <SubjectSelector
-                  selectedSubjects={formData.subjects}
-                  onSubjectsChange={handleSubjectSelect}
-                />
-              </div>
-              <div className="space-y-6">
-                {formData.subjects.map((subject) => (
-                  <div key={subject._id} className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
-                    <h3 className="font-semibold text-lg mb-4">{subject.name}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Individual Rate</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-gray-500">$</span>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Subject & Rates</h2>
+
+              <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
+                {/* Subject Selection */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Select Your Subject</label>
+                  <SubjectSelector
+                    selectedSubjects={formData.subjects}
+                    onSubjectsChange={(subjects) => {
+                      if (subjects.length > 0) {
+                        setFormData(prev => ({
+                          ...prev,
+                          subjects: [{
+                            _id: subjects[0]._id,
+                            name: subjects[0].name,
+                            category: subjects[0].category,
+                            rates: {
+                              individual: 0,
+                              group: 0,
+                              online: 0
+                            },
+                            availability: []
+                          }]
+                        }));
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Teaching Modes & Rates */}
+                {formData.subjects.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Teaching Modes & Rates</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Individual Rate */}
+                      <div className="bg-white/80 rounded-xl p-4 border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="flex items-center gap-2 text-gray-700">
+                            <Users className="w-5 h-5 text-primary-600" />
+                            Individual
+                          </label>
+                          <div className="flex items-center">
+                            <span className="text-gray-500 mr-2">$</span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={formData.subjects[0].rates.individual}
+                              onChange={(e) => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  subjects: [{
+                                    ...prev.subjects[0],
+                                    rates: {
+                                      ...prev.subjects[0].rates,
+                                      individual: Number(e.target.value)
+                                    }
+                                  }]
+                                }));
+                              }}
+                              className="w-20 px-2 py-1 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                              placeholder="0"
+                            />
+                            <span className="text-gray-500 ml-2">/hr</span>
                           </div>
-                          <input
-                            type="number"
-                            value={subject.rates.individual}
-                            onChange={(e) => handleRateChange(subject._id, 'individual', e.target.value)}
-                            className="pl-7 w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                            min="0"
-                            required
-                          />
                         </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Group Rate</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-gray-500">$</span>
+
+                      {/* Group Rate */}
+                      <div className="bg-white/80 rounded-xl p-4 border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="flex items-center gap-2 text-gray-700">
+                            <Users className="w-5 h-5 text-primary-600" />
+                            Group
+                          </label>
+                          <div className="flex items-center">
+                            <span className="text-gray-500 mr-2">$</span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={formData.subjects[0].rates.group}
+                              onChange={(e) => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  subjects: [{
+                                    ...prev.subjects[0],
+                                    rates: {
+                                      ...prev.subjects[0].rates,
+                                      group: Number(e.target.value)
+                                    }
+                                  }]
+                                }));
+                              }}
+                              className="w-20 px-2 py-1 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                              placeholder="0"
+                            />
+                            <span className="text-gray-500 ml-2">/hr</span>
                           </div>
-                          <input
-                            type="number"
-                            value={subject.rates.group}
-                            onChange={(e) => handleRateChange(subject._id, 'group', e.target.value)}
-                            className="pl-7 w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                            min="0"
-                            required
-                          />
                         </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Online Rate</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-gray-500">$</span>
+
+                      {/* Online Rate */}
+                      <div className="bg-white/80 rounded-xl p-4 border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="flex items-center gap-2 text-gray-700">
+                            <Video className="w-5 h-5 text-primary-600" />
+                            Online
+                          </label>
+                          <div className="flex items-center">
+                            <span className="text-gray-500 mr-2">$</span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={formData.subjects[0].rates.online}
+                              onChange={(e) => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  subjects: [{
+                                    ...prev.subjects[0],
+                                    rates: {
+                                      ...prev.subjects[0].rates,
+                                      online: Number(e.target.value)
+                                    }
+                                  }]
+                                }));
+                              }}
+                              className="w-20 px-2 py-1 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                              placeholder="0"
+                            />
+                            <span className="text-gray-500 ml-2">/hr</span>
                           </div>
-                          <input
-                            type="number"
-                            value={subject.rates.online}
-                            onChange={(e) => handleRateChange(subject._id, 'online', e.target.value)}
-                            className="pl-7 w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                            min="0"
-                            required
-                          />
                         </div>
                       </div>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-4">Availability</h4>
-                      <div className="space-y-4">
-                        {DAYS_OF_WEEK.map((day) => {
-                          const dayAvailability = subject.availability.find(a => a.day === day);
-                          return (
-                            <div key={day} className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-                              <div className="flex justify-between items-center mb-3">
-                                <h5 className="font-medium">{day}</h5>
+
+                    {/* Validation Message */}
+                    {formData.subjects[0].rates.individual === 0 && 
+                     formData.subjects[0].rates.group === 0 && 
+                     formData.subjects[0].rates.online === 0 && (
+                      <p className="text-red-600 text-sm mt-2">
+                        Please set at least one rate greater than 0
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Availability Section */}
+                {formData.subjects.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Availability</h3>
+                    <div className="space-y-4">
+                      {DAYS_OF_WEEK.map((day) => {
+                        const dayAvailability = formData.subjects[0].availability.find(a => a.day === day);
+                        return (
+                          <div key={day} className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
+                            <div className="flex justify-between items-center mb-3">
+                              <h5 className="font-medium">{day}</h5>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFormData(prev => {
+                                    const subject = prev.subjects[0];
+                                    const dayAvailability = subject.availability.find(a => a.day === day);
+                                    const newAvailability = dayAvailability
+                                      ? subject.availability.map(a => 
+                                          a.day === day 
+                                            ? { ...a, slots: [...a.slots, { start: '09:00', end: '10:00' }] }
+                                            : a
+                                        )
+                                      : [...subject.availability, { day, slots: [{ start: '09:00', end: '10:00' }] }];
+                                    
+                                    return {
+                                      ...prev,
+                                      subjects: [{
+                                        ...subject,
+                                        availability: newAvailability
+                                      }]
+                                    };
+                                  });
+                                }}
+                                className="inline-flex items-center px-3 py-1.5 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-all duration-200"
+                              >
+                                <Plus className="w-4 h-4 mr-1" />
+                                Add Time Slot
+                              </button>
+                            </div>
+                            {dayAvailability?.slots.map((slot, slotIndex) => (
+                              <div key={slotIndex} className="flex items-center space-x-3 mt-2">
+                                <input
+                                  type="time"
+                                  value={slot.start}
+                                  onChange={(e) => {
+                                    setFormData(prev => {
+                                      const subject = prev.subjects[0];
+                                      const newAvailability = subject.availability.map(a => 
+                                        a.day === day
+                                          ? {
+                                              ...a,
+                                              slots: a.slots.map((s, i) => 
+                                                i === slotIndex ? { ...s, start: e.target.value } : s
+                                              )
+                                            }
+                                          : a
+                                      );
+                                      
+                                      return {
+                                        ...prev,
+                                        subjects: [{
+                                          ...subject,
+                                          availability: newAvailability
+                                        }]
+                                      };
+                                    });
+                                  }}
+                                  className="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                                />
+                                <span className="text-gray-500">to</span>
+                                <input
+                                  type="time"
+                                  value={slot.end}
+                                  onChange={(e) => {
+                                    setFormData(prev => {
+                                      const subject = prev.subjects[0];
+                                      const newAvailability = subject.availability.map(a => 
+                                        a.day === day
+                                          ? {
+                                              ...a,
+                                              slots: a.slots.map((s, i) => 
+                                                i === slotIndex ? { ...s, end: e.target.value } : s
+                                              )
+                                            }
+                                          : a
+                                      );
+                                      
+                                      return {
+                                        ...prev,
+                                        subjects: [{
+                                          ...subject,
+                                          availability: newAvailability
+                                        }]
+                                      };
+                                    });
+                                  }}
+                                  className="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                                />
                                 <button
                                   type="button"
-                                  onClick={() => addTimeSlot(subject._id, day)}
-                                  className="inline-flex items-center px-3 py-1.5 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-all duration-200"
+                                  onClick={() => {
+                                    setFormData(prev => {
+                                      const subject = prev.subjects[0];
+                                      const newAvailability = subject.availability.map(a => 
+                                        a.day === day
+                                          ? {
+                                              ...a,
+                                              slots: a.slots.filter((_, i) => i !== slotIndex)
+                                            }
+                                          : a
+                                      );
+                                      
+                                      return {
+                                        ...prev,
+                                        subjects: [{
+                                          ...subject,
+                                          availability: newAvailability
+                                        }]
+                                      };
+                                    });
+                                  }}
+                                  className="p-1.5 text-red-600 hover:text-red-700 transition-colors duration-200"
                                 >
-                                  <Plus className="w-4 h-4 mr-1" />
-                                  Add Time Slot
+                                  <Trash2 className="w-4 h-4" />
                                 </button>
                               </div>
-                              {dayAvailability?.slots.map((slot, slotIndex) => (
-                                <div key={slotIndex} className="flex items-center space-x-3 mt-2">
-                                  <input
-                                    type="time"
-                                    value={slot.start}
-                                    onChange={(e) => updateTimeSlot(subject._id, day, slotIndex, 'start', e.target.value)}
-                                    className="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                                  />
-                                  <span className="text-gray-500">to</span>
-                                  <input
-                                    type="time"
-                                    value={slot.end}
-                                    onChange={(e) => updateTimeSlot(subject._id, day, slotIndex, 'end', e.target.value)}
-                                    className="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => removeTimeSlot(subject._id, day, slotIndex)}
-                                    className="p-1.5 text-red-600 hover:text-red-700 transition-colors duration-200"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          );
-                        })}
-                      </div>
+                            ))}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 

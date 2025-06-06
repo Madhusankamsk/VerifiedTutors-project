@@ -122,12 +122,13 @@ const TutorListingPage: React.FC = () => {
       ...prev,
       educationLevel: newFilters.educationLevel || '',
       subject: newFilters.subjects[0] || '',
-      location: newFilters.location.city || '',
+      location: JSON.stringify(newFilters.location),
       rating: newFilters.extraFilters.minRating,
       price: {
         min: newFilters.extraFilters.priceRange[0],
         max: newFilters.extraFilters.priceRange[1]
       },
+      medium: newFilters.teachingMode || '',
       page: 1
     }));
 
@@ -140,6 +141,7 @@ const TutorListingPage: React.FC = () => {
     if (newFilters.extraFilters.priceRange[0] > 0 || newFilters.extraFilters.priceRange[1] < 1000) {
       newActiveFilters.push('price');
     }
+    if (newFilters.teachingMode) newActiveFilters.push('teachingMode');
     setActiveFilters(newActiveFilters);
   };
 

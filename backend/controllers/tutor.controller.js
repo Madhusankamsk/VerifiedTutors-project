@@ -4,6 +4,7 @@ import Blog from '../models/blog.model.js';
 import Subject from '../models/subject.model.js';
 import Rating from '../models/rating.model.js';
 import Session from '../models/session.model.js';
+import Location from '../models/location.model.js';
 
 // @desc    Get all tutors
 // @route   GET /api/tutors
@@ -29,52 +30,133 @@ export const getTutors = async (req, res) => {
 
     // Filter by education level
     if (educationLevel) {
-      query['subjects.subject.educationLevel'] = educationLevel;
+      // First find subjects with matching education level
+      const subjectsWithLevel = await Subject.find({
+        educationLevel: { $regex: new RegExp(educationLevel, 'i') }
+      }).select('_id');
+
+      if (subjectsWithLevel.length > 0) {
+        query['subjects.subject'] = { 
+          $in: subjectsWithLevel.map(subject => subject._id)
+        };
+      }
     }
 
     // Filter by subjects
     if (subjects) {
-      const subjectArray = Array.isArray(subjects) ? subjects : [subjects];
-      query['subjects.subject'] = { $in: subjectArray };
+      try {
+        const subjectArray = Array.isArray(subjects) ? subjects : [subjects];
+        // Find subject IDs by name
+        const subjectDocs = await Subject.find({
+          name: { $in: subjectArray.map(s => new RegExp(s, 'i')) }
+        }).select('_id');
+        
+        if (subjectDocs.length > 0) {
+          // If we already have a subject filter, use $and to combine them
+          if (query['subjects.subject']) {
+            query.$and = query.$and || [];
+            query.$and.push({
+              'subjects.subject': { 
+                $in: subjectDocs.map(doc => doc._id)
+              }
+            });
+          } else {
+            query['subjects.subject'] = { 
+              $in: subjectDocs.map(doc => doc._id)
+            };
+          }
+        }
+      } catch (err) {
+        console.error('Error finding subjects:', err);
+      }
     }
 
-    // Filter by teaching mode
+    // Filter by teaching mode and rates
+    const teachingModeConditions = [];
     if (teachingMode) {
       if (teachingMode === 'ONLINE') {
-        query['subjects.rates.online'] = { $gt: 0 };
+        teachingModeConditions.push({
+          'subjects.rates.online': { $gt: 0 }
+        });
       } else if (teachingMode === 'INDIVIDUAL') {
-        query['subjects.rates.individual'] = { $gt: 0 };
+        teachingModeConditions.push({
+          'subjects.rates.individual': { $gt: 0 }
+        });
       } else if (teachingMode === 'GROUP') {
-        query['subjects.rates.group'] = { $gt: 0 };
+        teachingModeConditions.push({
+          'subjects.rates.group': { $gt: 0 }
+        });
       }
+    }
+
+    // Filter by price range
+    if (priceRange) {
+      try {
+        const [min, max] = JSON.parse(priceRange);
+        const priceConditions = [];
+
+        // Only include price conditions for the selected teaching mode
+        if (teachingMode === 'ONLINE') {
+          priceConditions.push({
+            'subjects.rates.online': { $gte: min || 0, $lte: max || Number.MAX_SAFE_INTEGER }
+          });
+        } else if (teachingMode === 'INDIVIDUAL') {
+          priceConditions.push({
+            'subjects.rates.individual': { $gte: min || 0, $lte: max || Number.MAX_SAFE_INTEGER }
+          });
+        } else if (teachingMode === 'GROUP') {
+          priceConditions.push({
+            'subjects.rates.group': { $gte: min || 0, $lte: max || Number.MAX_SAFE_INTEGER }
+          });
+        } else {
+          // If no teaching mode specified, check all rates
+          priceConditions.push(
+            { 'subjects.rates.online': { $gte: min || 0, $lte: max || Number.MAX_SAFE_INTEGER } },
+            { 'subjects.rates.individual': { $gte: min || 0, $lte: max || Number.MAX_SAFE_INTEGER } },
+            { 'subjects.rates.group': { $gte: min || 0, $lte: max || Number.MAX_SAFE_INTEGER } }
+          );
+        }
+
+        if (priceConditions.length > 0) {
+          query.$or = query.$or || [];
+          query.$or.push(...priceConditions);
+        }
+      } catch (err) {
+        console.error('Error parsing price range:', err);
+      }
+    }
+
+    // Combine teaching mode conditions with other filters
+    if (teachingModeConditions.length > 0) {
+      query.$and = query.$and || [];
+      query.$and.push({ $or: teachingModeConditions });
     }
 
     // Filter by location
     if (location) {
-      const { city, town, hometown } = JSON.parse(location);
-      if (city) {
-        query['locations.city'] = city;
-      }
-      if (town) {
-        query['locations.town'] = town;
-      }
-      if (hometown) {
-        query['locations.hometown'] = hometown;
+      try {
+        const locationObj = JSON.parse(location);
+        if (locationObj.city || locationObj.town || locationObj.hometown) {
+          const locationIds = await Location.find({
+            $or: [
+              { city: locationObj.city },
+              { town: locationObj.town },
+              { hometown: locationObj.hometown }
+            ]
+          }).select('_id');
+          
+          if (locationIds.length > 0) {
+            query['locations'] = { $in: locationIds };
+          }
+        }
+      } catch (err) {
+        console.error('Error parsing location:', err);
       }
     }
 
     // Filter by minimum rating
     if (minRating) {
       query.rating = { $gte: Number(minRating) };
-    }
-
-    // Filter by price range
-    if (priceRange) {
-      const [min, max] = JSON.parse(priceRange);
-      query['subjects.rates.individual'] = {
-        $gte: min || 0,
-        $lte: max || Number.MAX_SAFE_INTEGER
-      };
     }
 
     // Filter by gender
@@ -88,17 +170,34 @@ export const getTutors = async (req, res) => {
     // Calculate pagination
     const skip = (page - 1) * limit;
 
+    // Log the final query for debugging
+    console.log('Final Query:', JSON.stringify(query, null, 2));
+
     // Execute query with pagination and sorting
     const tutors = await Tutor.find(query)
       .populate('user', 'name email profileImage')
       .populate('subjects.subject', 'name category educationLevel')
-      .populate('locations', 'name')
+      .populate('locations', 'city town hometown')
       .sort(sortOptions)
       .skip(skip)
       .limit(Number(limit));
 
     // Get total count for pagination
     const total = await Tutor.countDocuments(query);
+
+    // Log the results for debugging
+    console.log('Query Results:', {
+      totalTutors: total,
+      returnedTutors: tutors.length,
+      firstTutor: tutors[0] ? {
+        id: tutors[0]._id,
+        subjects: tutors[0].subjects.map(s => ({
+          name: s.subject?.name,
+          educationLevel: s.subject?.educationLevel,
+          rates: s.rates
+        }))
+      } : null
+    });
 
     res.json({
       tutors,
@@ -174,8 +273,7 @@ export const updateTutorProfile = async (req, res) => {
     if (!tutor) {
       return res.status(404).json({ message: 'Tutor profile not found' });
     }
-    console.log("tutor",tutor);
-    console.log("req.user",req.user);
+
     // Check if user is authorized
     if (tutor.user.toString() !== req.user.id.toString()) {
       return res.status(403).json({ message: 'Not authorized to update this profile' });
@@ -225,25 +323,66 @@ export const updateTutorProfile = async (req, res) => {
           });
         }
 
-        // Validate rates if provided
-        if (subject.rates) {
-          const { individual, group, online } = subject.rates;
-          if (individual && individual < 0) {
+        // Validate rates and teaching modes
+        if (!subject.rates) {
+          return res.status(400).json({ 
+            message: 'Rates are required for each subject' 
+          });
+        }
+
+        const { individual, group, online } = subject.rates;
+        const teachingModes = [];
+
+        // Check each teaching mode and its rate
+        if (individual !== undefined && individual !== null) {
+          if (individual < 0) {
             return res.status(400).json({ 
               message: 'Individual rate cannot be negative' 
             });
           }
-          if (group && group < 0) {
+          if (individual > 0) {
+            teachingModes.push('INDIVIDUAL');
+          }
+        }
+
+        if (group !== undefined && group !== null) {
+          if (group < 0) {
             return res.status(400).json({ 
               message: 'Group rate cannot be negative' 
             });
           }
-          if (online && online < 0) {
+          if (group > 0) {
+            teachingModes.push('GROUP');
+          }
+        }
+
+        if (online !== undefined && online !== null) {
+          if (online < 0) {
             return res.status(400).json({ 
               message: 'Online rate cannot be negative' 
             });
           }
+          if (online > 0) {
+            teachingModes.push('ONLINE');
+          }
         }
+
+        // Ensure at least one teaching mode is selected with a rate > 0
+        if (teachingModes.length === 0) {
+          return res.status(400).json({ 
+            message: 'At least one teaching mode (Individual, Group, or Online) must be selected with a rate greater than 0' 
+          });
+        }
+
+        // Store the teaching modes in the subject object
+        subject.teachingModes = teachingModes;
+
+        // Set undefined rates to 0
+        subject.rates = {
+          individual: individual || 0,
+          group: group || 0,
+          online: online || 0
+        };
 
         // Validate availability if provided
         if (subject.availability) {
