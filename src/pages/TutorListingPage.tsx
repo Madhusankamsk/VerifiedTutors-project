@@ -122,7 +122,11 @@ const TutorListingPage: React.FC = () => {
       ...prev,
       educationLevel: newFilters.educationLevel || '',
       subject: newFilters.subjects[0] || '',
-      location: JSON.stringify(newFilters.location),
+      location: JSON.stringify({
+        city: newFilters.location.city,
+        town: newFilters.location.town,
+        hometown: newFilters.location.hometown
+      }),
       rating: newFilters.extraFilters.minRating,
       price: {
         min: newFilters.extraFilters.priceRange[0],
@@ -136,7 +140,9 @@ const TutorListingPage: React.FC = () => {
     const newActiveFilters: string[] = [];
     if (newFilters.educationLevel) newActiveFilters.push('educationLevel');
     if (newFilters.subjects.length > 0) newActiveFilters.push('subject');
-    if (newFilters.location.city) newActiveFilters.push('location');
+    if (newFilters.location.city || newFilters.location.town || newFilters.location.hometown) {
+      newActiveFilters.push('location');
+    }
     if (newFilters.extraFilters.minRating > 0) newActiveFilters.push('rating');
     if (newFilters.extraFilters.priceRange[0] > 0 || newFilters.extraFilters.priceRange[1] < 1000) {
       newActiveFilters.push('price');
@@ -174,11 +180,27 @@ const TutorListingPage: React.FC = () => {
       case 'price':
         return `Price: $${filters.price.min}-$${filters.price.max}/hr`;
       case 'location':
-        return `Location: ${locations.find(l => l._id === filters.location)?.name || 'Location'}`;
+        try {
+          const locationObj = JSON.parse(filters.location);
+          let locationName = '';
+          if (locationObj.hometown) {
+            locationName = locationObj.hometown;
+          } else if (locationObj.town) {
+            locationName = locationObj.town;
+          } else if (locationObj.city) {
+            locationName = locationObj.city;
+          }
+          return locationName ? `Location: ${locationName}` : 'Location: Any';
+        } catch {
+          return 'Location: Any';
+        }
       case 'educationLevel':
         return `Education: ${filters.educationLevel || 'Education Level'}`;
       case 'medium':
-        return `Medium: ${filters.medium ? filters.medium.charAt(0).toUpperCase() + filters.medium.slice(1) : 'Medium'}`;
+        const mode = filters.medium?.toUpperCase() || '';
+        return `Teaching Mode: ${mode === 'ONLINE' ? 'Online' : 
+                                mode === 'INDIVIDUAL' ? 'Individual' : 
+                                mode === 'GROUP' ? 'Group' : 'Any'}`;
       case 'availability':
         return `Availability: ${filters.availability}`;
       case 'experience':

@@ -908,7 +908,9 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
       }
       if (params.educationLevel) queryParams.append('educationLevel', params.educationLevel);
-      if (params.medium) queryParams.append('teachingMode', params.medium.toUpperCase());
+      if (params.medium && params.medium.trim() !== '') {
+        queryParams.append('teachingMode', params.medium.toUpperCase());
+      }
       if (params.search) queryParams.append('search', params.search);
       if (params.page) queryParams.append('page', params.page.toString());
       if (params.limit) queryParams.append('limit', params.limit.toString());

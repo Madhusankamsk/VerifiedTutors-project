@@ -72,17 +72,12 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
   };
 
   const handleTeachingModeSelect = (mode: string) => {
-    setFilters(prev => ({ ...prev, teachingMode: mode }));
-    if (mode === 'ONLINE') {
-      setActiveLayer(5); // Skip location layer for online mode
-      // Collapse teaching mode section and expand extra filters section
-      setExpandedSections(prev => prev.filter(l => l !== 3).concat(5));
-    } else {
-      setActiveLayer(4);
-      // Collapse teaching mode section and expand location section
-      setExpandedSections(prev => prev.filter(l => l !== 3).concat(4));
-    }
-    onFilterChange({ ...filters, teachingMode: mode });
+    const newMode = mode || '';
+    setFilters(prev => ({ ...prev, teachingMode: newMode }));
+    setActiveLayer(5); // Always go to extra filters section
+    // Collapse teaching mode section and expand extra filters section
+    setExpandedSections(prev => prev.filter(l => l !== 3).concat(5));
+    onFilterChange({ ...filters, teachingMode: newMode });
   };
 
   const handleLocationSelect = (location: FilterState['location']) => {
@@ -163,7 +158,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
       )}
 
       {/* Location Section */}
-      {activeLayer >= 4 && filters.teachingMode === 'OFFLINE' && (
+      {activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && (
         <div className="border rounded-lg overflow-hidden">
           {renderSectionHeader(4, 'Location')}
           {expandedSections.includes(4) && (
@@ -178,7 +173,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
       )}
 
       {/* Extra Filters Section */}
-      {activeLayer >= 5 && (
+      {activeLayer >= 5 && filters.teachingMode && (
         <div className="border rounded-lg overflow-hidden">
           {renderSectionHeader(5, 'Additional Filters')}
           {expandedSections.includes(5) && (

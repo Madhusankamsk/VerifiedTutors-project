@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useLocations, Location } from '../../contexts/LocationContext';
+import { Check } from 'lucide-react';
 
 interface LocationFilterProps {
   selectedLocation: {
@@ -13,124 +15,159 @@ interface LocationFilterProps {
   }) => void;
 }
 
-// Mock data - replace with API call
-const cities = [
-  'Colombo',
-  'Kandy',
-  'Galle',
-  'Jaffna',
-  'Matara',
-  'Negombo',
-  'Kurunegala',
-  'Anuradhapura'
-];
-
-const getTownsForCity = (city: string) => {
-  // Mock function - replace with API call
-  return [`${city} Town 1`, `${city} Town 2`, `${city} Town 3`];
-};
-
-const getHometownsForTown = (town: string) => {
-  // Mock function - replace with API call
-  return [`${town} Hometown 1`, `${town} Hometown 2`, `${town} Hometown 3`];
-};
-
 const LocationFilter: React.FC<LocationFilterProps> = ({ selectedLocation, onSelect }) => {
-  const [availableTowns, setAvailableTowns] = useState<string[]>([]);
-  const [availableHometowns, setAvailableHometowns] = useState<string[]>([]);
+  const { locations, loading, error } = useLocations();
+  const [availableTowns, setAvailableTowns] = useState<Location[]>([]);
+  const [availableHometowns, setAvailableHometowns] = useState<Location[]>([]);
+
+  // Get cities (level 1 locations)
+  const cities = React.useMemo(() => {
+    if (!Array.isArray(locations)) return [];
+    return locations.filter(loc => loc.level === 1);
+  }, [locations]);
 
   useEffect(() => {
     if (selectedLocation.city) {
-      setAvailableTowns(getTownsForCity(selectedLocation.city));
+      const city = locations.find(loc => loc._id === selectedLocation.city);
+      if (city?.children) {
+        setAvailableTowns(city.children);
+      } else {
+        setAvailableTowns([]);
+      }
+    } else {
+      setAvailableTowns([]);
     }
-  }, [selectedLocation.city]);
+  }, [selectedLocation.city, locations]);
 
   useEffect(() => {
     if (selectedLocation.town) {
-      setAvailableHometowns(getHometownsForTown(selectedLocation.town));
+      const town = availableTowns.find(t => t._id === selectedLocation.town);
+      if (town?.children) {
+        setAvailableHometowns(town.children);
+      } else {
+        setAvailableHometowns([]);
+      }
+    } else {
+      setAvailableHometowns([]);
     }
-  }, [selectedLocation.town]);
+  }, [selectedLocation.town, availableTowns]);
 
-  const handleCitySelect = (city: string) => {
+  const handleCitySelect = (cityId: string) => {
+    const city = cities.find(c => c._id === cityId);
     onSelect({
-      city,
+      city: cityId,
       town: '',
       hometown: ''
     });
   };
 
-  const handleTownSelect = (town: string) => {
+  const handleTownSelect = (townId: string) => {
+    const town = availableTowns.find(t => t._id === townId);
     onSelect({
       ...selectedLocation,
-      town,
+      town: townId,
       hometown: ''
     });
   };
 
-  const handleHometownSelect = (hometown: string) => {
+  const handleHometownSelect = (hometownId: string) => {
+    const hometown = availableHometowns.find(h => h._id === hometownId);
     onSelect({
       ...selectedLocation,
-      hometown
+      hometown: hometownId
     });
   };
 
+  if (loading) {
+    return (
+      <div className="animate-pulse space-y-4">
+        <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+        <div className="space-y-2">
+          <div className="h-6 bg-gray-200 rounded"></div>
+          <div className="h-6 bg-gray-200 rounded"></div>
+          <div className="h-6 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-red-600 bg-red-50 p-4 rounded-lg">
+        {error}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
+      {/* Cities */}
       <div>
-        <h3 className="text-sm font-medium text-gray-700 mb-2">City</h3>
+        <h4 className="font-medium text-gray-900 mb-2">Cities</h4>
         <div className="grid grid-cols-2 gap-2">
-          {cities.map((city) => (
+          {cities.map(city => (
             <button
-              key={city}
-              onClick={() => handleCitySelect(city)}
-              className={`px-3 py-2 text-sm rounded-lg transition-colors ${
-                selectedLocation.city === city
-                  ? 'bg-primary-100 text-primary-700'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              key={city._id}
+              onClick={() => handleCitySelect(city._id)}
+              className={`flex items-center justify-between p-2 rounded-lg border ${
+                selectedLocation.city === city._id
+                  ? 'bg-primary-50 border-primary-500 text-primary-700'
+                  : 'border-gray-200 hover:border-primary-300'
               }`}
             >
-              {city}
+              <span>{city.name}</span>
+              {selectedLocation.city === city._id && (
+                <Check className="h-4 w-4 text-primary-600" />
+              )}
             </button>
           ))}
         </div>
       </div>
 
-      {selectedLocation.city && (
+      {/* Towns */}
+      {selectedLocation.city && availableTowns.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Town</h3>
+          <h4 className="font-medium text-gray-900 mb-2">Towns</h4>
           <div className="grid grid-cols-2 gap-2">
-            {availableTowns.map((town) => (
+            {availableTowns.map(town => (
               <button
-                key={town}
-                onClick={() => handleTownSelect(town)}
-                className={`px-3 py-2 text-sm rounded-lg transition-colors ${
-                  selectedLocation.town === town
-                    ? 'bg-primary-100 text-primary-700'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                key={town._id}
+                onClick={() => handleTownSelect(town._id)}
+                className={`flex items-center justify-between p-2 rounded-lg border ${
+                  selectedLocation.town === town._id
+                    ? 'bg-primary-50 border-primary-500 text-primary-700'
+                    : 'border-gray-200 hover:border-primary-300'
                 }`}
               >
-                {town}
+                <span>{town.name}</span>
+                {selectedLocation.town === town._id && (
+                  <Check className="h-4 w-4 text-primary-600" />
+                )}
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {selectedLocation.town && (
+      {/* Hometowns */}
+      {selectedLocation.town && availableHometowns.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Hometown</h3>
+          <h4 className="font-medium text-gray-900 mb-2">Hometowns</h4>
           <div className="grid grid-cols-2 gap-2">
-            {availableHometowns.map((hometown) => (
+            {availableHometowns.map(hometown => (
               <button
-                key={hometown}
-                onClick={() => handleHometownSelect(hometown)}
-                className={`px-3 py-2 text-sm rounded-lg transition-colors ${
-                  selectedLocation.hometown === hometown
-                    ? 'bg-primary-100 text-primary-700'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                key={hometown._id}
+                onClick={() => handleHometownSelect(hometown._id)}
+                className={`flex items-center justify-between p-2 rounded-lg border ${
+                  selectedLocation.hometown === hometown._id
+                    ? 'bg-primary-50 border-primary-500 text-primary-700'
+                    : 'border-gray-200 hover:border-primary-300'
                 }`}
               >
-                {hometown}
+                <span>{hometown.name}</span>
+                {selectedLocation.hometown === hometown._id && (
+                  <Check className="h-4 w-4 text-primary-600" />
+                )}
               </button>
             ))}
           </div>

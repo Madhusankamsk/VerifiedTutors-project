@@ -136,21 +136,28 @@ export const getTutors = async (req, res) => {
     if (location) {
       try {
         const locationObj = JSON.parse(location);
-        if (locationObj.city || locationObj.town || locationObj.hometown) {
-          const locationIds = await Location.find({
-            $or: [
-              { city: locationObj.city },
-              { town: locationObj.town },
-              { hometown: locationObj.hometown }
-            ]
-          }).select('_id');
-          
-          if (locationIds.length > 0) {
-            query['locations'] = { $in: locationIds };
-          }
+        console.log('Location filter object:', locationObj);
+        
+        // First find the location IDs that match the criteria
+        const locationQuery = {};
+        if (locationObj.city) locationQuery.city = locationObj.city;
+        if (locationObj.town) locationQuery.town = locationObj.town;
+        if (locationObj.hometown) locationQuery.hometown = locationObj.hometown;
+        
+        console.log('Location query:', locationQuery);
+        
+        const matchingLocations = await Location.find(locationQuery).select('_id');
+        console.log('Matching locations:', matchingLocations);
+        
+        if (matchingLocations.length > 0) {
+          const locationIds = matchingLocations.map(loc => loc._id);
+          console.log('Location IDs to search for:', locationIds);
+          query.locations = { $in: locationIds };
+        } else {
+          console.log('No matching locations found');
         }
       } catch (err) {
-        console.error('Error parsing location:', err);
+        console.error('Error in location filtering:', err);
       }
     }
 
@@ -191,6 +198,7 @@ export const getTutors = async (req, res) => {
       returnedTutors: tutors.length,
       firstTutor: tutors[0] ? {
         id: tutors[0]._id,
+        locations: tutors[0].locations,
         subjects: tutors[0].subjects.map(s => ({
           name: s.subject?.name,
           educationLevel: s.subject?.educationLevel,
