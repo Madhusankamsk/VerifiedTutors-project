@@ -165,6 +165,10 @@ const TutorListingPage: React.FC = () => {
     }
     if (newFilters.teachingMode) newActiveFilters.push('teachingMode');
     setActiveFilters(newActiveFilters);
+
+    // Reset page and fetch tutors
+    setFilters(prev => ({ ...prev, page: 1 }));
+    fetchTutors(false);
   };
 
   const resetFilters = () => {
@@ -269,50 +273,6 @@ const TutorListingPage: React.FC = () => {
                   className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 />
               </div>
-
-              {/* Active Filters */}
-              {activeFilters.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {activeFilters.map((filterKey) => (
-                    <div
-                      key={filterKey}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-50 text-primary-700 rounded-full text-sm"
-                    >
-                      <span>{getFilterLabel(filterKey as keyof Filters)}</span>
-                      <button
-                        onClick={() => {
-                          const newFilters = { ...filters };
-                          if (filterKey === 'price') {
-                            newFilters.price = { min: 0, max: 1000 };
-                          } else if (filterKey === 'location') {
-                            newFilters.location = '';
-                          } else if (filterKey === 'rating') {
-                            newFilters.rating = 0;
-                          } else if (filterKey === 'educationLevel') {
-                            newFilters.educationLevel = '';
-                          } else if (filterKey === 'subject') {
-                            newFilters.subject = '';
-                          } else if (filterKey === 'teachingMode') {
-                            newFilters.medium = '';
-                          }
-                          setFilters(newFilters);
-                          setActiveFilters(prev => prev.filter(f => f !== filterKey));
-                        }}
-                        className="hover:bg-primary-100 rounded-full p-0.5"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    onClick={resetFilters}
-                    className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1"
-                  >
-                    <X className="h-4 w-4" />
-                    Clear All
-                  </button>
-                </div>
-              )}
             </div>
 
             {/* Results Count and Sort */}
