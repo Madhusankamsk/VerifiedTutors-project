@@ -81,7 +81,7 @@ export const createRating = async (req, res) => {
     const averageRating = sumRatings / totalRatings;
 
     tutor.rating = averageRating;
-    tutor.totalRatings = totalRatings;
+    tutor.totalReviews = totalRatings;
     await tutor.save();
 
     // Populate student info before sending response
@@ -128,7 +128,7 @@ export const updateRating = async (req, res) => {
 
     const tutor = await Tutor.findById(rating.tutor);
     tutor.rating = averageRating;
-    tutor.totalRatings = totalRatings;
+    tutor.totalReviews = totalRatings;
     await tutor.save();
 
     res.json(updatedRating);
