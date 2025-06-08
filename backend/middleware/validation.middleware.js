@@ -98,6 +98,9 @@ export const validateTutorProfile = (req, res, next) => {
           educationLevel: Joi.string().required().messages({
             'string.empty': 'Education level is required',
             'any.required': 'Education level is required'
+          }),
+          topics: Joi.array().items(Joi.string()).default([]).messages({
+            'array.base': 'Topics must be an array of strings'
           })
         }).required(),
         hourlyRate: Joi.number().min(0).required().messages({
@@ -381,6 +384,9 @@ export const validateSubjects = (req, res, next) => {
           educationLevel: Joi.string().required().messages({
             'string.empty': 'Education level is required',
             'any.required': 'Education level is required'
+          }),
+          topics: Joi.array().items(Joi.string()).default([]).messages({
+            'array.base': 'Topics must be an array of strings'
           })
         }).required(),
         hourlyRate: Joi.number().min(0).required().messages({

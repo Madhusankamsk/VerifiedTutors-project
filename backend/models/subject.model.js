@@ -17,12 +17,10 @@ const subjectSchema = new mongoose.Schema({
     required: [true, 'Please add an education level'],
     enum: ['PRIMARY', 'JUNIOR_SECONDARY', 'SENIOR_SECONDARY', 'ADVANCED_LEVEL', 'HIGHER_EDUCATION']
   },
-  medium: {
+  topics: [{
     type: String,
-    required: [true, 'Please add a medium'],
-    enum: ['English', 'Sinhala', 'Tamil'],
-    default: 'English'
-  },
+    trim: true
+  }],
   description: {
     type: String,
     default: ''

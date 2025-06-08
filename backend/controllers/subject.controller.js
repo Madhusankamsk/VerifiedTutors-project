@@ -50,7 +50,7 @@ export const getSubject = async (req, res) => {
 // @access  Private/Admin
 export const createSubject = async (req, res) => {
   try {
-    const { name, category, educationLevel, description, level } = req.body;
+    const { name, category, educationLevel, description, topics } = req.body;
 
     // Validate education level
     if (!educationLevel || !['PRIMARY', 'JUNIOR_SECONDARY', 'SENIOR_SECONDARY', 'ADVANCED_LEVEL', 'HIGHER_EDUCATION'].includes(educationLevel)) {
@@ -82,7 +82,7 @@ export const createSubject = async (req, res) => {
       category,
       educationLevel,
       description,
-      level
+      topics: topics || []
     });
 
     res.status(201).json(subject);
@@ -96,7 +96,7 @@ export const createSubject = async (req, res) => {
 // @access  Private/Admin
 export const updateSubject = async (req, res) => {
   try {
-    const { category, educationLevel } = req.body;
+    const { category, educationLevel, topics, isActive } = req.body;
 
     // If updating category or education level, validate them
     if (category || educationLevel) {
@@ -134,9 +134,18 @@ export const updateSubject = async (req, res) => {
       }
     }
 
+    // If only updating isActive status, preserve existing topics
+    if (Object.keys(req.body).length === 1 && 'isActive' in req.body) {
+      const currentSubject = await Subject.findById(req.params.id);
+      if (!currentSubject) {
+        return res.status(404).json({ message: 'Subject not found' });
+      }
+      req.body.topics = currentSubject.topics;
+    }
+
     const subject = await Subject.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      { ...req.body, topics: topics || req.body.topics || [] },
       { new: true, runValidators: true }
     );
 

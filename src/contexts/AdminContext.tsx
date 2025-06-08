@@ -27,7 +27,7 @@ export interface Subject {
   name: string;
   category: string;
   description: string;
-  medium: typeof MEDIUM_OPTIONS[number];
+  topics: string[];
   educationLevel: keyof typeof EDUCATION_LEVELS;
   isActive: boolean;
   createdAt: string;
@@ -335,7 +335,8 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (!subject) throw new Error('Subject not found');
       
       const response = await axios.put(`${API_URL}/api/subjects/${id}`, {
-        isActive: !subject.isActive
+        isActive: !subject.isActive,
+        topics: subject.topics
       });
       
       setSubjects(prev => prev.map(subject => 
