@@ -21,10 +21,19 @@ export const getSubjects = async (req, res) => {
       query.name = { $regex: search, $options: 'i' };
     }
 
+    console.log('Fetching subjects with query:', query);
+    
     const subjects = await Subject.find(query).sort({ name: 1 });
+    console.log(`Found ${subjects.length} subjects`);
+    
     res.json(subjects);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error in getSubjects:', error);
+    res.status(500).json({ 
+      message: 'Error fetching subjects',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 

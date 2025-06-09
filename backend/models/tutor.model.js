@@ -14,15 +14,15 @@ const tutorSchema = new mongoose.Schema({
   gender: {
     type: String,
     enum: ['Male', 'Female', 'Other'],
-    required: true,
+   // required: true,
   },
   mobileNumber: {
     type: String,
-    required: true,
+   // required: true,
   },
   bio: {
     type: String,
-    required: true,
+   // required: true,
   },
   socialMedia: {
     instagram: {
@@ -64,24 +64,24 @@ const tutorSchema = new mongoose.Schema({
   experience: [{
     title: {
       type: String,
-      required: true,
+     // required: true,
     },
     company: {
       type: String,
-      required: true,
+     // required: true,
     },
     duration: {
       type: String,
-      required: true,
+     // required: true,
     },
     description: {
       type: String,
-      required: true,
+     // required: true,
     },
   }],
   hourlyRate: {
     type: Number,
-    required: true,
+  //  required: true,
   },
   subjects: [{
     subject: {

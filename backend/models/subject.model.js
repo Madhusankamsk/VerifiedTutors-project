@@ -15,7 +15,10 @@ const subjectSchema = new mongoose.Schema({
   educationLevel: {
     type: String,
     required: [true, 'Please add an education level'],
-    enum: ['PRIMARY', 'JUNIOR_SECONDARY', 'SENIOR_SECONDARY', 'ADVANCED_LEVEL', 'HIGHER_EDUCATION']
+    enum: {
+      values: ['PRIMARY', 'JUNIOR_SECONDARY', 'SENIOR_SECONDARY', 'ADVANCED_LEVEL', 'HIGHER_EDUCATION'],
+      message: '{VALUE} is not a valid education level'
+    }
   },
   topics: [{
     type: String,
@@ -33,10 +36,15 @@ const subjectSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
+}, {
+  timestamps: true
 });
 
 // Add compound index for category and educationLevel
 subjectSchema.index({ category: 1, educationLevel: 1 });
+
+// Add text index for search
+subjectSchema.index({ name: 'text', description: 'text' });
 
 const Subject = mongoose.model('Subject', subjectSchema);
 
