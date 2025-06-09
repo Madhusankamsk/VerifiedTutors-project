@@ -1,41 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { Search, Filter, ChevronDown, ChevronUp, CheckCircle, XCircle, Eye } from 'lucide-react';
+import { Search, Filter, ChevronDown, ChevronUp, CheckCircle, XCircle, Eye, AlertCircle } from 'lucide-react';
 
 interface Tutor {
   _id: string;
-  user: {
+  user?: {
     _id: string;
     name: string;
     email: string;
     profileImage?: string;
   };
-  gender: 'Male' | 'Female' | 'Other';
-  mobileNumber: string;
-  bio: string;
-  subjects: Array<{
+  gender?: 'Male' | 'Female' | 'Other';
+  mobileNumber?: string;
+  bio?: string;
+  subjects?: Array<{
     _id: string;
     name: string;
     category: string;
   }>;
-  education: Array<{
+  education?: Array<{
     degree: string;
     institution: string;
     year: number;
   }>;
-  experience: Array<{
+  experience?: Array<{
     title: string;
     company: string;
     duration: string;
     description: string;
   }>;
-  hourlyRate: number;
-  rating: number;
-  totalRatings: number;
+  hourlyRate?: number;
+  rating?: number;
+  totalRatings?: number;
   isVerified: boolean;
-  documents: string[];
+  documents?: string[];
   createdAt: string;
+  verificationStatus?: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
+}
+
+interface VerificationChecklist {
+  id: string;
+  label: string;
+  isChecked: boolean;
 }
 
 const ManageTutors = () => {
@@ -54,19 +62,43 @@ const ManageTutors = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [selectedTutor, setSelectedTutor] = useState<Tutor | null>(null);
   const [showTutorDetails, setShowTutorDetails] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [verificationChecklist, setVerificationChecklist] = useState<VerificationChecklist[]>([
+    { id: 'documents', label: 'Valid ID Documents', isChecked: false },
+    { id: 'education', label: 'Education Certificates', isChecked: false },
+    { id: 'experience', label: 'Experience Verification', isChecked: false },
+    { id: 'background', label: 'Background Check', isChecked: false },
+    { id: 'interview', label: 'Interview Completed', isChecked: false }
+  ]);
 
   const fetchTutors = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/tutors?page=${currentPage}&search=${searchTerm}&verified=${filters.verified}&rating=${filters.rating}&sortBy=${filters.sortBy}`);
+      const response = await fetch(`/api/admin/tutors?page=${currentPage}&search=${searchTerm}&verified=${filters.verified}&rating=${filters.rating}&sortBy=${filters.sortBy}`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch tutors');
+        const errorData = await response.json().catch(() => ({ message: 'Failed to fetch tutors' }));
+        throw new Error(errorData.message || 'Failed to fetch tutors');
       }
+
       const data = await response.json();
+      if (!data || !Array.isArray(data.tutors)) {
+        throw new Error('Invalid response format');
+      }
+
       setTutors(data.tutors);
       setTotalPages(data.totalPages);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      setTutors([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -78,17 +110,45 @@ const ManageTutors = () => {
 
   const handleVerify = async (tutorId: string) => {
     try {
+      const allChecked = verificationChecklist.every(item => item.isChecked);
+      if (!allChecked) {
+        setError('Please complete all verification checks before approving');
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+      
       await verifyTutor(tutorId);
-      fetchTutors();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to verify tutor');
+      
+      // Reset checklist after successful verification
+      setVerificationChecklist(prev =>
+        prev.map(item => ({ ...item, isChecked: false }))
+      );
+      
+      // Close the modal and refresh the tutor list
+      setShowTutorDetails(false);
+      await fetchTutors();
+      
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to verify tutor';
+      setError(errorMessage);
+      console.error('Verify tutor error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleReject = async (tutorId: string) => {
+    if (!rejectionReason.trim()) {
+      setError('Please provide a reason for rejection');
+      return;
+    }
     try {
-      await rejectTutor(tutorId, 'Profile does not meet verification requirements');
+      await rejectTutor(tutorId, rejectionReason);
       fetchTutors();
+      setShowRejectModal(false);
+      setRejectionReason('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reject tutor');
     }
@@ -108,6 +168,14 @@ const ManageTutors = () => {
   const handleViewDetails = (tutor: Tutor) => {
     setSelectedTutor(tutor);
     setShowTutorDetails(true);
+  };
+
+  const handleChecklistChange = (id: string) => {
+    setVerificationChecklist(prev =>
+      prev.map(item =>
+        item.id === id ? { ...item, isChecked: !item.isChecked } : item
+      )
+    );
   };
 
   if (loading) {
@@ -209,24 +277,24 @@ const ManageTutors = () => {
                       <div className="h-10 w-10 flex-shrink-0">
                         <img
                           className="h-10 w-10 rounded-full"
-                          src={tutor.user.profileImage || 'https://via.placeholder.com/40'}
-                          alt={tutor.user.name}
+                          src={tutor.user?.profileImage || 'https://via.placeholder.com/40'}
+                          alt={tutor.user?.name || 'Tutor'}
                         />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{tutor.user.name}</div>
-                        <div className="text-sm text-gray-500">{tutor.user.email}</div>
+                        <div className="text-sm font-medium text-gray-900">{tutor.user?.name || 'Unknown Tutor'}</div>
+                        <div className="text-sm text-gray-500">{tutor.user?.email || 'No email'}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900">
-                      {tutor.subjects.map((subject) => subject.name).join(', ')}
+                      {tutor.subjects?.map((subject) => subject.name).join(', ') || 'No subjects'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{tutor.rating.toFixed(1)}</div>
-                    <div className="text-sm text-gray-500">({tutor.totalRatings} reviews)</div>
+                    <div className="text-sm text-gray-900">{tutor.rating?.toFixed(1) || '0.0'}</div>
+                    <div className="text-sm text-gray-500">({tutor.totalRatings || 0} reviews)</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
@@ -244,24 +312,30 @@ const ManageTutors = () => {
                       <button
                         onClick={() => handleViewDetails(tutor)}
                         className="text-blue-600 hover:text-blue-900"
+                        title="View Details"
                       >
                         <Eye className="h-5 w-5" />
                       </button>
                       {!tutor.isVerified && (
-                        <button
-                          onClick={() => handleVerify(tutor._id)}
-                          className="text-green-600 hover:text-green-900"
-                        >
-                          <CheckCircle className="h-5 w-5" />
-                        </button>
-                      )}
-                      {!tutor.isVerified && (
-                        <button
-                          onClick={() => handleReject(tutor._id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <XCircle className="h-5 w-5" />
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleVerify(tutor._id)}
+                            className="text-green-600 hover:text-green-900"
+                            title="Verify Tutor"
+                          >
+                            <CheckCircle className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedTutor(tutor);
+                              setShowRejectModal(true);
+                            }}
+                            className="text-red-600 hover:text-red-900"
+                            title="Reject Tutor"
+                          >
+                            <XCircle className="h-5 w-5" />
+                          </button>
+                        </>
                       )}
                     </div>
                   </td>
@@ -298,10 +372,10 @@ const ManageTutors = () => {
       {/* Tutor Details Modal */}
       {showTutorDetails && selectedTutor && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">Tutor Details</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Tutor Verification</h2>
                 <button
                   onClick={() => setShowTutorDetails(false)}
                   className="text-gray-400 hover:text-gray-500"
@@ -309,57 +383,80 @@ const ManageTutors = () => {
                   <XCircle className="h-6 w-6" />
                 </button>
               </div>
-              <div className="space-y-4">
+
+              {/* Verification Checklist */}
+              <div className="mb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-3">Verification Checklist</h3>
+                <div className="space-y-2">
+                  {verificationChecklist.map((item) => (
+                    <div key={item.id} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={item.id}
+                        checked={item.isChecked}
+                        onChange={() => handleChecklistChange(item.id)}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor={item.id} className="ml-2 text-sm text-gray-700">
+                        {item.label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tutor Details */}
+              <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">Personal Information</h3>
                   <div className="mt-2 grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-500">Name</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedTutor.user.name}</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedTutor?.user?.name || 'Not provided'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Email</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedTutor.user.email}</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedTutor?.user?.email || 'Not provided'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Gender</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedTutor.gender}</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedTutor?.gender || 'Not provided'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Mobile Number</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedTutor.mobileNumber}</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedTutor?.mobileNumber || 'Not provided'}</p>
                     </div>
                   </div>
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">Education</h3>
                   <div className="mt-2 space-y-2">
-                    {selectedTutor.education.map((edu, index) => (
+                    {selectedTutor?.education?.map((edu, index) => (
                       <div key={index} className="bg-gray-50 p-3 rounded-md">
                         <p className="text-sm font-medium text-gray-900">{edu.degree}</p>
                         <p className="text-sm text-gray-500">{edu.institution}</p>
                         <p className="text-sm text-gray-500">Year: {edu.year}</p>
                       </div>
-                    ))}
+                    )) || <p className="text-sm text-gray-500">No education information provided</p>}
                   </div>
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">Experience</h3>
                   <div className="mt-2 space-y-2">
-                    {selectedTutor.experience.map((exp, index) => (
+                    {selectedTutor?.experience?.map((exp, index) => (
                       <div key={index} className="bg-gray-50 p-3 rounded-md">
                         <p className="text-sm font-medium text-gray-900">{exp.title}</p>
                         <p className="text-sm text-gray-500">{exp.company}</p>
                         <p className="text-sm text-gray-500">{exp.duration}</p>
                         <p className="text-sm text-gray-500">{exp.description}</p>
                       </div>
-                    ))}
+                    )) || <p className="text-sm text-gray-500">No experience information provided</p>}
                   </div>
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">Documents</h3>
                   <div className="mt-2 grid grid-cols-2 gap-4">
-                    {selectedTutor.documents.map((doc, index) => (
+                    {selectedTutor?.documents?.map((doc, index) => (
                       <a
                         key={index}
                         href={doc}
@@ -369,11 +466,86 @@ const ManageTutors = () => {
                       >
                         Document {index + 1}
                       </a>
-                    ))}
+                    )) || <p className="text-sm text-gray-500">No documents provided</p>}
                   </div>
                 </div>
               </div>
+
+              {/* Action Buttons */}
+              <div className="mt-6 flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowTutorDetails(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                {!selectedTutor.isVerified && (
+                  <button
+                    onClick={() => handleVerify(selectedTutor._id)}
+                    className="px-4 py-2 bg-green-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-green-700"
+                    disabled={!verificationChecklist.every(item => item.isChecked)}
+                  >
+                    Approve Tutor
+                  </button>
+                )}
+              </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rejection Modal */}
+      {showRejectModal && selectedTutor && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-xl font-bold text-gray-900">Reject Tutor</h2>
+                <button
+                  onClick={() => setShowRejectModal(false)}
+                  className="text-gray-400 hover:text-gray-500"
+                >
+                  <XCircle className="h-6 w-6" />
+                </button>
+              </div>
+              <div className="mb-4">
+                <label htmlFor="rejectionReason" className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason for Rejection
+                </label>
+                <textarea
+                  id="rejectionReason"
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={4}
+                  placeholder="Please provide a detailed reason for rejection..."
+                />
+              </div>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowRejectModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleReject(selectedTutor._id)}
+                  className="px-4 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-700"
+                >
+                  Reject Tutor
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Alert */}
+      {error && (
+        <div className="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <div className="flex items-center">
+            <AlertCircle className="h-5 w-5 mr-2" />
+            <span>{error}</span>
           </div>
         </div>
       )}

@@ -201,7 +201,11 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      await axios.post(`${API_URL}/admin/tutors/${tutorId}/verify`);
+      await axios.patch(`${API_URL}/api/admin/tutors/${tutorId}/approve`, {}, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       await fetchDashboardStats();
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Failed to verify tutor';
@@ -217,7 +221,11 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      await axios.post(`${API_URL}/admin/tutors/${tutorId}/reject`, { reason });
+      await axios.patch(`${API_URL}/api/admin/tutors/${tutorId}/reject`, { reason }, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       await fetchDashboardStats();
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Failed to reject tutor';
@@ -233,7 +241,11 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      await axios.delete(`${API_URL}/admin/tutors/${tutorId}`);
+      await axios.delete(`${API_URL}/api/admin/tutors/${tutorId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       await fetchDashboardStats();
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Failed to delete tutor';

@@ -2,6 +2,7 @@ import Tutor from '../models/tutor.model.js';
 import User from '../models/user.model.js';
 import Subject from '../models/subject.model.js';
 import Booking from '../models/booking.model.js';
+import { sendEmail } from '../services/emailService.js';
 
 // @desc    Get all tutors
 // @route   GET /api/admin/tutors
@@ -63,14 +64,21 @@ export const getAllTutors = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(limit);
 
-    res.json({
+    // Ensure we're sending a proper JSON response
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).json({
       tutors,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       totalTutors: total
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error in getAllTutors:', error);
+    res.setHeader('Content-Type', 'application/json');
+    res.status(500).json({ 
+      message: 'Error fetching tutors',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
@@ -116,21 +124,57 @@ export const getDashboardStats = async (req, res) => {
 // @access  Private/Admin
 export const approveTutor = async (req, res) => {
   try {
-    const tutor = await Tutor.findById(req.params.id);
+    const tutor = await Tutor.findById(req.params.id).populate('user', 'email name');
     
     if (!tutor) {
       return res.status(404).json({ message: 'Tutor not found' });
     }
 
+    if (tutor.isVerified) {
+      return res.status(400).json({ message: 'Tutor is already verified' });
+    }
+
+    // Update tutor verification status
     tutor.isVerified = true;
     tutor.verificationStatus = 'approved';
     tutor.verificationDate = new Date();
     tutor.verifiedBy = req.user._id;
+    tutor.verificationChecks = {
+      documents: true,
+      education: true,
+      experience: true,
+      background: true,
+      interview: true
+    };
 
     await tutor.save();
-    res.json(tutor);
+
+    // Send approval email to tutor
+    try {
+      await sendEmail({
+        to: tutor.user.email,
+        subject: 'Tutor Profile Approved',
+        template: 'tutorApproved',
+        context: {
+          name: tutor.user.name,
+          loginUrl: `${process.env.FRONTEND_URL}/login`
+        }
+      });
+    } catch (emailError) {
+      console.error('Failed to send approval email:', emailError);
+      // Don't fail the verification if email fails
+    }
+
+    res.json({
+      message: 'Tutor approved successfully',
+      tutor
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error in approveTutor:', error);
+    res.status(500).json({ 
+      message: 'Failed to approve tutor',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
@@ -139,19 +183,69 @@ export const approveTutor = async (req, res) => {
 // @access  Private/Admin
 export const rejectTutor = async (req, res) => {
   try {
-    const tutor = await Tutor.findById(req.params.id);
+    const { reason } = req.body;
+    
+    if (!reason) {
+      return res.status(400).json({ message: 'Rejection reason is required' });
+    }
+
+    const tutor = await Tutor.findById(req.params.id).populate('user', 'email name');
     
     if (!tutor) {
       return res.status(404).json({ message: 'Tutor not found' });
     }
 
+    // Update tutor verification status
     tutor.isVerified = false;
     tutor.verificationStatus = 'rejected';
     tutor.verificationDate = new Date();
     tutor.verifiedBy = req.user._id;
-    tutor.rejectionReason = req.body.reason;
+    tutor.rejectionReason = reason;
+    tutor.verificationChecks = {
+      documents: false,
+      education: false,
+      experience: false,
+      background: false,
+      interview: false
+    };
 
     await tutor.save();
+
+    // Send rejection email to tutor
+    await sendEmail({
+      to: tutor.user.email,
+      subject: 'Tutor Profile Rejected',
+      template: 'tutorRejected',
+      context: {
+        name: tutor.user.name,
+        reason: reason,
+        supportEmail: process.env.SUPPORT_EMAIL
+      }
+    });
+
+    res.json({
+      message: 'Tutor rejected successfully',
+      tutor
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get tutor verification details
+// @route   GET /api/admin/tutors/:id/verification
+// @access  Private/Admin
+export const getTutorVerificationDetails = async (req, res) => {
+  try {
+    const tutor = await Tutor.findById(req.params.id)
+      .populate('user', 'name email profileImage')
+      .populate('subjects', 'name category')
+      .select('+verificationChecks +rejectionReason +verificationDate +verifiedBy');
+
+    if (!tutor) {
+      return res.status(404).json({ message: 'Tutor not found' });
+    }
+
     res.json(tutor);
   } catch (error) {
     res.status(500).json({ message: error.message });

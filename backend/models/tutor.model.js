@@ -14,11 +14,15 @@ const tutorSchema = new mongoose.Schema({
   gender: {
     type: String,
     enum: ['Male', 'Female', 'Other'],
-   // required: true,
+    required: true,
+  },
+  mobileNumber: {
+    type: String,
+    required: true,
   },
   bio: {
     type: String,
-    default: '',
+    required: true,
   },
   socialMedia: {
     instagram: {
@@ -58,11 +62,11 @@ const tutorSchema = new mongoose.Schema({
     },
   }],
   experience: [{
-    position: {
+    title: {
       type: String,
       required: true,
     },
-    institution: {
+    company: {
       type: String,
       required: true,
     },
@@ -75,6 +79,10 @@ const tutorSchema = new mongoose.Schema({
       required: true,
     },
   }],
+  hourlyRate: {
+    type: Number,
+    required: true,
+  },
   subjects: [{
     subject: {
       type: mongoose.Schema.Types.ObjectId,
@@ -131,13 +139,50 @@ const tutorSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  totalReviews: {
+  totalRatings: {
     type: Number,
     default: 0,
   },
   isVerified: {
     type: Boolean,
     default: false,
+  },
+  verificationStatus: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
+  },
+  verificationDate: {
+    type: Date,
+  },
+  verifiedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  verificationChecks: {
+    documents: {
+      type: Boolean,
+      default: false,
+    },
+    education: {
+      type: Boolean,
+      default: false,
+    },
+    experience: {
+      type: Boolean,
+      default: false,
+    },
+    background: {
+      type: Boolean,
+      default: false,
+    },
+    interview: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  rejectionReason: {
+    type: String,
   },
   status: {
     type: String,
@@ -152,6 +197,8 @@ const tutorSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+}, {
+  timestamps: true,
 });
 
 // Update the updatedAt timestamp before saving
@@ -159,6 +206,13 @@ tutorSchema.pre('save', function(next) {
   this.updatedAt = new Date();
   next();
 });
+
+// Indexes for better query performance
+tutorSchema.index({ isVerified: 1 });
+tutorSchema.index({ verificationStatus: 1 });
+tutorSchema.index({ rating: -1 });
+tutorSchema.index({ 'user.name': 1 });
+tutorSchema.index({ 'user.email': 1 });
 
 const Tutor = mongoose.model('Tutor', tutorSchema);
 
