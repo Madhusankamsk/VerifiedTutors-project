@@ -13,6 +13,43 @@ interface DashboardStats {
   totalRevenue: number;
 }
 
+interface Tutor {
+  _id: string;
+  user?: {
+    _id: string;
+    name: string;
+    email: string;
+    profileImage?: string;
+  };
+  gender?: 'Male' | 'Female' | 'Other';
+  mobileNumber?: string;
+  bio?: string;
+  subjects?: Array<{
+    _id: string;
+    name: string;
+    category: string;
+  }>;
+  education?: Array<{
+    degree: string;
+    institution: string;
+    year: number;
+  }>;
+  experience?: Array<{
+    title: string;
+    company: string;
+    duration: string;
+    description: string;
+  }>;
+  hourlyRate?: number;
+  rating?: number;
+  totalRatings?: number;
+  isVerified: boolean;
+  documents?: string[];
+  createdAt: string;
+  verificationStatus?: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
+}
+
 export interface Location {
   _id: string;
   name: string;
@@ -137,6 +174,10 @@ interface AdminContextType {
   fetchDashboardStats: () => Promise<void>;
   
   // Tutor Management
+  tutors: Tutor[];
+  totalPages: number;
+  currentPage: number;
+  fetchTutors: (page: number, search: string, filters: TutorFilters) => Promise<void>;
   verifyTutor: (tutorId: string) => Promise<void>;
   rejectTutor: (tutorId: string, reason: string) => Promise<void>;
   deleteTutor: (tutorId: string) => Promise<void>;
@@ -159,6 +200,12 @@ interface AdminContextType {
   getAvailableParents: (level: number) => Location[];
 }
 
+interface TutorFilters {
+  verified: string;
+  rating: string;
+  sortBy: string;
+}
+
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -171,6 +218,9 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     totalBookings: 0,
     totalRevenue: 0
   });
+  const [tutors, setTutors] = useState<Tutor[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
@@ -197,6 +247,37 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Tutor Management
+  const fetchTutors = async (page: number, search: string, filters: TutorFilters) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.get(
+        `${API_URL}/api/admin/tutors?page=${page}&search=${search}&verified=${filters.verified}&rating=${filters.rating}&sortBy=${filters.sortBy}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      
+      if (!response.data || !Array.isArray(response.data.tutors)) {
+        throw new Error('Invalid response format');
+      }
+
+      setTutors(response.data.tutors);
+      setTotalPages(response.data.totalPages);
+      setCurrentPage(page);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to fetch tutors';
+      setError(errorMessage);
+      console.error('Fetch tutors error:', err);
+      setTutors([]);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const verifyTutor = async (tutorId: string) => {
     try {
       setLoading(true);
@@ -472,6 +553,10 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     fetchDashboardStats,
     
     // Tutor Management
+    tutors,
+    totalPages,
+    currentPage,
+    fetchTutors,
     verifyTutor,
     rejectTutor,
     deleteTutor,

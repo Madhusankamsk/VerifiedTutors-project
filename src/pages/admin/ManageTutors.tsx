@@ -47,10 +47,18 @@ interface VerificationChecklist {
 }
 
 const ManageTutors = () => {
-  const { verifyTutor, rejectTutor, deleteTutor } = useAdmin();
-  const [tutors, setTutors] = useState<Tutor[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { 
+    tutors, 
+    totalPages, 
+    currentPage, 
+    loading, 
+    error: contextError,
+    fetchTutors, 
+    verifyTutor, 
+    rejectTutor, 
+    deleteTutor 
+  } = useAdmin();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     verified: 'all',
@@ -58,12 +66,11 @@ const ManageTutors = () => {
     sortBy: 'newest'
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [selectedTutor, setSelectedTutor] = useState<Tutor | null>(null);
   const [showTutorDetails, setShowTutorDetails] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [localError, setLocalError] = useState<string | null>(null);
   const [verificationChecklist, setVerificationChecklist] = useState<VerificationChecklist[]>([
     { id: 'documents', label: 'Valid ID Documents', isChecked: false },
     { id: 'education', label: 'Education Certificates', isChecked: false },
@@ -72,53 +79,18 @@ const ManageTutors = () => {
     { id: 'interview', label: 'Interview Completed', isChecked: false }
   ]);
 
-  const fetchTutors = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/admin/tutors?page=${currentPage}&search=${searchTerm}&verified=${filters.verified}&rating=${filters.rating}&sortBy=${filters.sortBy}`, {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Failed to fetch tutors' }));
-        throw new Error(errorData.message || 'Failed to fetch tutors');
-      }
-
-      const data = await response.json();
-      if (!data || !Array.isArray(data.tutors)) {
-        throw new Error('Invalid response format');
-      }
-
-      setTutors(data.tutors);
-      setTotalPages(data.totalPages);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-      setTutors([]);
-      setTotalPages(1);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchTutors();
+    fetchTutors(currentPage, searchTerm, filters);
   }, [currentPage, searchTerm, filters]);
 
   const handleVerify = async (tutorId: string) => {
     try {
       const allChecked = verificationChecklist.every(item => item.isChecked);
       if (!allChecked) {
-        setError('Please complete all verification checks before approving');
+        setLocalError('Please complete all verification checks before approving');
         return;
       }
 
-      setLoading(true);
-      setError(null);
-      
       await verifyTutor(tutorId);
       
       // Reset checklist after successful verification
@@ -128,29 +100,27 @@ const ManageTutors = () => {
       
       // Close the modal and refresh the tutor list
       setShowTutorDetails(false);
-      await fetchTutors();
+      fetchTutors(currentPage, searchTerm, filters);
       
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Failed to verify tutor';
-      setError(errorMessage);
+      setLocalError(errorMessage);
       console.error('Verify tutor error:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleReject = async (tutorId: string) => {
     if (!rejectionReason.trim()) {
-      setError('Please provide a reason for rejection');
+      setLocalError('Please provide a reason for rejection');
       return;
     }
     try {
       await rejectTutor(tutorId, rejectionReason);
-      fetchTutors();
+      fetchTutors(currentPage, searchTerm, filters);
       setShowRejectModal(false);
       setRejectionReason('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to reject tutor');
+      setLocalError(err instanceof Error ? err.message : 'Failed to reject tutor');
     }
   };
 
@@ -158,9 +128,9 @@ const ManageTutors = () => {
     if (window.confirm('Are you sure you want to delete this tutor?')) {
       try {
         await deleteTutor(tutorId);
-        fetchTutors();
+        fetchTutors(currentPage, searchTerm, filters);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to delete tutor');
+        setLocalError(err instanceof Error ? err.message : 'Failed to delete tutor');
       }
     }
   };
@@ -350,7 +320,7 @@ const ManageTutors = () => {
       <div className="mt-4 flex justify-center">
         <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
           <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            onClick={() => fetchTutors(currentPage - 1, searchTerm, filters)}
             disabled={currentPage === 1}
             className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
           >
@@ -360,7 +330,7 @@ const ManageTutors = () => {
             Page {currentPage} of {totalPages}
           </span>
           <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            onClick={() => fetchTutors(currentPage + 1, searchTerm, filters)}
             disabled={currentPage === totalPages}
             className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
           >
@@ -541,11 +511,11 @@ const ManageTutors = () => {
       )}
 
       {/* Error Alert */}
-      {error && (
+      {(contextError || localError) && (
         <div className="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           <div className="flex items-center">
             <AlertCircle className="h-5 w-5 mr-2" />
-            <span>{error}</span>
+            <span>{contextError || localError}</span>
           </div>
         </div>
       )}
