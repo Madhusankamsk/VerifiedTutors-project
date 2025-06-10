@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
+import logo from '../../assets/logo.png';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -50,9 +51,11 @@ const Footer: React.FC = () => {
           {/* Brand Section */}
           <div className="lg:col-span-4">
             <Link to="/" className="inline-block">
-              <span className="text-3xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
-                VerifiedTutors
-              </span>
+              <img 
+                src={logo} 
+                alt="VerifiedTutors Logo" 
+                className="h-36 w-auto filter brightness-0 invert opacity-90"
+              />
             </Link>
             <p className="mt-6 text-gray-300 leading-relaxed max-w-md">
               Connecting students with verified tutors for personalized learning experiences. 

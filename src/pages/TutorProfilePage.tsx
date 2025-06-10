@@ -513,7 +513,7 @@ const TutorProfilePage: React.FC = () => {
                   <span className="text-gray-600 text-sm">{profile.user.email}</span>
                 </div>
               </div>
-              <div className="mt-4 space-y-3">
+              {/* <div className="mt-4 space-y-3">
                 <button 
                   onClick={handleBookSession}
                   className="w-full py-2 bg-primary-600 text-white rounded-full text-sm font-medium hover:bg-primary-700 transition-all duration-200 flex items-center justify-center gap-1"
@@ -528,7 +528,7 @@ const TutorProfilePage: React.FC = () => {
                   <Star className="h-4 w-4" />
                   Write a Review
                 </button>
-              </div>
+              </div> */}
             </div>
 
             {/* Availability Widget */}

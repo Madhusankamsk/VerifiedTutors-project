@@ -3,38 +3,52 @@ import { Link } from 'react-router-dom';
 import { Search, CheckCircle, Star, Award, BookOpen, ArrowRight } from 'lucide-react';
 import { SUBJECT_AREAS } from '../config/constants';
 import { useAuth } from '../contexts/AuthContext';
+import heroImage from '../assets/heroImage.png';
 
 const HomePage: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section - modernized with cleaner design */}
+      {/* Hero Section - modernized with cleaner design and hero image */}
       <div className="relative bg-gradient-to-r from-primary-600 to-primary-800 text-white overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 lg:py-32 relative">
-          <div className="md:w-3/4 lg:w-2/3">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6 text-white">
-              Find Trusted Tutors in Sri Lanka
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 text-white/90 font-light max-w-2xl">
-              Connect with verified, experienced tutors for online, home-visit, or group classes
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link 
-                to="/tutors" 
-                className="btn bg-white text-primary-700 hover:bg-gray-50 px-6 py-3 text-base font-medium rounded-full transition-all duration-300 shadow-md hover:shadow-lg flex items-center"
-              >
-                Find a Tutor <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-              {!isAuthenticated && (
+          <div className="flex flex-col md:flex-row items-center">
+            {/* Left side content */}
+            <div className="w-full md:w-1/2 lg:w-3/5 z-10">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6 text-white">
+                Find Trusted Tutors in Sri Lanka
+              </h1>
+              <p className="text-xl md:text-2xl mb-8 text-white/90 font-light max-w-2xl">
+                Connect with verified, experienced tutors for online, home-visit, or group classes
+              </p>
+              <div className="flex flex-wrap gap-4">
                 <Link 
-                  to="/register" 
-                  className="btn bg-accent-500 text-white hover:bg-accent-600 px-6 py-3 text-base font-medium rounded-full transition-all duration-300 shadow-md hover:shadow-lg"
+                  to="/tutors" 
+                  className="btn bg-white text-primary-700 hover:bg-gray-50 px-6 py-3 text-base font-medium rounded-full transition-all duration-300 shadow-md hover:shadow-lg flex items-center"
                 >
-                  Become a Tutor
+                  Find a Tutor <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
-              )}
+                {!isAuthenticated && (
+                  <Link 
+                    to="/register" 
+                    className="btn bg-accent-500 text-white hover:bg-accent-600 px-6 py-3 text-base font-medium rounded-full transition-all duration-300 shadow-md hover:shadow-lg"
+                  >
+                    Become a Tutor
+                  </Link>
+                )}
+              </div>
+            </div>
+            
+            {/* Right side hero image - positioned at far right and hidden on mobile */}
+            <div className="hidden md:block md:w-1/2 lg:w-2/5 absolute right-0 top-0 bottom-0 z-10">
+              <img 
+                src={heroImage} 
+                alt="Tutoring session" 
+                className="h-full object-contain object-right"
+                style={{ maxHeight: "100%" }}
+              />
             </div>
           </div>
         </div>

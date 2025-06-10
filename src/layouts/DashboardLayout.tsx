@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Menu, X } from 'lucide-react';
+import logo from '../assets/logo.png';
 
 interface SidebarItem {
   name: string;
@@ -30,8 +31,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
       >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between h-16 px-4 border-b">
-            <Link to="/" className="text-xl font-bold text-primary">
-              VerifiedTutors
+            <Link to="/" className="flex-shrink-0">
+              <img 
+                src={logo} 
+                alt="VerifiedTutors Logo" 
+                className="h-36 w-auto"
+              />
             </Link>
             <button
               onClick={() => setIsSidebarOpen(false)}
