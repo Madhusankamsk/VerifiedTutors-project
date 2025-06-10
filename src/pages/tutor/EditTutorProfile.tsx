@@ -547,8 +547,8 @@ const EditTutorProfile: React.FC = () => {
               <div className="flex flex-col md:flex-row gap-8">
                 {/* Profile Picture */}
                 <div className="flex-shrink-0">
-                  <div className="relative group">
-                    <div className="w-40 h-40 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center overflow-hidden">
+                  <div className="relative group w-40 h-40">
+                    <div className="w-full h-full rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center overflow-hidden">
                       {profileImage ? (
                         <img src={profileImage} alt="Profile" className="w-full h-full object-cover rounded-2xl" />
                       ) : (
@@ -559,13 +559,15 @@ const EditTutorProfile: React.FC = () => {
                     </div>
                     <label
                       htmlFor="profile-image"
-                      className={`absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-2xl cursor-pointer ${
+                      className={`absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-b from-black/60 to-black/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-2xl cursor-pointer ${
                         isUploading ? 'cursor-not-allowed opacity-50' : ''
                       }`}
                     >
-                      <div className="flex flex-col items-center">
-                        <Camera className="w-8 h-8 text-white mb-1" />
-                        <span className="text-white text-sm font-medium">Change Photo</span>
+                      <div className="flex flex-col items-center transform group-hover:scale-105 transition-transform duration-300">
+                        <div className="bg-white/10 p-3 rounded-full mb-2">
+                          <Camera className="w-6 h-6 text-white" />
+                        </div>
+                        <span className="text-white text-sm font-medium tracking-wide">Change Photo</span>
                       </div>
                     </label>
                     <input
@@ -577,13 +579,16 @@ const EditTutorProfile: React.FC = () => {
                       disabled={isUploading}
                     />
                     {isUploading && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-2xl">
-                        <div className="animate-spin rounded-full h-8 w-8 border-4 border-white border-t-transparent"></div>
+                      <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-black/30 backdrop-blur-sm rounded-2xl">
+                        <div className="flex flex-col items-center">
+                          <div className="animate-spin rounded-full h-10 w-10 border-4 border-white border-t-transparent mb-2"></div>
+                          <span className="text-white text-sm font-medium">Uploading...</span>
+                        </div>
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2 text-center">
-                    Max file size: 5MB. Supported formats: JPG, PNG, GIF
+                  <p className="text-xs text-gray-500 mt-3 text-center font-medium">
+                    Max file size: 5MB • JPG, PNG, GIF
                   </p>
                 </div>
 
