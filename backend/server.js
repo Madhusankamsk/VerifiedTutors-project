@@ -25,7 +25,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173'],
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://100.115.79.13:3000', 'http://100.115.79.13:5173'],
   credentials: true,
 }));
 app.use(express.json());
@@ -64,7 +64,7 @@ const connectDB = async () => {
 
 // Start server
 connectDB().then(() => {
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
   });
 });
