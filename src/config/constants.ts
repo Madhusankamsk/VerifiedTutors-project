@@ -1,5 +1,5 @@
 // API Configuration
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+export const API_URL = import.meta.env.VITE_API_URL || 'http://100.115.79.13:5000';
 
 // Firebase Configuration
 export const FIREBASE_CONFIG = {
