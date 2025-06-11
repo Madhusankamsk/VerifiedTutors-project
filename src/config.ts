@@ -1,1 +1,1 @@
-export const API_URL = import.meta.env.VITE_API_URL || 'http://100.115.79.13:5000'; 
+export { API_URL } from './config/constants'; 

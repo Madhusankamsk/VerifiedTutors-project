@@ -271,7 +271,7 @@ const EditTutorProfile: React.FC = () => {
       console.log('Uploading documents:', selectedDocuments.map(f => f.name));
 
       // Upload documents
-      const response = await fetch('http://100.115.79.13:5000/api/upload/verification-docs', {
+      const response = await fetch('http://localhost:5000/api/upload/verification-docs', {
         method: 'POST',
         body: formData,
         headers: {

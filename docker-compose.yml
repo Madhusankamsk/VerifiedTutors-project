@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:80"
+      - "0.0.0.0:3000:80"
     depends_on:
       - backend
     environment:
@@ -19,7 +19,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "5000:5000"
+      - "0.0.0.0:5000:5000"
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb+srv://madhusanka:hi4fdP5pn8dcwGFv@cluster0.0a4mi.mongodb.net/
