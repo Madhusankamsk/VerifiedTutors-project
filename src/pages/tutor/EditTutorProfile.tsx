@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTutor, TutorProfile, TutorSubject } from '../../contexts/TutorContext';
 import { useLocations, Location } from '../../contexts/LocationContext';
-import { useSubjects, Subject } from '../../contexts/SubjectContext';
+import { useSubjects } from '../../contexts/SubjectContext';
+import { Subject, EDUCATION_LEVELS } from '../../contexts/AdminContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import { X, Plus, Save, Trash2, MapPin, BookOpen, GraduationCap, Briefcase, User, Phone, Mail, Clock, Upload, Camera, Globe, Languages, FileText, Eye, Users, Video } from 'lucide-react';
@@ -201,7 +202,16 @@ const EditTutorProfile: React.FC = () => {
             throw new Error(`Subject with id ${s._id} not found`);
           }
           return {
-            subject,
+            subject: {
+              _id: subject._id,
+              name: subject.name,
+              category: subject.category,
+              description: subject.description,
+              topics: [],
+              educationLevel: subject.educationLevel as keyof typeof EDUCATION_LEVELS,
+              isActive: subject.isActive,
+              createdAt: subject.createdAt
+            },
             rates: s.rates,
             availability: s.availability
           };

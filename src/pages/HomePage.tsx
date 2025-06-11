@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Search, CheckCircle, Star, Award, BookOpen, ArrowRight } from 'lucide-react';
 import { SUBJECT_AREAS } from '../config/constants';
 import { useAuth } from '../contexts/AuthContext';
-import heroImage from '../assets/heroImage.png';
+import heroImage from '../assets/HeroImage.png';
 
 const HomePage: React.FC = () => {
   const { isAuthenticated } = useAuth();
