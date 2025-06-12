@@ -2,15 +2,12 @@ import React, { useState } from 'react';
 import { useLocations, Location } from '../../contexts/LocationContext';
 import { Check, X, ChevronDown, ChevronRight } from 'lucide-react';
 
-interface TutorLocation {
-  _id: string;
-  name: string;
-  province: string;
-}
+// Simplified interface without province
+interface SelectedLocation extends Pick<Location, '_id' | 'name'> {}
 
 interface LocationSelectorProps {
-  selectedLocations: TutorLocation[];
-  onLocationsChange: (locations: TutorLocation[]) => void;
+  selectedLocations: SelectedLocation[];
+  onLocationsChange: (locations: SelectedLocation[]) => void;
 }
 
 const LocationSelector: React.FC<LocationSelectorProps> = ({ selectedLocations, onLocationsChange }) => {
@@ -73,19 +70,17 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ selectedLocations, 
       // If selecting a town, add it and all its hometowns
       if (location.level === 2) {
         const hometowns = location.children || [];
-        const townLocation: TutorLocation = {
+        const townLocation: SelectedLocation = {
           _id: location._id,
-          name: location.name,
-          province: (locations.find(l => l._id === location.parent) as Location)?.name || ''
+          name: location.name
         };
         
         // Only add hometowns that aren't already selected
-        const hometownLocations: TutorLocation[] = hometowns
+        const hometownLocations: SelectedLocation[] = hometowns
           .filter(hometown => !selectedLocations.some(loc => loc._id === hometown._id))
           .map(hometown => ({
             _id: hometown._id,
-            name: hometown.name,
-            province: (locations.find(l => l._id === location.parent) as Location)?.name || ''
+            name: hometown.name
           }));
 
         // Only add the town if it's not already selected
@@ -97,12 +92,59 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ selectedLocations, 
       } else {
         // If selecting a hometown, just add it if not already selected
         if (!selectedLocations.some(loc => loc._id === location._id)) {
-          const hometownLocation: TutorLocation = {
+          const hometownLocation: SelectedLocation = {
             _id: location._id,
-            name: location.name,
-            province: (locations.find(l => l._id === (locations.find(p => p._id === location.parent) as Location)?.parent) as Location)?.name || ''
+            name: location.name
           };
-          newLocations = [...newLocations, hometownLocation];
+          
+          // Find parent town and city
+          let parentTown: Location | undefined;
+          let parentCity: Location | undefined;
+
+          // Search through cities to find the parent town and city
+          for (const city of locations) {
+            if (city.children) {
+              for (const town of city.children) {
+                if (town.children?.some(hometown => hometown._id === location._id)) {
+                  parentTown = town;
+                  parentCity = city;
+                  break;
+                }
+              }
+            }
+            if (parentTown && parentCity) break;
+          }
+
+          // Create SelectedLocation objects for parent locations
+          const parentTownLocation: SelectedLocation | undefined = parentTown ? {
+            _id: parentTown._id,
+            name: parentTown.name
+          } : undefined;
+
+          const parentCityLocation: SelectedLocation | undefined = parentCity ? {
+            _id: parentCity._id,
+            name: parentCity.name
+          } : undefined;
+
+          // Helper function to check if a location already exists
+          const locationExists = (loc: SelectedLocation) => 
+            newLocations.some(existing => existing._id === loc._id);
+
+          // Add locations to the array, filtering out duplicates and undefined values
+          const locationsToAdd: SelectedLocation[] = [
+            hometownLocation,
+            ...(parentTownLocation && !locationExists(parentTownLocation) ? [parentTownLocation] : []),
+            ...(parentCityLocation && !locationExists(parentCityLocation) ? [parentCityLocation] : [])
+          ];
+
+          // Filter out any locations that already exist in newLocations
+          newLocations = [
+            ...newLocations,
+            ...locationsToAdd.filter(loc => !locationExists(loc))
+          ];
+
+          // Show alert with location hierarchy
+       //   alert(`Selected location:\nCity: ${parentCity?.name}\nTown: ${parentTown?.name}\nHometown: ${location.name}`);
         }
       }
     }
