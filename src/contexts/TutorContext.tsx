@@ -30,8 +30,8 @@ export interface TutorProfile {
     year: number;
   }[];
   experience: {
-    position: string;
-    institution: string;
+    title: string;
+    company: string;
     duration: string;
     description: string;
   }[];

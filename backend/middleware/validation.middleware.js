@@ -60,13 +60,13 @@ export const validateTutorProfile = (req, res, next) => {
     }),
     experience: Joi.array().items(
       Joi.object({
-        position: Joi.string().required().messages({
-          'string.empty': 'Position is required',
-          'any.required': 'Position is required'
+        title: Joi.string().required().messages({
+          'string.empty': 'Title is required',
+          'any.required': 'Title is required'
         }),
-        institution: Joi.string().required().messages({
-          'string.empty': 'Institution is required',
-          'any.required': 'Institution is required'
+        company: Joi.string().required().messages({
+          'string.empty': 'Company is required',
+          'any.required': 'Company is required'
         }),
         duration: Joi.string().required().messages({
           'string.empty': 'Duration is required',
@@ -240,13 +240,13 @@ export const validateExperience = (req, res, next) => {
   const schema = Joi.object({
     experience: Joi.array().items(
       Joi.object({
-        position: Joi.string().required().messages({
-          'string.empty': 'Position is required',
-          'any.required': 'Position is required'
+        title: Joi.string().required().messages({
+          'string.empty': 'Title is required',
+          'any.required': 'Title is required'
         }),
-        institution: Joi.string().required().messages({
-          'string.empty': 'Institution is required',
-          'any.required': 'Institution is required'
+        company: Joi.string().required().messages({
+          'string.empty': 'Company is required',
+          'any.required': 'Company is required'
         }),
         duration: Joi.string().required().messages({
           'string.empty': 'Duration is required',

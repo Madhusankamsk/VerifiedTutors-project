@@ -25,8 +25,8 @@ interface Tutor {
     year: number;
   }>;
   experience?: Array<{
-    title: string;
-    company: string;
+    position: string;
+    institution: string;
     duration: string;
     description: string;
   }>;
@@ -415,8 +415,8 @@ const ManageTutors = () => {
                   <div className="mt-2 space-y-2">
                     {selectedTutor?.experience?.map((exp, index) => (
                       <div key={index} className="bg-gray-50 p-3 rounded-md">
-                        <p className="text-sm font-medium text-gray-900">{exp.title}</p>
-                        <p className="text-sm text-gray-500">{exp.company}</p>
+                        <p className="text-sm font-medium text-gray-900">{exp.position}</p>
+                        <p className="text-sm text-gray-500">{exp.institution}</p>
                         <p className="text-sm text-gray-500">{exp.duration}</p>
                         <p className="text-sm text-gray-500">{exp.description}</p>
                       </div>

@@ -314,9 +314,9 @@ export const updateTutorProfile = async (req, res) => {
     // Validate experience entries
     if (req.body.experience) {
       for (const exp of req.body.experience) {
-        if (!exp.position || !exp.institution || !exp.duration || !exp.description) {
+        if (!exp.title || !exp.company || !exp.duration || !exp.description) {
           return res.status(400).json({ 
-            message: 'Each experience entry must include position, institution, duration, and description' 
+            message: 'Each experience entry must include title, company, duration, and description' 
           });
         }
       }

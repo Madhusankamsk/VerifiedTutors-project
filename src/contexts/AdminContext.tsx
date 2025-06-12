@@ -35,8 +35,8 @@ interface Tutor {
     year: number;
   }>;
   experience?: Array<{
-    title: string;
-    company: string;
+    position: string;
+    institution: string;
     duration: string;
     description: string;
   }>;

@@ -33,8 +33,8 @@ interface FormData {
     year: number;
   }>;
   experience: Array<{
-    position: string;
-    institution: string;
+    title: string;
+    company: string;
     duration: string;
     description: string;
   }>;
@@ -108,6 +108,7 @@ const EditTutorProfile: React.FC = () => {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [selectedMediums, setSelectedMediums] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
   useEffect(() => {
     // Check if user is authenticated and is a tutor
@@ -179,9 +180,14 @@ const EditTutorProfile: React.FC = () => {
   }, [formData, initialFormData]);
 
   const handleDiscard = () => {
+    setShowDiscardConfirm(true);
+  };
+
+  const confirmDiscard = () => {
     if (initialFormData) {
       setFormData(initialFormData);
       setHasChanges(false);
+      setShowDiscardConfirm(false);
     }
   };
 
@@ -525,30 +531,70 @@ const EditTutorProfile: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
+          {/* Floating Action Bar */}
+          {hasChanges && (
+            <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200 shadow-lg z-50">
+              <div className="container mx-auto px-4 py-4">
+                <div className="max-w-4xl mx-auto flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                    <span className="text-gray-600 font-medium">You have unsaved changes</span>
+                  </div>
+                  <div className="flex gap-4">
+                    <button
+                      type="button"
+                      onClick={handleDiscard}
+                      className="inline-flex items-center px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    >
+                      <X className="w-5 h-5 mr-2" />
+                      Discard Changes
+                    </button>
+                    <button
+                      type="submit"
+                      form="profile-form"
+                      className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    >
+                      <Save className="w-5 h-5 mr-2" />
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Discard Confirmation Dialog */}
+          {showDiscardConfirm && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+              <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Discard Changes?</h3>
+                <p className="text-gray-600 mb-6">
+                  Are you sure you want to discard all changes? This action cannot be undone.
+                </p>
+                <div className="flex justify-end gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowDiscardConfirm(false)}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmDiscard}
+                    className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors duration-200"
+                  >
+                    Discard Changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
               Edit Profile
             </h1>
-            {hasChanges && (
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={handleDiscard}
-                  className="inline-flex items-center px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                >
-                  <X className="w-5 h-5 mr-2" />
-                  Discard Changes
-                </button>
-                <button
-                  type="submit"
-                  form="profile-form"
-                  className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                >
-                  <Save className="w-5 h-5 mr-2" />
-                  Save Changes
-                </button>
-              </div>
-            )}
           </div>
 
           <form id="profile-form" onSubmit={handleSubmit} className="space-y-8">
@@ -867,7 +913,7 @@ const EditTutorProfile: React.FC = () => {
                   type="button"
                   onClick={() => setFormData(prev => ({
                     ...prev,
-                    experience: [...prev.experience, { position: '', institution: '', duration: '', description: '' }]
+                    experience: [...prev.experience, { title: '', company: '', duration: '', description: '' }]
                   }))}
                   className="inline-flex items-center px-4 py-2 bg-primary-50 text-primary-700 rounded-xl hover:bg-primary-100 transition-all duration-200"
                 >
@@ -882,13 +928,13 @@ const EditTutorProfile: React.FC = () => {
                       <div className="flex-1 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
                             <input
                               type="text"
-                              value={exp.position}
+                              value={exp.title}
                               onChange={(e) => {
                                 const newExperience = [...formData.experience];
-                                newExperience[index].position = e.target.value;
+                                newExperience[index].title = e.target.value;
                                 setFormData(prev => ({ ...prev, experience: newExperience }));
                               }}
                               className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
@@ -896,13 +942,13 @@ const EditTutorProfile: React.FC = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Institution</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
                             <input
                               type="text"
-                              value={exp.institution}
+                              value={exp.company}
                               onChange={(e) => {
                                 const newExperience = [...formData.experience];
-                                newExperience[index].institution = e.target.value;
+                                newExperience[index].company = e.target.value;
                                 setFormData(prev => ({ ...prev, experience: newExperience }));
                               }}
                               className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
@@ -966,276 +1012,16 @@ const EditTutorProfile: React.FC = () => {
                   <SubjectSelector
                     selectedSubjects={formData.subjects}
                     onSubjectsChange={(subjects) => {
-                      if (subjects.length > 0) {
-                        setFormData(prev => ({
-                          ...prev,
-                          subjects: [{
-                            _id: subjects[0]._id,
-                            name: subjects[0].name,
-                            category: subjects[0].category,
-                            rates: {
-                              individual: 0,
-                              group: 0,
-                              online: 0
-                            },
-                            availability: []
-                          }]
-                        }));
-                      }
+                      setFormData(prev => ({
+                        ...prev,
+                        subjects: subjects.map(s => ({
+                          ...s,
+                          availability: prev.subjects.find(p => p._id === s._id)?.availability || []
+                        }))
+                      }));
                     }}
                   />
                 </div>
-
-                {/* Teaching Modes & Rates */}
-                {formData.subjects.length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Teaching Modes & Rates</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Individual Rate */}
-                      <div className="bg-white/80 rounded-xl p-4 border border-gray-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <label className="flex items-center gap-2 text-gray-700">
-                            <Users className="w-5 h-5 text-primary-600" />
-                            Individual
-                          </label>
-                          <div className="flex items-center">
-                            <span className="text-gray-500 mr-2">$</span>
-                            <input
-                              type="number"
-                              min="0"
-                              value={formData.subjects[0].rates.individual}
-                              onChange={(e) => {
-                                setFormData(prev => ({
-                                  ...prev,
-                                  subjects: [{
-                                    ...prev.subjects[0],
-                                    rates: {
-                                      ...prev.subjects[0].rates,
-                                      individual: Number(e.target.value)
-                                    }
-                                  }]
-                                }));
-                              }}
-                              className="w-20 px-2 py-1 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                              placeholder="0"
-                            />
-                            <span className="text-gray-500 ml-2">/hr</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Group Rate */}
-                      <div className="bg-white/80 rounded-xl p-4 border border-gray-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <label className="flex items-center gap-2 text-gray-700">
-                            <Users className="w-5 h-5 text-primary-600" />
-                            Group
-                          </label>
-                          <div className="flex items-center">
-                            <span className="text-gray-500 mr-2">$</span>
-                            <input
-                              type="number"
-                              min="0"
-                              value={formData.subjects[0].rates.group}
-                              onChange={(e) => {
-                                setFormData(prev => ({
-                                  ...prev,
-                                  subjects: [{
-                                    ...prev.subjects[0],
-                                    rates: {
-                                      ...prev.subjects[0].rates,
-                                      group: Number(e.target.value)
-                                    }
-                                  }]
-                                }));
-                              }}
-                              className="w-20 px-2 py-1 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                              placeholder="0"
-                            />
-                            <span className="text-gray-500 ml-2">/hr</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Online Rate */}
-                      <div className="bg-white/80 rounded-xl p-4 border border-gray-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <label className="flex items-center gap-2 text-gray-700">
-                            <Video className="w-5 h-5 text-primary-600" />
-                            Online
-                          </label>
-                          <div className="flex items-center">
-                            <span className="text-gray-500 mr-2">$</span>
-                            <input
-                              type="number"
-                              min="0"
-                              value={formData.subjects[0].rates.online}
-                              onChange={(e) => {
-                                setFormData(prev => ({
-                                  ...prev,
-                                  subjects: [{
-                                    ...prev.subjects[0],
-                                    rates: {
-                                      ...prev.subjects[0].rates,
-                                      online: Number(e.target.value)
-                                    }
-                                  }]
-                                }));
-                              }}
-                              className="w-20 px-2 py-1 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                              placeholder="0"
-                            />
-                            <span className="text-gray-500 ml-2">/hr</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Validation Message */}
-                    {formData.subjects[0].rates.individual === 0 && 
-                     formData.subjects[0].rates.group === 0 && 
-                     formData.subjects[0].rates.online === 0 && (
-                      <p className="text-red-600 text-sm mt-2">
-                        Please set at least one rate greater than 0
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Availability Section */}
-                {formData.subjects.length > 0 && (
-                  <div className="mt-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Availability</h3>
-                    <div className="space-y-4">
-                      {DAYS_OF_WEEK.map((day) => {
-                        const dayAvailability = formData.subjects[0].availability.find(a => a.day === day);
-                        return (
-                          <div key={day} className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-                            <div className="flex justify-between items-center mb-3">
-                              <h5 className="font-medium">{day}</h5>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setFormData(prev => {
-                                    const subject = prev.subjects[0];
-                                    const dayAvailability = subject.availability.find(a => a.day === day);
-                                    const newAvailability = dayAvailability
-                                      ? subject.availability.map(a => 
-                                          a.day === day 
-                                            ? { ...a, slots: [...a.slots, { start: '09:00', end: '10:00' }] }
-                                            : a
-                                        )
-                                      : [...subject.availability, { day, slots: [{ start: '09:00', end: '10:00' }] }];
-                                    
-                                    return {
-                                      ...prev,
-                                      subjects: [{
-                                        ...subject,
-                                        availability: newAvailability
-                                      }]
-                                    };
-                                  });
-                                }}
-                                className="inline-flex items-center px-3 py-1.5 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-all duration-200"
-                              >
-                                <Plus className="w-4 h-4 mr-1" />
-                                Add Time Slot
-                              </button>
-                            </div>
-                            {dayAvailability?.slots.map((slot, slotIndex) => (
-                              <div key={slotIndex} className="flex items-center space-x-3 mt-2">
-                                <input
-                                  type="time"
-                                  value={slot.start}
-                                  onChange={(e) => {
-                                    setFormData(prev => {
-                                      const subject = prev.subjects[0];
-                                      const newAvailability = subject.availability.map(a => 
-                                        a.day === day
-                                          ? {
-                                              ...a,
-                                              slots: a.slots.map((s, i) => 
-                                                i === slotIndex ? { ...s, start: e.target.value } : s
-                                              )
-                                            }
-                                          : a
-                                      );
-                                      
-                                      return {
-                                        ...prev,
-                                        subjects: [{
-                                          ...subject,
-                                          availability: newAvailability
-                                        }]
-                                      };
-                                    });
-                                  }}
-                                  className="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                                />
-                                <span className="text-gray-500">to</span>
-                                <input
-                                  type="time"
-                                  value={slot.end}
-                                  onChange={(e) => {
-                                    setFormData(prev => {
-                                      const subject = prev.subjects[0];
-                                      const newAvailability = subject.availability.map(a => 
-                                        a.day === day
-                                          ? {
-                                              ...a,
-                                              slots: a.slots.map((s, i) => 
-                                                i === slotIndex ? { ...s, end: e.target.value } : s
-                                              )
-                                            }
-                                          : a
-                                      );
-                                      
-                                      return {
-                                        ...prev,
-                                        subjects: [{
-                                          ...subject,
-                                          availability: newAvailability
-                                        }]
-                                      };
-                                    });
-                                  }}
-                                  className="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setFormData(prev => {
-                                      const subject = prev.subjects[0];
-                                      const newAvailability = subject.availability.map(a => 
-                                        a.day === day
-                                          ? {
-                                              ...a,
-                                              slots: a.slots.filter((_, i) => i !== slotIndex)
-                                            }
-                                          : a
-                                      );
-                                      
-                                      return {
-                                        ...prev,
-                                        subjects: [{
-                                          ...subject,
-                                          availability: newAvailability
-                                        }]
-                                      };
-                                    });
-                                  }}
-                                  className="p-1.5 text-red-600 hover:text-red-700 transition-colors duration-200"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 

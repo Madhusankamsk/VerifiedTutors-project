@@ -1,16 +1,37 @@
 import React, { useState } from 'react';
 import { useSubjects, Subject } from '../../contexts/SubjectContext';
+import { Video, Home, Users, Plus, Trash2 } from 'lucide-react';
 
 interface TutorSubject {
   _id: string;
   name: string;
   category: string;
+  rates: {
+    individual: number;
+    group: number;
+    online: number;
+  };
+  availability: Array<{
+    day: string;
+    slots: Array<{
+      start: string;
+      end: string;
+    }>;
+  }>;
 }
 
 interface SubjectSelectorProps {
   selectedSubjects: TutorSubject[];
-  onSubjectsChange: (subjects: TutorSubject[]) => void;
+ onSubjectsChange: (subjects: TutorSubject[]) => void;
 }
+
+const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+const TEACHING_MODES = [
+  { id: 'online', label: 'Online', icon: Video },
+  { id: 'individual', label: 'Home Visit', icon: Home },
+  { id: 'group', label: 'Group', icon: Users }
+] as const;
 
 const SubjectSelector: React.FC<SubjectSelectorProps> = ({ selectedSubjects, onSubjectsChange }) => {
   const { subjects, loading, error } = useSubjects();
@@ -36,9 +57,91 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({ selectedSubjects, onS
     const tutorSubject: TutorSubject = {
       _id: subject._id,
       name: subject.name,
-      category: subject.category
+      category: subject.category,
+      rates: {
+        individual: 0,
+        group: 0,
+        online: 0
+      },
+      availability: []
     };
     onSubjectsChange([tutorSubject]); // Only allow one subject
+  };
+
+  const handleTeachingModeToggle = (mode: 'online' | 'individual' | 'group') => {
+    if (!selectedSubjects[0]) return;
+    
+    const updatedSubject = { ...selectedSubjects[0] };
+    const currentRate = updatedSubject.rates[mode];
+    
+    // If rate is 0, enable the mode and set default rate
+    if (currentRate === 0) {
+      updatedSubject.rates[mode] = 500; // Default rate
+    } else {
+      // If rate exists, disable the mode and set rate to 0
+      updatedSubject.rates[mode] = 0;
+    }
+    
+    onSubjectsChange([updatedSubject]);
+  };
+
+  const handleRateChange = (type: 'individual' | 'group' | 'online', value: string) => {
+    if (!selectedSubjects[0]) return;
+    
+    const newRate = parseFloat(value) || 0;
+    const updatedSubject = {
+      ...selectedSubjects[0],
+      rates: {
+        ...selectedSubjects[0].rates,
+        [type]: newRate
+      }
+    };
+    onSubjectsChange([updatedSubject]);
+  };
+
+  const handleAddTimeSlot = (day: string) => {
+    if (!selectedSubjects[0]) return;
+
+    const updatedSubject = { ...selectedSubjects[0] };
+    const dayAvailability = updatedSubject.availability.find(a => a.day === day);
+
+    if (dayAvailability) {
+      dayAvailability.slots.push({ start: '09:00', end: '10:00' });
+    } else {
+      updatedSubject.availability.push({
+        day,
+        slots: [{ start: '09:00', end: '10:00' }]
+      });
+    }
+
+    onSubjectsChange([updatedSubject]);
+  };
+
+  const handleTimeSlotChange = (day: string, slotIndex: number, field: 'start' | 'end', value: string) => {
+    if (!selectedSubjects[0]) return;
+
+    const updatedSubject = { ...selectedSubjects[0] };
+    const dayAvailability = updatedSubject.availability.find(a => a.day === day);
+
+    if (dayAvailability) {
+      dayAvailability.slots[slotIndex][field] = value;
+      onSubjectsChange([updatedSubject]);
+    }
+  };
+
+  const handleRemoveTimeSlot = (day: string, slotIndex: number) => {
+    if (!selectedSubjects[0]) return;
+
+    const updatedSubject = { ...selectedSubjects[0] };
+    const dayAvailability = updatedSubject.availability.find(a => a.day === day);
+
+    if (dayAvailability) {
+      dayAvailability.slots.splice(slotIndex, 1);
+      if (dayAvailability.slots.length === 0) {
+        updatedSubject.availability = updatedSubject.availability.filter(a => a.day !== day);
+      }
+      onSubjectsChange([updatedSubject]);
+    }
   };
 
   if (loading) {
@@ -106,12 +209,127 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({ selectedSubjects, onS
         </select>
       </div>
 
-      {/* Selected Subject Display */}
-      {selectedSubjects.length > 0 && (
-        <div className="mt-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Selected Subject</h3>
-          <div className="flex items-center gap-1 px-3 py-2 bg-primary-100 text-primary-800 rounded-md text-sm">
-            <span>{selectedSubjects[0].name}</span>
+      {/* Selected Subject Display with Rates and Availability */}
+      {selectedSubjects[0] && (
+        <div className="mt-4 space-y-6">
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Selected Subject</h3>
+            <div className="flex items-center gap-1 px-3 py-2 bg-primary-100 text-primary-800 rounded-md text-sm">
+              <span>{selectedSubjects[0].name}</span>
+            </div>
+          </div>
+
+          {/* Teaching Modes & Rates */}
+          <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
+            <h3 className="text-sm font-medium text-gray-700 mb-4">Teaching Modes & Rates</h3>
+            <div className="space-y-4">
+              {TEACHING_MODES.map((mode) => {
+                const Icon = mode.icon;
+                const isEnabled = selectedSubjects[0].rates[mode.id] > 0;
+                
+                return (
+                  <div 
+                    key={mode.id}
+                    className={`p-3 rounded-lg border transition-all duration-200 ${
+                      isEnabled 
+                        ? 'border-primary-200 bg-primary-50' 
+                        : 'border-gray-100 bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Icon className={`w-4 h-4 ${isEnabled ? 'text-primary-600' : 'text-gray-400'}`} />
+                        <span className={`font-medium ${isEnabled ? 'text-gray-900' : 'text-gray-500'}`}>
+                          {mode.label}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleTeachingModeToggle(mode.id)}
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                          isEnabled 
+                            ? 'border-primary-500 bg-primary-500' 
+                            : 'border-gray-300 hover:border-primary-300'
+                        }`}
+                      >
+                        {isEnabled && (
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                    <div className={`relative ${!isEnabled && 'opacity-50'}`}>
+                      <input
+                        type="number"
+                        min="0"
+                        value={selectedSubjects[0].rates[mode.id]}
+                        onChange={(e) => handleRateChange(mode.id, e.target.value)}
+                        disabled={!isEnabled}
+                        className={`w-full px-3 py-2 rounded-lg border ${
+                          isEnabled 
+                            ? 'border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500' 
+                            : 'border-gray-100 bg-gray-50'
+                        } transition-all duration-200`}
+                        placeholder="Rate per hour"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        LKR/hr
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Availability Section */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Availability</h3>
+            <div className="space-y-3">
+              {DAYS_OF_WEEK.map((day) => {
+                const dayAvailability = selectedSubjects[0].availability.find(a => a.day === day);
+                return (
+                  <div key={day} className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
+                    <div className="flex justify-between items-center mb-3">
+                      <h5 className="font-medium text-gray-700">{day}</h5>
+                      <button
+                        type="button"
+                        onClick={() => handleAddTimeSlot(day)}
+                        className="inline-flex items-center px-3 py-1.5 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-all duration-200"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add Time Slot
+                      </button>
+                    </div>
+                    {dayAvailability?.slots.map((slot, slotIndex) => (
+                      <div key={slotIndex} className="flex items-center space-x-3 mt-2">
+                        <input
+                          type="time"
+                          value={slot.start}
+                          onChange={(e) => handleTimeSlotChange(day, slotIndex, 'start', e.target.value)}
+                          className="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                        />
+                        <span className="text-gray-500">to</span>
+                        <input
+                          type="time"
+                          value={slot.end}
+                          onChange={(e) => handleTimeSlotChange(day, slotIndex, 'end', e.target.value)}
+                          className="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTimeSlot(day, slotIndex)}
+                          className="p-1.5 text-red-600 hover:text-red-700 transition-colors duration-200"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
