@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { ChevronDown, User, LogOut, Settings, Bell, Menu, X } from 'lucide-react';
+import { ChevronDown, User, LogOut, Bell, Menu, X } from 'lucide-react';
 import logo from '../../assets/logo.png';
 
 const Header: React.FC = () => {
@@ -133,13 +133,6 @@ const Header: React.FC = () => {
                           <User className="h-4 w-4 mr-3 text-primary-500" />
                           Dashboard
                         </Link>
-                        <Link
-                          to="/settings"
-                          className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150"
-                        >
-                          <Settings className="h-4 w-4 mr-3 text-primary-500" />
-                          Settings
-                        </Link>
                         <button
                           onClick={handleLogout}
                           className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150"
@@ -231,13 +224,6 @@ const Header: React.FC = () => {
                   >
                     <User className="h-5 w-5 mr-3 text-primary-500" />
                     Dashboard
-                  </Link>
-                  <Link
-                    to="/settings"
-                    className="flex items-center px-4 py-3 text-base text-gray-700 hover:bg-gray-50 transition-colors duration-150 rounded-lg"
-                  >
-                    <Settings className="h-5 w-5 mr-3 text-primary-500" />
-                    Settings
                   </Link>
                   <button
                     onClick={handleLogout}

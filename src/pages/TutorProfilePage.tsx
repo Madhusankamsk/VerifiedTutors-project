@@ -67,8 +67,8 @@ const TutorProfilePage: React.FC = () => {
     if (!id) return;
     
     try {
-      await addReview(id, reviewData.rating, reviewData.comment);
-      toast.success('Review submitted successfully');
+      const response = await addReview(id, reviewData.rating, reviewData.comment);
+      toast.success(response.message || 'Review submitted successfully');
       setShowReviewForm(false);
       setReviewData({ rating: 5, comment: '' });
       // Refresh profile and reviews
@@ -77,12 +77,7 @@ const TutorProfilePage: React.FC = () => {
       await fetchReviews(id);
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Failed to submit review';
-      if (error.response?.data?.existingRating) {
-        toast.error('You have already reviewed this tutor');
-        setShowReviewForm(false);
-      } else {
-        toast.error(errorMessage);
-      }
+      toast.error(errorMessage);
       console.error('Review submission error:', error);
     }
   };

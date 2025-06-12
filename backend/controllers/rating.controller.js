@@ -49,30 +49,25 @@ export const createRating = async (req, res) => {
     }
 
     // Check if student has already rated this tutor
-    const existingRating = await Rating.findOne({
+    let existingRating = await Rating.findOne({
       tutor: tutorId,
       student: req.user._id
     });
 
     if (existingRating) {
-      return res.status(400).json({ 
-        message: 'You have already rated this tutor',
-        existingRating: {
-          id: existingRating._id,
-          rating: existingRating.rating,
-          review: existingRating.review,
-          createdAt: existingRating.createdAt
-        }
+      // Update the existing rating
+      existingRating.rating = rating;
+      existingRating.review = review.trim();
+      await existingRating.save();
+    } else {
+      // Create new rating
+      existingRating = await Rating.create({
+        tutor: tutorId,
+        student: req.user._id,
+        rating,
+        review: review.trim()
       });
     }
-
-    // Create rating
-    const newRating = await Rating.create({
-      tutor: tutorId,
-      student: req.user._id,
-      rating,
-      review: review.trim()
-    });
 
     // Update tutor's average rating
     const tutorRatings = await Rating.find({ tutor: tutorId });
@@ -85,14 +80,17 @@ export const createRating = async (req, res) => {
     await tutor.save();
 
     // Populate student info before sending response
-    const populatedRating = await Rating.findById(newRating._id)
+    const populatedRating = await Rating.findById(existingRating._id)
       .populate('student', 'name profileImage');
 
-    res.status(201).json(populatedRating);
+    res.json({
+      message: existingRating.isNew ? 'Review submitted successfully' : 'Review updated successfully',
+      rating: populatedRating
+    });
   } catch (error) {
-    console.error('Error creating rating:', error);
+    console.error('Error creating/updating rating:', error);
     res.status(400).json({ 
-      message: 'Failed to create rating',
+      message: 'Failed to submit review',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }

@@ -159,7 +159,7 @@ interface TutorContextType {
   // Reviews & Ratings
   reviews: TutorReview[];
   fetchReviews: (tutorId?: string) => Promise<void>;
-  addReview: (tutorId: string, rating: number, comment: string) => Promise<void>;
+  addReview: (tutorId: string, rating: number, review: string) => Promise<void>;
   
   // Blog Management
   blogs: Blog[];
@@ -812,35 +812,24 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [profile?._id]);
 
-  const addReview = useCallback(async (tutorId: string, rating: number, comment: string) => {
+  const addReview = useCallback(async (tutorId: string, rating: number, review: string) => {
     const token = localStorage.getItem('token');
     if (!token) {
-      throw new Error('Not authenticated');
+      throw new Error('Authentication required');
     }
 
     try {
       const response = await axios.post(
         `${API_URL}/api/ratings`,
-        { 
-          tutorId,
-          rating, 
-          review: comment
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
+        { tutorId, rating, review },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      
-      // Refresh reviews after adding new one
-      await fetchReviews();
       return response.data;
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to add review';
-      throw new Error(errorMessage);
+    } catch (error) {
+      console.error('Error adding review:', error);
+      throw error;
     }
-  }, [fetchReviews]);
+  }, []);
 
   // Stats & Analytics
   const fetchStats = useCallback(async () => {
