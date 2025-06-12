@@ -162,6 +162,7 @@ const EditTutorProfile: React.FC = () => {
         })) || []
       };
       setFormData(newFormData);
+      console.log("newFormData", newFormData);
       setInitialFormData(newFormData);
       
       // Set the profile image if it exists
@@ -332,7 +333,7 @@ const EditTutorProfile: React.FC = () => {
   };
 
   const handleDeleteDocument = async (documentId: string) => {
-    if (!window.confirm('Are you sure you want to delete this document?')) {
+    if (!window.confirm('Are you sure you want to delete this document?' + documentId)) {
       return;
     }
 
@@ -784,7 +785,7 @@ const EditTutorProfile: React.FC = () => {
                     <div className="flex flex-wrap gap-3">
                       {LANGUAGE_MEDIUMS.map((medium) => (
                         <button
-                          key={medium.id}
+                          key={`medium-${medium.id}`}
                           type="button"
                           onClick={() => handleMediumToggle(medium.id)}
                           className={`flex items-center px-4 py-2 rounded-xl border transition-all duration-200 ${
@@ -838,7 +839,7 @@ const EditTutorProfile: React.FC = () => {
               </div>
               <div className="space-y-4">
                 {formData.education.map((edu, index) => (
-                  <div key={index} className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
+                  <div key={`education-${edu.degree}-${edu.institution}-${edu.year}-${index}`} className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
@@ -923,7 +924,7 @@ const EditTutorProfile: React.FC = () => {
               </div>
               <div className="space-y-4">
                 {formData.experience.map((exp, index) => (
-                  <div key={index} className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
+                  <div key={`experience-${exp.title}-${exp.company}-${exp.duration}-${index}`} className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1050,7 +1051,7 @@ const EditTutorProfile: React.FC = () => {
                   <h3 className="text-sm font-medium text-gray-700 mb-3">Selected Documents ({selectedDocuments.length}/5)</h3>
                   <div className="space-y-2">
                     {selectedDocuments.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                      <div key={`selected-doc-${file.name}-${file.size}-${index}`} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
                         <div className="flex items-center space-x-3">
                           <FileText className="w-5 h-5 text-gray-400" />
                           <span className="text-sm text-gray-600">{file.name}</span>
@@ -1135,7 +1136,7 @@ const EditTutorProfile: React.FC = () => {
                   <h3 className="text-sm font-medium text-gray-700 mb-3">Uploaded Documents</h3>
                   <div className="space-y-2">
                     {formData.documents.map((doc, index) => (
-                      <div key={doc.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                      <div key={`doc-${doc.id}-${doc.url}`} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
                         <div className="flex items-center space-x-3">
                           <FileText className="w-5 h-5 text-gray-400" />
                           <span className="text-sm text-gray-600">Document {index + 1}</span>

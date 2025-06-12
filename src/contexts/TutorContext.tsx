@@ -251,6 +251,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       
       if (response.data) {
         setProfile(response.data);
+        console.log("response.data", response.data);
       } else {
         setError('No profile data received');
       }
