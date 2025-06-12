@@ -7,6 +7,7 @@ import { Star, MapPin, BookOpen, GraduationCap, Briefcase, FileText, User, Clock
 import { toast } from 'react-toastify';
 import { ReviewList } from '../components/ReviewList';
 import { Rating } from '../components/Rating';
+import BookingModal from '../components/booking/BookingModal';
 
 const TutorProfilePage: React.FC = () => {
   const { id } = useParams();
@@ -22,6 +23,7 @@ const TutorProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<TutorProfile | null>(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
   const [reviewData, setReviewData] = useState({
     rating: 5,
     comment: ''
@@ -34,6 +36,7 @@ const TutorProfilePage: React.FC = () => {
       try {
         const tutorProfile = await fetchTutorById(id);
         setProfile(tutorProfile);
+        console.log('tutorProfile', tutorProfile);
         await fetchReviews(id);
       } catch (err) {
         console.error('Failed to load tutor profile:', err);
@@ -50,7 +53,14 @@ const TutorProfilePage: React.FC = () => {
       navigate('/login', { state: { from: `/tutors/${id}` } });
       return;
     }
-    navigate(`/booking/${id}`);
+    setShowBookingModal(true);
+  };
+
+  const handleBookingSubmit = (data: { day: string; timeSlot: string; contactNumber: string }) => {
+    // Here you would typically make an API call to create the booking
+    console.log('Booking submitted:', data);
+    toast.success('Session booked successfully!');
+    setShowBookingModal(false);
   };
 
   const handleWriteReview = () => {
@@ -470,8 +480,8 @@ const TutorProfilePage: React.FC = () => {
                     <div key={index} className="flex items-start p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                       <Briefcase className="h-5 w-5 text-primary-600 mt-1 mr-3" />
                       <div>
-                        <h3 className="font-medium text-gray-900">{exp.position}</h3>
-                        <p className="text-gray-600">{exp.institution}</p>
+                        <h3 className="font-medium text-gray-900">{exp.title}</h3>
+                        <p className="text-gray-600">{exp.company}</p>
                         <p className="text-sm text-gray-500">{exp.duration}</p>
                         <p className="text-gray-600 mt-2 text-sm">{exp.description}</p>
                       </div>
@@ -648,6 +658,21 @@ const TutorProfilePage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Booking Modal */}
+      <BookingModal
+        isOpen={showBookingModal}
+        onClose={() => setShowBookingModal(false)}
+        onSubmit={handleBookingSubmit}
+        tutorAvailability={{
+          subject: profile.subjects[0].subject.name,
+          availability: profile.subjects[0].availability.reduce((acc, day) => {
+            acc[day.day] = day.slots;
+            return acc;
+          }, {} as { [key: string]: { start: string; end: string; }[] })
+        }}
+        selectedSubject={profile.subjects[0].subject.name}
+      />
     </div>
   );
 };
