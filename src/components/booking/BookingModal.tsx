@@ -158,7 +158,15 @@ const BookingModal: React.FC<BookingModalProps> = ({
                 placeholder="Enter your contact number"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 required
+                minLength={10}
+                maxLength={15}
+                pattern="[0-9]*"
               />
+              {contactNumber && contactNumber.length < 10 && (
+                <p className="mt-1 text-sm text-red-600">
+                  Contact number must be at least 10 digits
+                </p>
+              )}
             </div>
 
             {/* Submit button */}
@@ -172,7 +180,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
               </button>
               <button
                 type="submit"
-                disabled={!selectedTimeSlot || !selectedDay}
+                disabled={!selectedTimeSlot || !selectedDay || !contactNumber || contactNumber.length < 10}
                 className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Book Session

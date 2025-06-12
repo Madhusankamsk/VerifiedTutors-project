@@ -78,7 +78,7 @@ const TutorProfilePage: React.FC = () => {
     
     try {
       const response = await addReview(id, reviewData.rating, reviewData.comment);
-      toast.success(response.message || 'Review submitted successfully');
+      toast.success('Review submitted successfully');
       setShowReviewForm(false);
       setReviewData({ rating: 5, comment: '' });
       // Refresh profile and reviews
