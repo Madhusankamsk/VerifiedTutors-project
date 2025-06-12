@@ -274,7 +274,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLoading(false);
     }
   }, [user]);
-
+  console.log("profile", profile);
   const fetchTutorById = useCallback(async (id: string) => {
     try {
       setLoading(true);
@@ -882,7 +882,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setError(null);
       
       const queryParams = new URLSearchParams();
-      
+      console.log("params", params);
       // Add filters only if they have values
       if (params.subject) queryParams.append('subjects', params.subject);
       if (params.rating && params.rating > 0) queryParams.append('minRating', params.rating.toString());

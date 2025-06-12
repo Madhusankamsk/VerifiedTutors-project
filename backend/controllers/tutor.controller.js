@@ -138,11 +138,28 @@ export const getTutors = async (req, res) => {
         const locationObj = JSON.parse(location);
         console.log('Location filter object:', locationObj);
         
-        // First find the location IDs that match the criteria
+        // Build location query based on the hierarchical structure
         const locationQuery = {};
-        if (locationObj.city) locationQuery.city = locationObj.city;
-        if (locationObj.town) locationQuery.town = locationObj.town;
-        if (locationObj.hometown) locationQuery.hometown = locationObj.hometown;
+        
+        // If hometown is provided, search for exact match
+        if (locationObj.hometown) {
+          locationQuery._id = locationObj.hometown;
+        }
+        // If town is provided, search for town and its hometowns
+        else if (locationObj.town) {
+          locationQuery.$or = [
+            { _id: locationObj.town },
+            { parent: locationObj.town }
+          ];
+        }
+        // If city is provided, search for city and all its descendants
+        else if (locationObj.city) {
+          locationQuery.$or = [
+            { _id: locationObj.city },
+            { parent: locationObj.city },
+            { 'parent.parent': locationObj.city }
+          ];
+        }
         
         console.log('Location query:', locationQuery);
         
