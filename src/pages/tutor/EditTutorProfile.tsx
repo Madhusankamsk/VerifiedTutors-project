@@ -370,10 +370,13 @@ const EditTutorProfile: React.FC = () => {
     }));
   };
 
-  const handleLocationSelect = (selectedLocations: Array<{ _id: string; name: string; province: string }>) => {
+  const handleLocationSelect = (selectedLocations: Array<{ _id: string; name: string }>) => {
     setFormData(prev => ({
       ...prev,
-      locations: selectedLocations
+      locations: selectedLocations.map(loc => ({
+        ...loc,
+        province: locations.find(l => l._id === loc._id)?.name || ''
+      }))
     }));
   };
 
