@@ -10,6 +10,7 @@ import LocationSelector from '../../components/location/LocationSelector';
 import SubjectSelector from '../../components/subject/SubjectSelector';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../../config/constants';
 
 interface Document {
   id: string;
@@ -278,7 +279,7 @@ const EditTutorProfile: React.FC = () => {
       console.log('Uploading documents:', selectedDocuments.map(f => f.name));
 
       // Upload documents
-      const response = await fetch('http://localhost:5000/api/upload/verification-docs', {
+      const response = await fetch(`${API_URL}/api/upload/verification-docs`, {
         method: 'POST',
         body: formData,
         headers: {
@@ -370,10 +371,13 @@ const EditTutorProfile: React.FC = () => {
     }));
   };
 
-  const handleLocationSelect = (selectedLocations: Array<{ _id: string; name: string; province: string }>) => {
+  const handleLocationSelect = (selectedLocations: Array<{ _id: string; name: string }>) => {
     setFormData(prev => ({
       ...prev,
-      locations: selectedLocations
+      locations: selectedLocations.map(loc => ({
+        ...loc,
+        province: locations.find(l => l._id === loc._id)?.name || ''
+      }))
     }));
   };
 
