@@ -29,6 +29,7 @@ import BlogListPage from './pages/BlogListPage';
 import BlogPostPage from './pages/BlogPostPage';
 import NotFoundPage from './pages/NotFoundPage';
 import CoursesPage from './pages/CoursesPage';
+import AuthCallback from './pages/auth/AuthCallback';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -139,6 +140,9 @@ const App = () => {
                         <Route path="dashboard" element={<StudentDashboard />} />
                         {/* <Route path="favorites" element={<FavoriteTutors />} /> */}
                       </Route>
+
+                      {/* Auth Callback Route */}
+                      <Route path="/auth/callback" element={<AuthCallback />} />
 
                       {/* 404 Route */}
                       <Route path="*" element={<NotFoundPage />} />

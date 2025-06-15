@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
 import Tutor from '../models/tutor.model.js';
+import passport from 'passport';
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -147,6 +148,72 @@ export const updateUserProfile = async (req, res) => {
         role: updatedUser.role,
         profileImage: updatedUser.profileImage,
       },
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Google OAuth login
+// @route   GET /api/auth/google
+// @access  Public
+export const googleAuth = passport.authenticate('google', {
+  scope: ['profile', 'email']
+});
+
+// @desc    Google OAuth callback
+// @route   GET /api/auth/google/callback
+// @access  Public
+export const googleCallback = (req, res, next) => {
+  passport.authenticate('google', { session: false }, (err, data) => {
+    if (err) {
+      return res.redirect(`http://localhost:5173/login?error=${err.message}`);
+    }
+
+    const { user, token, isNewUser } = data;
+    
+    if (isNewUser) {
+      // For new users, redirect to role selection with temporary token
+      res.redirect(
+        `http://localhost:5173/register?token=${token}&email=${encodeURIComponent(user.email)}&name=${encodeURIComponent(user.name)}&isGoogleAuth=true`
+      );
+    } else {
+      // For existing users, proceed with normal login
+      res.redirect(
+        `http://localhost:5173/auth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify(user))}`
+      );
+    }
+  })(req, res, next);
+};
+
+// @desc    Update Google user's role
+// @route   PUT /api/auth/google/update-role
+// @access  Private
+export const updateGoogleUserRole = async (req, res) => {
+  try {
+    const { role } = req.body;
+    const userId = req.user._id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.socialProvider !== 'google') {
+      return res.status(400).json({ message: 'This endpoint is only for Google users' });
+    }
+
+    user.role = role;
+    await user.save();
+
+    res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profileImage: user.profileImage,
+      }
     });
   } catch (error) {
     res.status(400).json({ message: error.message });

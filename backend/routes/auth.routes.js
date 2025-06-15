@@ -4,6 +4,9 @@ import {
   loginUser,
   getUserProfile,
   updateUserProfile,
+  googleAuth,
+  googleCallback,
+  updateGoogleUserRole
 } from '../controllers/auth.controller.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -11,6 +14,9 @@ const router = express.Router();
 
 router.post('/register', registerUser);
 router.post('/login', loginUser);
+router.get('/google', googleAuth);
+router.get('/google/callback', googleCallback);
+router.put('/google/update-role', protect, updateGoogleUserRole);
 router.get('/me', protect, getUserProfile);
 router.put('/me', protect, updateUserProfile);
 

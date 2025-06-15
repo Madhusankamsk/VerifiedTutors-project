@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../contexts/AuthContext';
 import { AlertCircle, Mail, Lock, Chrome, ArrowRight } from 'lucide-react';
+import axios from 'axios';
+import { API_URL } from '../../config';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -14,12 +16,19 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const LoginPage: React.FC = () => {
-  const { login, socialLogin, error, clearError } = useAuth();
+  const { login, socialLogin, error, clearError, setUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const from = location.state?.from?.pathname || '/';
+
+  // Check for Google auth data
+  const isGoogleAuth = searchParams.get('isGoogleAuth') === 'true';
+  const googleToken = searchParams.get('token');
+  const googleEmail = searchParams.get('email');
+  const googleName = searchParams.get('name');
 
   const {
     register,
@@ -28,6 +37,21 @@ const LoginPage: React.FC = () => {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema)
   });
+
+  // Handle Google auth data
+  useEffect(() => {
+    if (isGoogleAuth && googleToken && googleEmail && googleName) {
+      // Redirect to role selection
+      navigate('/register', {
+        state: {
+          token: googleToken,
+          email: googleEmail,
+          name: googleName,
+          isGoogleAuth: true
+        }
+      });
+    }
+  }, [isGoogleAuth, googleToken, googleEmail, googleName, navigate]);
 
   const onSubmit = async (data: LoginFormData) => {
     try {

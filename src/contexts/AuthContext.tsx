@@ -25,6 +25,7 @@ interface AuthContextType {
   socialLogin: (provider: 'google') => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
   uploadProfilePhoto: (file: File) => Promise<string>;
+  setUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -222,7 +223,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     clearError,
     socialLogin,
     updateProfile,
-    uploadProfilePhoto
+    uploadProfilePhoto,
+    setUser
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

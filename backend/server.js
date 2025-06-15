@@ -3,6 +3,9 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv';
+import passport from 'passport';
+import './config/passport.js'; // Import passport configuration
 
 // Route imports
 import authRoutes from './routes/auth.routes.js';
@@ -18,8 +21,9 @@ import uploadRoutes from './routes/upload.routes.js';
 // Middleware imports
 import { errorHandler } from './middleware/errorHandler.js';
 
-// Initialize app
+dotenv.config();
 
+// Initialize app
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -29,7 +33,11 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Initialize Passport
+app.use(passport.initialize());
 
 // Routes
 app.use('/api/auth', authRoutes);

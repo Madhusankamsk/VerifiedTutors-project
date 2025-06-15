@@ -23,12 +23,17 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'tutor', 'student'],
-    default: 'student',
+    enum: ['student', 'tutor', 'admin', null],
+    default: null,
   },
   profileImage: {
     type: String,
     default: '',
+  },
+  socialProvider: {
+    type: String,
+    enum: ['google', null],
+    default: null,
   },
   createdAt: {
     type: Date,

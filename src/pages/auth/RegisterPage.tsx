@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../contexts/AuthContext';
 import { AlertCircle, User, Mail, Lock, Chrome, ArrowRight, ArrowLeft, GraduationCap, BookOpen } from 'lucide-react';
+import axios from 'axios';
+import { API_URL } from '../../config';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -20,11 +22,18 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 const RegisterPage: React.FC = () => {
-  const { register: registerUser, socialLogin, error, clearError } = useAuth();
+  const { register: registerUser, socialLogin, error, clearError, setUser } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
+
+  // Check for Google auth data
+  const isGoogleAuth = searchParams.get('isGoogleAuth') === 'true';
+  const googleToken = searchParams.get('token');
+  const googleEmail = searchParams.get('email');
+  const googleName = searchParams.get('name');
 
   const {
     register,
@@ -37,8 +46,17 @@ const RegisterPage: React.FC = () => {
     resolver: zodResolver(registerSchema)
   });
 
-  const selectedRole = watch('role');
+  // Set Google auth data if available
+  useEffect(() => {
+    if (isGoogleAuth && googleEmail && googleName) {
+      setValue('email', googleEmail);
+      setValue('name', googleName);
+      // Skip to role selection step
+      setCurrentStep(3);
+    }
+  }, [isGoogleAuth, googleEmail, googleName, setValue]);
 
+  const selectedRole = watch('role');
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
@@ -47,13 +65,42 @@ const RegisterPage: React.FC = () => {
       }
       setIsSubmitting(true);
       clearError();
-      await registerUser(data.name, data.email, data.password, data.role);
-      
-      // Redirect based on role
-      if (data.role === 'tutor') {
-        navigate('/tutor/profile');
+
+      if (isGoogleAuth && googleToken) {
+        // Update Google user's role
+        const response = await axios.put(
+          `${API_URL}/api/auth/google/update-role`,
+          { role: data.role },
+          {
+            headers: {
+              Authorization: `Bearer ${googleToken}`
+            }
+          }
+        );
+        
+        // Save token and set auth header
+        localStorage.setItem('token', googleToken);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${googleToken}`;
+        
+        // Update user in context
+        setUser(response.data.user);
+        
+        // Redirect based on role
+        if (data.role === 'tutor') {
+          navigate('/tutor/profile');
+        } else {
+          navigate('/student/dashboard');
+        }
       } else {
-        navigate('/student/dashboard');
+        // Normal registration
+        await registerUser(data.name, data.email, data.password, data.role);
+        
+        // Redirect based on role
+        if (data.role === 'tutor') {
+          navigate('/tutor/profile');
+        } else {
+          navigate('/student/dashboard');
+        }
       }
     } catch (err) {
       console.error('Registration error:', err);
