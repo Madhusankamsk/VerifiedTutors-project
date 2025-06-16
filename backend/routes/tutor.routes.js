@@ -22,6 +22,8 @@ const router = express.Router();
 
 // Public routes
 router.get('/', getTutors);
+router.get('/:id', getTutor);
+router.get('/:id/reviews', getTutorReviews);
 
 // Protected routes
 router.use(protect);
@@ -39,9 +41,7 @@ router.put('/blogs/:id', authorize('tutor'), updateBlog);
 router.delete('/blogs/:id', authorize('tutor'), deleteBlog);
 
 // Parameterized routes - must come after specific routes
-router.get('/:id', getTutor);
 router.get('/:id/availability', getTutorAvailability);
-router.get('/:id/reviews', getTutorReviews);
 router.get('/:id/stats', getTutorStats);
 
 export default router; 
