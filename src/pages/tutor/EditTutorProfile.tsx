@@ -852,8 +852,9 @@ const EditTutorProfile: React.FC = () => {
                             type="text"
                             value={edu.degree}
                             onChange={(e) => {
-                              const newEducation = [...formData.education];
-                              newEducation[index].degree = e.target.value;
+                              const newEducation = formData.education.map((item, i) =>
+                                i === index ? { ...item, degree: e.target.value } : item
+                              );
                               setFormData(prev => ({ ...prev, education: newEducation }));
                             }}
                             className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
@@ -866,8 +867,9 @@ const EditTutorProfile: React.FC = () => {
                             type="text"
                             value={edu.institution}
                             onChange={(e) => {
-                              const newEducation = [...formData.education];
-                              newEducation[index].institution = e.target.value;
+                              const newEducation = formData.education.map((item, i) =>
+                                i === index ? { ...item, institution: e.target.value } : item
+                              );
                               setFormData(prev => ({ ...prev, education: newEducation }));
                             }}
                             className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
@@ -880,8 +882,9 @@ const EditTutorProfile: React.FC = () => {
                             type="number"
                             value={edu.year}
                             onChange={(e) => {
-                              const newEducation = [...formData.education];
-                              newEducation[index].year = parseInt(e.target.value);
+                              const newEducation = formData.education.map((item, i) =>
+                                i === index ? { ...item, year: parseInt(e.target.value) } : item
+                              );
                               setFormData(prev => ({ ...prev, education: newEducation }));
                             }}
                             min={1900}
@@ -938,8 +941,9 @@ const EditTutorProfile: React.FC = () => {
                               type="text"
                               value={exp.title}
                               onChange={(e) => {
-                                const newExperience = [...formData.experience];
-                                newExperience[index].title = e.target.value;
+                                const newExperience = formData.experience.map((item, i) =>
+                                  i === index ? { ...item, title: e.target.value } : item
+                                );
                                 setFormData(prev => ({ ...prev, experience: newExperience }));
                               }}
                               className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
@@ -952,8 +956,9 @@ const EditTutorProfile: React.FC = () => {
                               type="text"
                               value={exp.company}
                               onChange={(e) => {
-                                const newExperience = [...formData.experience];
-                                newExperience[index].company = e.target.value;
+                                const newExperience = formData.experience.map((item, i) =>
+                                  i === index ? { ...item, company: e.target.value } : item
+                                );
                                 setFormData(prev => ({ ...prev, experience: newExperience }));
                               }}
                               className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
@@ -967,8 +972,9 @@ const EditTutorProfile: React.FC = () => {
                             type="text"
                             value={exp.duration}
                             onChange={(e) => {
-                              const newExperience = [...formData.experience];
-                              newExperience[index].duration = e.target.value;
+                              const newExperience = formData.experience.map((item, i) =>
+                                i === index ? { ...item, duration: e.target.value } : item
+                              );
                               setFormData(prev => ({ ...prev, experience: newExperience }));
                             }}
                             className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
@@ -980,8 +986,9 @@ const EditTutorProfile: React.FC = () => {
                           <textarea
                             value={exp.description}
                             onChange={(e) => {
-                              const newExperience = [...formData.experience];
-                              newExperience[index].description = e.target.value;
+                              const newExperience = formData.experience.map((item, i) =>
+                                i === index ? { ...item, description: e.target.value } : item
+                              );
                               setFormData(prev => ({ ...prev, experience: newExperience }));
                             }}
                             rows={3}
