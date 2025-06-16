@@ -351,28 +351,28 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return;
     }
 
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.get(`${API_URL}/api/tutors/blogs`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+    // try {
+    //   setLoading(true);
+    //   setError(null);
+    //   const response = await axios.get(`${API_URL}/api/tutors/blogs`, {
+    //     headers: {
+    //       Authorization: `Bearer ${localStorage.getItem('token')}`
+    //     }
+    //   });
       
-      if (response.data.success) {
-        console.log('response.data.data', response.data.data);
-        setBlogs(response.data.data);
-      } else {
-        throw new Error(response.data.message || 'Failed to fetch blogs');
-      }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch blogs';
-      setError(errorMessage);
-      setBlogs([]);
-    } finally {
-      setLoading(false);
-    }
+    //   if (response.data.success) {
+    //     console.log('response.data.data', response.data.data);
+    //     setBlogs(response.data.data);
+    //   } else {
+    //     throw new Error(response.data.message || 'Failed to fetch blogs');
+    //   }
+    // } catch (err: any) {
+    //   const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch blogs';
+    //   setError(errorMessage);
+    //   setBlogs([]);
+    // } finally {
+    //   setLoading(false);
+    // }
   }, [user]);
 
   const getBlogById = useCallback(async (id: string): Promise<Blog | null> => {

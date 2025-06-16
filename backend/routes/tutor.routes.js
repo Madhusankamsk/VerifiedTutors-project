@@ -22,26 +22,23 @@ const router = express.Router();
 
 // Public routes
 router.get('/', getTutors);
-router.get('/:id', getTutor);
-router.get('/:id/reviews', getTutorReviews);
-
-// Protected routes
-router.use(protect);
 
 // Profile routes - must come before /:id routes
-router.get('/profile', getTutorByUserId);
-router.put('/profile', authorize('tutor'), updateTutorProfile);
-router.delete('/profile', authorize('tutor'), deleteTutorProfile);
+router.get('/profile', protect, getTutorByUserId);
+router.put('/profile', protect, authorize('tutor'), updateTutorProfile);
+router.delete('/profile', protect, authorize('tutor'), deleteTutorProfile);
 
-// Blog routes
-router.get('/blogs', authorize('tutor'), getTutorBlogs);
-router.get('/blogs/:id', authorize('tutor'), getTutorBlogById);
-router.post('/blogs', authorize('tutor'), createBlog);
-router.put('/blogs/:id', authorize('tutor'), updateBlog);
-router.delete('/blogs/:id', authorize('tutor'), deleteBlog);
-
-// Parameterized routes - must come after specific routes
-router.get('/:id/availability', getTutorAvailability);
+// Parameterized routes
+router.get('/:id', getTutor);
 router.get('/:id/stats', getTutorStats);
+router.get('/:id/reviews', getTutorReviews);
+router.get('/:id/availability', getTutorAvailability);
+
+// // Blog routes
+// router.get('/blogs', protect, authorize('tutor'), getTutorBlogs);
+// router.post('/blogs', protect, authorize('tutor'), createBlog);
+// router.put('/blogs/:id', protect, authorize('tutor'), updateBlog);
+// router.delete('/blogs/:id', protect, authorize('tutor'), deleteBlog);
+// router.get('/blogs/:id', protect, authorize('tutor'), getTutorBlogById);
 
 export default router; 
