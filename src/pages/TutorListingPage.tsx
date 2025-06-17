@@ -167,6 +167,8 @@ const TutorListingPage: React.FC = () => {
         max: newFilters.extraFilters.priceRange[1]
       },
       medium: newFilters.teachingMode || '',
+      sortBy: newFilters.sortBy || 'rating',
+      sortOrder: newFilters.sortOrder || 'desc',
       page: 1
     }));
 
@@ -177,10 +179,7 @@ const TutorListingPage: React.FC = () => {
     if (newFilters.location.city || newFilters.location.town || newFilters.location.hometown) {
       newActiveFilters.push('location');
     }
-    if (newFilters.extraFilters.minRating > 0) newActiveFilters.push('rating');
-    if (newFilters.extraFilters.priceRange[0] > 0 || newFilters.extraFilters.priceRange[1] < 1000) {
-      newActiveFilters.push('price');
-    }
+    if (newFilters.extraFilters.femaleOnly) newActiveFilters.push('gender');
     if (newFilters.teachingMode) newActiveFilters.push('teachingMode');
     setActiveFilters(newActiveFilters);
 
@@ -209,43 +208,17 @@ const TutorListingPage: React.FC = () => {
     setActiveFilters([]);
   };
 
-  const getFilterLabel = (key: keyof Filters): string => {
-    switch (key) {
-      case 'subject':
-        return `Subject: ${subjects.find(s => s._id === filters.subject)?.name || 'Subject'}`;
-      case 'rating':
-        return `Rating: ${filters.rating}+ Stars`;
-      case 'price':
-        return `Price: $${filters.price.min}-$${filters.price.max}/hr`;
-      case 'location':
-        try {
-          const locationObj = JSON.parse(filters.location);
-          let locationName = '';
-          if (locationObj.hometown) {
-            locationName = locationObj.hometown;
-          } else if (locationObj.town) {
-            locationName = locationObj.town;
-          } else if (locationObj.city) {
-            locationName = locationObj.city;
-          }
-          return locationName ? `Location: ${locationName}` : 'Location: Any';
-        } catch {
-          return 'Location: Any';
-        }
-      case 'educationLevel':
-        return `Education: ${filters.educationLevel || 'Education Level'}`;
-      case 'medium':
-        const mode = filters.medium?.toUpperCase() || '';
-        return `Teaching Mode: ${mode === 'ONLINE' ? 'Online' : 
-                                mode === 'INDIVIDUAL' ? 'Individual' : 
-                                mode === 'GROUP' ? 'Group' : 'Any'}`;
-      case 'availability':
-        return `Availability: ${filters.availability}`;
-      case 'experience':
-        return `Experience: ${filters.experience}+ years`;
-      default:
-        return `${key}: ${filters[key as keyof Filters]}`;
+  const getSortLabel = (): string => {
+    if (filters.sortBy === 'rating' && filters.sortOrder === 'desc') {
+      return 'Top Rated';
+    } else if (filters.sortBy === 'price' && filters.sortOrder === 'asc') {
+      return 'Price: Low to High';
+    } else if (filters.sortBy === 'price' && filters.sortOrder === 'desc') {
+      return 'Price: High to Low';
+    } else if (filters.sortBy === 'experience' && filters.sortOrder === 'desc') {
+      return 'Most Experienced';
     }
+    return 'Relevance';
   };
 
   if (error) {
@@ -298,29 +271,9 @@ const TutorListingPage: React.FC = () => {
             </h2>
             {!loading && tutors.length > 0 && (
               <span className="px-2 py-1 bg-primary-50 text-primary-700 rounded-full text-xs sm:text-sm">
-                {filters.sortBy === 'rating' ? 'Top Rated' : 
-                 filters.sortBy === 'price' ? 'Price' : 'Relevance'}
+                {getSortLabel()}
               </span>
             )}
-          </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={`${filters.sortBy}-${filters.sortOrder}`}
-              onChange={(e) => {
-                const [sortBy, sortOrder] = e.target.value.split('-');
-                setFilters(prev => ({
-                  ...prev,
-                  sortBy,
-                  sortOrder: sortOrder as 'asc' | 'desc'
-                }));
-              }}
-              className="w-full sm:w-auto border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            >
-              <option value="rating-desc">Top Rated</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-              <option value="experience-desc">Most Experienced</option>
-            </select>
           </div>
         </div>
 

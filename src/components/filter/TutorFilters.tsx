@@ -22,6 +22,8 @@ export interface FilterState {
     priceRange: [number, number];
     femaleOnly: boolean;
   };
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 interface TutorFiltersProps {
@@ -41,7 +43,9 @@ const initialFilterState: FilterState = {
     minRating: 0,
     priceRange: [0, 1000],
     femaleOnly: false
-  }
+  },
+  sortBy: 'rating',
+  sortOrder: 'desc'
 };
 
 const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
@@ -90,6 +94,11 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
     onFilterChange({ ...filters, extraFilters });
   };
 
+  const handleSortChange = (sortBy: string, sortOrder: 'asc' | 'desc') => {
+    setFilters(prev => ({ ...prev, sortBy, sortOrder }));
+    onFilterChange({ ...filters, sortBy, sortOrder });
+  };
+
   const handleClearAll = () => {
     // Reset all filters to initial state
     setFilters(initialFilterState);
@@ -105,35 +114,22 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
   const renderFilterTags = () => {
     const tags = [];
-    const filterOrder = ['educationLevel', 'subject', 'teachingMode', 'location', 'rating', 'price'];
+    const filterOrder = ['educationLevel', 'subject', 'teachingMode', 'location'];
     
     // Add tags in reverse order so the most recent one appears last
-    if (filters.extraFilters.priceRange[0] > 0 || filters.extraFilters.priceRange[1] < 1000) {
+    if (filters.extraFilters.femaleOnly) {
       tags.push({
-        key: 'price',
-        label: `$${filters.extraFilters.priceRange[0]}-$${filters.extraFilters.priceRange[1]}/hr`,
+        key: 'gender',
+        label: 'Female Tutors Only',
         onRemove: () => {
           setFilters(prev => ({
             ...prev,
-            extraFilters: { ...prev.extraFilters, priceRange: [0, 1000] }
+            extraFilters: { ...prev.extraFilters, femaleOnly: false }
           }));
-          setActiveLayer(4);
-          setVisibleSections([4, 5]);
-        }
-      });
-    }
-
-    if (filters.extraFilters.minRating > 0) {
-      tags.push({
-        key: 'rating',
-        label: `${filters.extraFilters.minRating}+ Stars`,
-        onRemove: () => {
-          setFilters(prev => ({
-            ...prev,
-            extraFilters: { ...prev.extraFilters, minRating: 0 }
-          }));
-          setActiveLayer(4);
-          setVisibleSections([4, 5]);
+          onFilterChange({
+            ...filters,
+            extraFilters: { ...filters.extraFilters, femaleOnly: false }
+          });
         }
       });
     }
@@ -330,6 +326,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
               <ExtraFilters
                 filters={filters.extraFilters}
                 onChange={handleExtraFiltersChange}
+                onSortChange={handleSortChange}
               />
             </div>
           </div>
@@ -435,6 +432,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
                 <ExtraFilters
                   filters={filters.extraFilters}
                   onChange={handleExtraFiltersChange}
+                  onSortChange={handleSortChange}
                 />
               </div>
             )}
