@@ -1,69 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useAuth } from '../../contexts/AuthContext';
-import { toast } from 'react-hot-toast';
+import { useStudent } from '../../contexts/StudentContext';
 import { Calendar, Clock, DollarSign, User, Book, ChevronLeft, ChevronRight, Filter, Search } from 'lucide-react';
-
-interface BookingSubject {
-  _id: string;
-  name: string;
-  category: string;
-}
-
-interface BookingTutorUser {
-  _id: string;
-  name: string;
-  email: string;
-  profileImage?: string;
-}
-
-interface BookingTutor {
-  _id: string;
-  user: BookingTutorUser;
-}
-
-interface Booking {
-  _id: string;
-  student: {
-    _id: string;
-    name: string;
-    email: string;
-    profileImage?: string;
-  };
-  tutor: BookingTutor;
-  subject: BookingSubject;
-  startTime: string;
-  endTime: string;
-  status: string;
-  amount: number;
-  paymentStatus: string;
-  meetingLink?: string;
-  notes?: string;
-  cancellationReason?: string;
-}
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { Link } from 'react-router-dom';
 
 const StudentBookings = () => {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
-
-  const fetchBookings = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.get('/api/students/bookings');
-      setBookings(response.data);
-      setLoading(false);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch bookings');
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchBookings();
-  }, []);
+  const { bookings, loading, error, fetchBookings } = useStudent();
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -87,24 +30,12 @@ const StudentBookings = () => {
     }
   };
 
+  const filteredBookings = statusFilter === 'all' 
+    ? bookings 
+    : bookings.filter(booking => booking.status === statusFilter);
+
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100 p-6">
-        <div className="animate-pulse">
-          <div className="h-10 bg-gray-200 rounded-xl w-1/4 mb-8"></div>
-          <div className="space-y-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-xl shadow p-6 border border-gray-100">
-                <div className="h-6 bg-gray-200 rounded-lg w-1/2 mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded-lg w-1/4 mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded-lg w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded-lg w-1/2"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {
@@ -134,7 +65,26 @@ const StudentBookings = () => {
           My Bookings
         </h1>
 
-        {bookings.length === 0 ? (
+        {/* Filters */}
+        <div className="bg-white rounded-xl shadow-md p-4 mb-6 flex flex-wrap gap-4 items-center">
+          <div className="flex items-center space-x-2">
+            <label className="text-sm text-gray-600">Status:</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            >
+              <option value="all">All</option>
+              <option value="pending">Pending</option>
+              <option value="notified">Notified</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        {filteredBookings.length === 0 ? (
           <div className="bg-white rounded-xl shadow-md p-8 text-center border border-gray-100">
             <div className="flex justify-center mb-4">
               <Calendar className="w-12 h-12 text-gray-400" />
@@ -143,16 +93,16 @@ const StudentBookings = () => {
             <p className="text-gray-500 mb-6">
               You haven't booked any sessions yet.
             </p>
-            <a 
-              href="/tutors"
+            <Link 
+              to="/tutors"
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition inline-block"
             >
               Find a Tutor
-            </a>
+            </Link>
           </div>
         ) : (
           <div className="space-y-6">
-            {bookings.map((booking) => (
+            {filteredBookings.map((booking) => (
               <div key={booking._id} className="bg-white rounded-xl shadow-md p-6 border border-gray-100 transition hover:shadow-lg">
                 <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
                   <div>

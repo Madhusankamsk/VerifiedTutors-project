@@ -29,6 +29,7 @@ const iconComponents = {
   Filter: lazy(() => import('lucide-react').then(mod => ({ default: mod.Filter }))),
   Award: lazy(() => import('lucide-react').then(mod => ({ default: mod.Award }))),
   Calendar: lazy(() => import('lucide-react').then(mod => ({ default: mod.Calendar }))),
+  Heart: lazy(() => import('lucide-react').then(mod => ({ default: mod.Heart }))),
   HomeIcon: lazy(() => import('lucide-react').then(mod => ({ default: mod.Home }))),
 };
 
