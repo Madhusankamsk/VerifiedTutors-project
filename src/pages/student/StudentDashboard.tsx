@@ -1,6 +1,7 @@
 import React from 'react';
 import { Calendar, Clock, BookOpen, MessageSquare, ChevronRight, TrendingUp, Award, Users } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { Link } from 'react-router-dom';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -101,14 +102,20 @@ const StudentDashboard = () => {
               <Users className="w-6 h-6 text-primary-500" />
             </div>
             <div className="space-y-4">
-              <button className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 px-4 rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center space-x-2">
+              <Link 
+                to="/tutors"
+                className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 px-4 rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center space-x-2"
+              >
                 <Calendar className="w-5 h-5" />
                 <span>Book New Session</span>
-              </button>
-              <button className="w-full bg-white/50 backdrop-blur-sm text-gray-800 py-3 px-4 rounded-xl hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 flex items-center justify-center space-x-2 border border-gray-200">
+              </Link>
+              <Link
+                to="/student/bookings"
+                className="w-full bg-white/50 backdrop-blur-sm text-gray-800 py-3 px-4 rounded-xl hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 flex items-center justify-center space-x-2 border border-gray-200"
+              >
                 <Clock className="w-5 h-5 text-gray-500" />
-                <span>View Schedule</span>
-              </button>
+                <span>View My Bookings</span>
+              </Link>
               <button className="w-full bg-white/50 backdrop-blur-sm text-gray-800 py-3 px-4 rounded-xl hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 flex items-center justify-center space-x-2 border border-gray-200">
                 <MessageSquare className="w-5 h-5 text-gray-500" />
                 <span>Message Tutor</span>

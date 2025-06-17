@@ -50,6 +50,39 @@ interface Tutor {
   rejectionReason?: string;
 }
 
+export interface Booking {
+  _id: string;
+  student: {
+    _id: string;
+    name: string;
+    email: string;
+    profileImage?: string;
+  };
+  tutor: {
+    _id: string;
+    user: {
+      _id: string;
+      name: string;
+      email: string;
+      profileImage?: string;
+    };
+  };
+  subject: {
+    _id: string;
+    name: string;
+    category: string;
+  };
+  startTime: string;
+  endTime: string;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'notified';
+  amount: number;
+  paymentStatus: 'pending' | 'completed' | 'failed' | 'refunded';
+  meetingLink?: string;
+  notes?: string;
+  cancellationReason?: string;
+  createdAt: string;
+}
+
 export interface Location {
   _id: string;
   name: string;
@@ -198,6 +231,15 @@ interface AdminContextType {
   updateLocation: (id: string, locationData: Partial<Location>) => Promise<Location>;
   deleteLocation: (id: string) => Promise<void>;
   getAvailableParents: (level: number) => Location[];
+
+  // Booking Management
+  bookings: Booking[];
+  bookingLoading: boolean;
+  bookingError: string | null;
+  bookingTotalPages: number;
+  bookingCurrentPage: number;
+  fetchBookings: (page: number, status: string, sortBy: string) => Promise<void>;
+  notifyTutorAboutBooking: (bookingId: string) => Promise<void>;
 }
 
 interface TutorFilters {
@@ -210,6 +252,8 @@ const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
+  // Get token from localStorage directly
+  const token = localStorage.getItem('token');
   const [stats, setStats] = useState<DashboardStats>({
     totalTutors: 0,
     totalStudents: 0,
@@ -225,6 +269,13 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // New state for booking management
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+  const [bookingTotalPages, setBookingTotalPages] = useState(1);
+  const [bookingCurrentPage, setBookingCurrentPage] = useState(1);
 
   // Dashboard Stats
   const fetchDashboardStats = async () => {
@@ -537,6 +588,48 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return [];
   };
 
+  // Fetch bookings with pagination and filters
+  const fetchBookings = async (page: number, status: string, sortBy: string) => {
+    try {
+      setBookingLoading(true);
+      setBookingError(null);
+      
+      const response = await axios.get(`${API_URL}/api/admin/bookings`, {
+        params: { page, status, sortBy },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setBookings(response.data.bookings);
+      setBookingTotalPages(response.data.totalPages);
+      setBookingCurrentPage(page);
+      setBookingLoading(false);
+    } catch (error: any) {
+      setBookingError(error.response?.data?.message || 'Failed to fetch bookings');
+      setBookingLoading(false);
+    }
+  };
+
+  // Notify tutor about a booking
+  const notifyTutorAboutBooking = async (bookingId: string) => {
+    try {
+      setBookingLoading(true);
+      setBookingError(null);
+      
+      await axios.post(`${API_URL}/api/admin/bookings/${bookingId}/notify`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Refresh bookings after notification
+      await fetchBookings(bookingCurrentPage, 'all', 'newest');
+      setBookingLoading(false);
+      return Promise.resolve();
+    } catch (error: any) {
+      setBookingError(error.response?.data?.message || 'Failed to notify tutor');
+      setBookingLoading(false);
+      return Promise.reject(error);
+    }
+  };
+
   useEffect(() => {
     if (user?.role === 'admin') {
       fetchDashboardStats();
@@ -576,7 +669,16 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     createLocation,
     updateLocation,
     deleteLocation,
-    getAvailableParents
+    getAvailableParents,
+
+    // Booking Management
+    bookings,
+    bookingLoading,
+    bookingError,
+    bookingTotalPages,
+    bookingCurrentPage,
+    fetchBookings,
+    notifyTutorAboutBooking
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;

@@ -5,6 +5,7 @@ import Subject from '../models/subject.model.js';
 import Rating from '../models/rating.model.js';
 import Session from '../models/session.model.js';
 import Location from '../models/location.model.js';
+import Booking from '../models/booking.model.js';
 
 // @desc    Get all tutors
 // @route   GET /api/tutors
@@ -856,6 +857,73 @@ export const getTutorBlogById = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: error.message 
+    });
+  }
+};
+
+// @desc    Get tutor's bookings
+// @route   GET /api/tutors/bookings
+// @access  Private/Tutor
+export const getTutorBookings = async (req, res) => {
+  try {
+    const tutor = await Tutor.findOne({ user: req.user._id });
+    if (!tutor) {
+      return res.status(404).json({ message: 'Tutor profile not found' });
+    }
+
+    const bookings = await Booking.find({ tutor: tutor._id })
+      .populate('student', 'name email profileImage')
+      .populate('subject', 'name category')
+      .sort({ createdAt: -1 });
+
+    res.json(bookings);
+  } catch (error) {
+    console.error('Error in getTutorBookings:', error);
+    res.status(500).json({ 
+      message: 'Error fetching tutor bookings',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Update booking status
+// @route   PATCH /api/tutors/bookings/:id
+// @access  Private/Tutor
+export const updateBookingStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    
+    if (!status || !['confirmed', 'cancelled', 'completed'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+    
+    const tutor = await Tutor.findOne({ user: req.user._id });
+    if (!tutor) {
+      return res.status(404).json({ message: 'Tutor profile not found' });
+    }
+    
+    const booking = await Booking.findOne({ 
+      _id: req.params.id,
+      tutor: tutor._id
+    });
+    
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    
+    booking.status = status;
+    await booking.save();
+    
+    const updatedBooking = await Booking.findById(req.params.id)
+      .populate('student', 'name email profileImage')
+      .populate('subject', 'name category');
+    
+    res.json(updatedBooking);
+  } catch (error) {
+    console.error('Error in updateBookingStatus:', error);
+    res.status(500).json({ 
+      message: 'Error updating booking status',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 }; 

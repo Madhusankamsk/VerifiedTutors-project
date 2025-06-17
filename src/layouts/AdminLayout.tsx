@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LayoutDashboard, Users, BookOpen, MapPin, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, MapPin, LogOut, Calendar } from 'lucide-react';
 import DashboardLayout from './DashboardLayout';
 
 const AdminLayout: React.FC = () => {
@@ -19,6 +19,7 @@ const AdminLayout: React.FC = () => {
     { path: '/admin/tutors', name: 'Manage Tutors', icon: <Users className="h-6 w-6" /> },
     { path: '/admin/subjects', name: 'Manage Subjects', icon: <BookOpen className="h-6 w-6" /> },
     { path: '/admin/locations', name: 'Manage Locations', icon: <MapPin className="h-6 w-6" /> },
+    { path: '/admin/bookings', name: 'Manage Bookings', icon: <Calendar className="h-6 w-6" /> },
     { 
       path: '#', 
       name: 'Logout', 

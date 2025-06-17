@@ -250,4 +250,124 @@ export const getTutorVerificationDetails = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+};
+
+// @desc    Get all bookings for admin
+// @route   GET /api/admin/bookings
+// @access  Private/Admin
+export const getAllBookings = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const status = req.query.status || 'all';
+    const sortBy = req.query.sortBy || 'newest';
+
+    // Build query
+    let query = {};
+
+    // Filter by status
+    if (status !== 'all') {
+      query.status = status;
+    }
+
+    // Get total count for pagination
+    const total = await Booking.countDocuments(query);
+
+    // Build sort object
+    let sort = {};
+    switch (sortBy) {
+      case 'oldest':
+        sort = { createdAt: 1 };
+        break;
+      case 'startTime':
+        sort = { startTime: 1 };
+        break;
+      default: // newest
+        sort = { createdAt: -1 };
+    }
+
+    // Get bookings with pagination
+    const bookings = await Booking.find(query)
+      .populate('student', 'name email profileImage')
+      .populate({
+        path: 'tutor',
+        populate: { path: 'user', select: 'name email profileImage' }
+      })
+      .populate('subject', 'name category')
+      .sort(sort)
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.status(200).json({
+      bookings,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalBookings: total
+    });
+  } catch (error) {
+    console.error('Error in getAllBookings:', error);
+    res.status(500).json({ 
+      message: 'Error fetching bookings',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Notify tutor about booking
+// @route   POST /api/admin/bookings/:id/notify
+// @access  Private/Admin
+export const notifyTutorAboutBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id)
+      .populate('student', 'name email')
+      .populate({
+        path: 'tutor',
+        populate: { path: 'user', select: 'name email' }
+      })
+      .populate('subject', 'name');
+    
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    // Update booking status to 'notified'
+    booking.status = 'notified';
+    await booking.save();
+
+    // Send email notification to tutor
+    try {
+      await sendEmail({
+        to: booking.tutor.user.email,
+        subject: 'New Tutoring Session Booking',
+        template: 'bookingNotification',
+        context: {
+          tutorName: booking.tutor.user.name,
+          studentName: booking.student.name,
+          subject: booking.subject.name,
+          startTime: new Date(booking.startTime).toLocaleString(),
+          endTime: new Date(booking.endTime).toLocaleString(),
+          amount: booking.amount,
+          notes: booking.notes || 'No additional notes',
+          dashboardUrl: `${process.env.FRONTEND_URL}/tutor/dashboard`
+        }
+      });
+    } catch (emailError) {
+      console.error('Failed to send notification email:', emailError);
+      return res.status(500).json({ 
+        message: 'Failed to send notification email',
+        error: process.env.NODE_ENV === 'development' ? emailError.message : undefined
+      });
+    }
+
+    res.json({
+      message: 'Tutor notified successfully',
+      booking
+    });
+  } catch (error) {
+    console.error('Error in notifyTutorAboutBooking:', error);
+    res.status(500).json({ 
+      message: 'Failed to notify tutor',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
 }; 

@@ -1,9 +1,27 @@
 import { Link } from 'react-router-dom';
 import { useTutor } from '../../contexts/TutorContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { Star, Users, DollarSign, BookOpen, Edit2, Trash2, Calendar, Clock, TrendingUp, Award } from 'lucide-react';
+import { Star, Users, DollarSign, BookOpen, Edit2, Trash2, Calendar, Clock, TrendingUp, Award, Bell } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { API_URL } from '../../config/constants';
+
+interface Booking {
+  _id: string;
+  student: {
+    name: string;
+    email: string;
+    profileImage?: string;
+  };
+  subject: {
+    name: string;
+    category: string;
+  };
+  startTime: string;
+  endTime: string;
+  status: string;
+}
 
 const TutorDashboard = () => {
   const { 
@@ -16,6 +34,8 @@ const TutorDashboard = () => {
   } = useTutor();
   
   const [activeBlogTab, setActiveBlogTab] = useState<'published' | 'draft'>('published');
+  const [notifiedBookings, setNotifiedBookings] = useState<Booking[]>([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
   
   const handleDeleteProfile = async () => {
     if (window.confirm('Are you sure you want to delete your profile? This action cannot be undone.')) {
@@ -27,6 +47,29 @@ const TutorDashboard = () => {
       }
     }
   };
+
+  useEffect(() => {
+    const fetchNotifiedBookings = async () => {
+      try {
+        setLoadingBookings(true);
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`${API_URL}/api/tutors/bookings`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        const filtered = response.data.filter((booking: Booking) => booking.status === 'notified');
+        setNotifiedBookings(filtered);
+        setLoadingBookings(false);
+      } catch (error) {
+        console.error('Error fetching notified bookings:', error);
+        setLoadingBookings(false);
+      }
+    };
+
+    if (profile) {
+      fetchNotifiedBookings();
+    }
+  }, [profile]);
 
   if (loading) {
     return <LoadingSpinner/>;
@@ -63,6 +106,11 @@ const TutorDashboard = () => {
   }
 
   const filteredBlogs = blogs?.filter(blog => blog.status === activeBlogTab) || [];
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -182,6 +230,83 @@ const TutorDashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Notified Bookings */}
+        {notifiedBookings.length > 0 && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-purple-100 p-8 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-md mr-4">
+                  <Bell className="w-6 h-6" />
+                </div>
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-900 to-purple-700 bg-clip-text text-transparent">
+                  New Booking Requests ({notifiedBookings.length})
+                </h3>
+              </div>
+              <Link
+                to="/tutor/bookings"
+                className="text-purple-600 hover:text-purple-800 font-medium flex items-center"
+              >
+                View All
+              </Link>
+            </div>
+            
+            <div className="space-y-4">
+              {notifiedBookings.slice(0, 3).map((booking) => (
+                <div key={booking._id} className="bg-purple-50/70 backdrop-blur-sm rounded-xl p-6 border border-purple-100 hover:shadow-md transition-all duration-200">
+                  <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
+                    <div>
+                      <h4 className="text-lg font-semibold text-purple-900 mb-1">
+                        {booking.subject?.name || 'Unnamed Subject'}
+                      </h4>
+                      <p className="text-purple-700">
+                        with {booking.student?.name || 'Unknown Student'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="flex items-center">
+                      <Calendar className="w-5 h-5 text-purple-500 mr-2" />
+                      <div>
+                        <p className="text-sm text-purple-600">Start Time</p>
+                        <p className="font-medium text-purple-900">{formatDate(booking.startTime)}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center">
+                      <Clock className="w-5 h-5 text-purple-500 mr-2" />
+                      <div>
+                        <p className="text-sm text-purple-600">End Time</p>
+                        <p className="font-medium text-purple-900">{formatDate(booking.endTime)}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end space-x-2 mt-4">
+                    <Link
+                      to="/tutor/bookings"
+                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center"
+                    >
+                      Respond
+                    </Link>
+                  </div>
+                </div>
+              ))}
+              
+              {notifiedBookings.length > 3 && (
+                <div className="text-center mt-4">
+                  <Link
+                    to="/tutor/bookings"
+                    className="text-purple-600 hover:text-purple-800 font-medium"
+                  >
+                    View {notifiedBookings.length - 3} more requests
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">

@@ -18,7 +18,8 @@ const TutorProfilePage: React.FC = () => {
     error,
     reviews,
     fetchReviews,
-    addReview
+    addReview,
+    createBooking
   } = useTutor();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<TutorProfile | null>(null);
@@ -63,17 +64,66 @@ const TutorProfilePage: React.FC = () => {
     setShowBookingModal(true);
   };
 
-  const handleBookingSubmit = (data: { 
+  const handleBookingSubmit = async (data: { 
     subject: string;
     day: string; 
     timeSlot: string; 
     contactNumber: string; 
     learningMethod: 'online' | 'individual' | 'group' 
   }) => {
-    // Here you would typically make an API call to create the booking
-    console.log('Booking submitted:', data);
-    toast.success(`Session for ${data.subject} booked successfully!`);
-    setShowBookingModal(false);
+    if (!id || !profile) return;
+    
+    try {
+      // Find the selected subject
+      const selectedSubject = profile.subjects.find(s => s.subject._id === selectedSubjectForBooking);
+      if (!selectedSubject) {
+        toast.error('Selected subject not found');
+        return;
+      }
+      
+      // Parse time slot
+      const [startTimeStr, endTimeStr] = data.timeSlot.split(' - ');
+      
+      // Create date objects for start and end time
+      const today = new Date();
+      const dayIndex = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].indexOf(data.day);
+      const daysToAdd = (dayIndex - today.getDay() + 7) % 7;
+      
+      const bookingDate = new Date(today);
+      bookingDate.setDate(today.getDate() + daysToAdd);
+      
+      // Parse hours and minutes from time strings
+      const [startHours, startMinutes] = startTimeStr.split(':').map(Number);
+      const [endHours, endMinutes] = endTimeStr.split(':').map(Number);
+      
+      const startTime = new Date(bookingDate);
+      startTime.setHours(startHours, startMinutes, 0, 0);
+      
+      const endTime = new Date(bookingDate);
+      endTime.setHours(endHours, endMinutes, 0, 0);
+      
+      // Get the rate based on learning method
+      const rate = selectedSubject.rates[data.learningMethod];
+      
+      // Create booking
+      await createBooking({
+        tutorId: id,
+        subjectId: selectedSubjectForBooking,
+        startTime,
+        endTime,
+        notes: `Contact number: ${data.contactNumber}`,
+        learningMethod: data.learningMethod
+      });
+      
+      toast.success(`Session for ${selectedSubject.subject.name} booked successfully!`);
+      setShowBookingModal(false);
+      
+      // Redirect to student bookings page
+      navigate('/student/bookings');
+    } catch (error: any) {
+      console.error('Booking error:', error);
+      toast.error(error.response?.data?.message || 'Failed to book session. Please try again.');
+    }
   };
 
   const handleWriteReview = () => {

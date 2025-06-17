@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback } from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
 import { Users, BookOpen, Clock, DollarSign, AlertCircle, CheckCircle, TrendingUp, Shield, GraduationCap } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const { stats, loading, error, fetchDashboardStats } = useAdmin();
@@ -55,7 +56,8 @@ const AdminDashboard = () => {
       value: stats.totalTutors,
       icon: GraduationCap,
       gradient: 'from-blue-600 to-blue-700',
-      bgColor: 'bg-blue-50/50'
+      bgColor: 'bg-blue-50/50',
+      link: '/admin/tutors'
     },
     {
       title: 'Total Students',
@@ -69,7 +71,8 @@ const AdminDashboard = () => {
       value: stats.activeSubjects,
       icon: BookOpen,
       gradient: 'from-purple-600 to-purple-700',
-      bgColor: 'bg-purple-50/50'
+      bgColor: 'bg-purple-50/50',
+      link: '/admin/subjects'
     },
     {
       title: 'Pending Verifications',
@@ -83,7 +86,8 @@ const AdminDashboard = () => {
       value: stats.totalBookings,
       icon: Clock,
       gradient: 'from-indigo-600 to-indigo-700',
-      bgColor: 'bg-indigo-50/50'
+      bgColor: 'bg-indigo-50/50',
+      link: '/admin/bookings'
     },
     {
       title: 'Total Revenue',
@@ -132,9 +136,19 @@ const AdminDashboard = () => {
                 <p className={`text-4xl font-bold bg-gradient-to-r ${stat.gradient} bg-clip-text text-transparent`}>
                   {stat.value}
                 </p>
-                <div className="mt-4 flex items-center text-sm text-gray-500">
-                  <TrendingUp className="w-4 h-4 mr-1 text-green-500" />
-                  <span>+12% from last month</span>
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="flex items-center text-sm text-gray-500">
+                    <TrendingUp className="w-4 h-4 mr-1 text-green-500" />
+                    <span>+12% from last month</span>
+                  </div>
+                  {stat.link && (
+                    <Link 
+                      to={stat.link} 
+                      className="text-sm font-medium text-primary-600 hover:text-primary-700"
+                    >
+                      View Details
+                    </Link>
+                  )}
                 </div>
               </div>
             );

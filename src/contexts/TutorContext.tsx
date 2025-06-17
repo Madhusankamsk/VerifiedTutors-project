@@ -184,6 +184,16 @@ interface TutorContextType {
   };
   fetchStats: () => Promise<void>;
   
+  // Booking Management
+  createBooking: (bookingData: {
+    tutorId: string;
+    subjectId: string;
+    startTime: Date;
+    endTime: Date;
+    notes?: string;
+    learningMethod: 'online' | 'individual' | 'group';
+  }) => Promise<any>;
+  
   // Search & Filter
   searchTutors: (params: {
     subject?: string;
@@ -863,6 +873,42 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [profile?._id]);
 
+  // Booking Management
+  const createBooking = useCallback(async (bookingData: {
+    tutorId: string;
+    subjectId: string;
+    startTime: Date;
+    endTime: Date;
+    notes?: string;
+    learningMethod: 'online' | 'individual' | 'group';
+  }) => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.post(
+        `${API_URL}/api/bookings`,
+        bookingData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to create booking';
+      setError(errorMessage);
+      console.error('Booking creation error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
   // Search & Filter
   const searchTutors = useCallback(async (params: {
     subject?: string;
@@ -983,6 +1029,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     addReview,
     stats,
     fetchStats,
+    createBooking,
     searchTutors
   };
 

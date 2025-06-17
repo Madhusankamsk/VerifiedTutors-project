@@ -36,15 +36,18 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import ManageTutors from './pages/admin/ManageTutors';
 import ManageSubjects from './pages/admin/ManageSubjects';
 import ManageLocations from './pages/admin/ManageLocations';
+import ManageBookings from './pages/admin/ManageBookings';
 
 // Tutor Pages
 import TutorDashboard from './pages/tutor/TutorDashboard';
 import EditTutorProfile from './pages/tutor/EditTutorProfile';
 import ManageBlogs from './pages/tutor/ManageBlogs';
 import CreateEditBlog from './pages/tutor/CreateEditBlog';
+import TutorBookings from './pages/tutor/TutorBookings';
 
 // Student Pages
 import StudentDashboard from './pages/student/StudentDashboard';
+import StudentBookings from './pages/student/StudentBookings';
 // import FavoriteTutors from './pages/student/FavoriteTutors';
 
 const App = () => {
@@ -104,6 +107,7 @@ const App = () => {
                         <Route path="tutors" element={<ManageTutors />} />
                         <Route path="subjects" element={<ManageSubjects />} />
                         <Route path="locations" element={<ManageLocations />} />
+                        <Route path="bookings" element={<ManageBookings />} />
                       </Route>
 
                       {/* Tutor Routes */}
@@ -118,6 +122,7 @@ const App = () => {
                         <Route index element={<Navigate to="/tutor/dashboard" replace />} />
                         <Route path="dashboard" element={<TutorDashboard />} />
                         <Route path="profile" element={<EditTutorProfile />} />
+                        <Route path="bookings" element={<TutorBookings />} />
                         <Route path="blogs" element={<ManageBlogs />} />
                         {/* <Route path="blogs/create" element={<CreateEditBlog />} />
                         <Route path="blogs/edit/:id" element={<CreateEditBlog />} /> */}
@@ -134,6 +139,7 @@ const App = () => {
                       >
                         <Route index element={<Navigate to="/student/dashboard" replace />} />
                         <Route path="dashboard" element={<StudentDashboard />} />
+                        <Route path="bookings" element={<StudentBookings />} />
                         {/* <Route path="favorites" element={<FavoriteTutors />} /> */}
                       </Route>
 

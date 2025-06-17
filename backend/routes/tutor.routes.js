@@ -13,7 +13,9 @@ import {
   getTutorByUserId,
   getTutorReviews,
   getTutorStats,
-  getTutorBlogById
+  getTutorBlogById,
+  getTutorBookings,
+  updateBookingStatus
 } from '../controllers/tutor.controller.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 import { validateTutorProfile } from '../middleware/validation.middleware.js';
@@ -27,6 +29,10 @@ router.get('/', getTutors);
 router.get('/profile', protect, getTutorByUserId);
 router.put('/profile', protect, authorize('tutor'), updateTutorProfile);
 router.delete('/profile', protect, authorize('tutor'), deleteTutorProfile);
+
+// Booking routes
+router.get('/bookings', protect, authorize('tutor'), getTutorBookings);
+router.patch('/bookings/:id', protect, authorize('tutor'), updateBookingStatus);
 
 // Parameterized routes
 router.get('/:id', getTutor);
