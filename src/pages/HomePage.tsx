@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, CheckCircle, Star, Award, BookOpen, ArrowRight } from 'lucide-react';
-import { SUBJECT_AREAS } from '../config/constants';
 import { useAuth } from '../contexts/AuthContext';
+import { useSubjects } from '../contexts/SubjectContext';
 import heroImage from '../assets/HeroImage.png';
 
 const HomePage: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const { subjects, loading, error } = useSubjects();
 
   return (
     <div className="min-h-screen bg-white">
@@ -75,29 +76,41 @@ const HomePage: React.FC = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-            {SUBJECT_AREAS.slice(0, 8).map((subject) => (
-              <Link
-                key={subject}
-                to={`/tutors?subject=${encodeURIComponent(subject)}`}
-                className="group flex flex-col items-center p-4 sm:p-5 bg-white hover:bg-gray-50 rounded-xl transition-all duration-300 border border-gray-100 shadow-sm hover:shadow-md"
-              >
-                <div className="bg-primary-50 p-3 rounded-full mb-3 group-hover:bg-primary-100 transition-colors duration-300">
-                  <BookOpen className="h-6 w-6 text-primary-600" />
-                </div>
-                <span className="text-center font-medium text-gray-800 text-sm sm:text-base">{subject}</span>
-              </Link>
-            ))}
-          </div>
-          
-          <div className="text-center mt-8">
-            <Link 
-              to="/tutors" 
-              className="inline-flex items-center px-6 py-2.5 text-primary-600 rounded-full hover:bg-primary-50 transition-all duration-300 font-medium"
-            >
-              View All Subjects <ArrowRight className="ml-1 h-4 w-4" />
-            </Link>
-          </div>
+          {loading ? (
+            <div className="flex justify-center items-center h-40">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+            </div>
+          ) : error ? (
+            <div className="text-center text-red-500">
+              <p>Error loading subjects. Please try again later.</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                {subjects.slice(0, 8).map((subject) => (
+                  <Link
+                    key={subject._id}
+                    to={`/tutors?subject=${encodeURIComponent(subject.name)}`}
+                    className="group flex flex-col items-center p-4 sm:p-5 bg-white hover:bg-gray-50 rounded-xl transition-all duration-300 border border-gray-100 shadow-sm hover:shadow-md"
+                  >
+                    <div className="bg-primary-50 p-3 rounded-full mb-3 group-hover:bg-primary-100 transition-colors duration-300">
+                      <BookOpen className="h-6 w-6 text-primary-600" />
+                    </div>
+                    <span className="text-center font-medium text-gray-800 text-sm sm:text-base">{subject.name}</span>
+                  </Link>
+                ))}
+              </div>
+              
+              <div className="text-center mt-8">
+                <Link 
+                  to="/tutors" 
+                  className="inline-flex items-center px-6 py-2.5 text-primary-600 rounded-full hover:bg-primary-50 transition-all duration-300 font-medium"
+                >
+                  View All Subjects <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

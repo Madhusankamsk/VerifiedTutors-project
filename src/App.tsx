@@ -95,9 +95,7 @@ const App = () => {
                         path="/admin" 
                         element={
                           <RoleRoute role="admin">
-                            <AdminProvider>
-                              <AdminLayout />
-                            </AdminProvider>
+                            <AdminLayout />
                           </RoleRoute>
                         }
                       >
@@ -113,9 +111,7 @@ const App = () => {
                         path="/tutor" 
                         element={
                           <RoleRoute role="tutor">
-                            <TutorProvider>
-                              <TutorLayout />
-                            </TutorProvider>
+                            <TutorLayout />
                           </RoleRoute>
                         }
                       >
