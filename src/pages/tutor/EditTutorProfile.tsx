@@ -398,76 +398,70 @@ const EditTutorProfile: React.FC = () => {
   };
 
   const addTimeSlot = (subjectId: string, day: string) => {
-    setFormData(prev => ({
-      ...prev,
-      subjects: prev.subjects.map(s => {
-        if (s._id === subjectId) {
-          const dayAvailability = s.availability.find(a => a.day === day);
-          if (dayAvailability) {
-            return {
-              ...s,
-              availability: s.availability.map(a => 
-                a.day === day ? {
-                  ...a,
-                  slots: [...a.slots, { start: '09:00', end: '10:00' }]
-                } : a
-              )
-            };
-          } else {
-            return {
-              ...s,
-              availability: [...s.availability, {
-                day,
-                slots: [{ start: '09:00', end: '10:00' }]
-              }]
-            };
-          }
-        }
-        return s;
-      })
-    }));
+    setFormData(prev => {
+      // Create a deep copy of the previous state to ensure proper change detection
+      const newFormData = JSON.parse(JSON.stringify(prev));
+      
+      const subjectIndex = newFormData.subjects.findIndex((s: { _id: string }) => s._id === subjectId);
+      if (subjectIndex === -1) return prev;
+      
+      const subject = newFormData.subjects[subjectIndex];
+      const dayAvailability = subject.availability.find((a: { day: string }) => a.day === day);
+      
+      if (dayAvailability) {
+        dayAvailability.slots.push({ start: '09:00', end: '10:00' });
+      } else {
+        subject.availability.push({
+          day,
+          slots: [{ start: '09:00', end: '10:00' }]
+        });
+      }
+      
+      return newFormData;
+    });
   };
 
   const removeTimeSlot = (subjectId: string, day: string, slotIndex: number) => {
-    setFormData(prev => ({
-      ...prev,
-      subjects: prev.subjects.map(s => {
-        if (s._id === subjectId) {
-          return {
-            ...s,
-            availability: s.availability.map(a => 
-              a.day === day ? {
-                ...a,
-                slots: a.slots.filter((_, i) => i !== slotIndex)
-              } : a
-            )
-          };
+    setFormData(prev => {
+      // Create a deep copy of the previous state to ensure proper change detection
+      const newFormData = JSON.parse(JSON.stringify(prev));
+      
+      const subjectIndex = newFormData.subjects.findIndex((s: { _id: string }) => s._id === subjectId);
+      if (subjectIndex === -1) return prev;
+      
+      const subject = newFormData.subjects[subjectIndex];
+      const dayAvailabilityIndex = subject.availability.findIndex((a: { day: string }) => a.day === day);
+      
+      if (dayAvailabilityIndex !== -1) {
+        const dayAvailability = subject.availability[dayAvailabilityIndex];
+        dayAvailability.slots.splice(slotIndex, 1);
+        
+        if (dayAvailability.slots.length === 0) {
+          subject.availability.splice(dayAvailabilityIndex, 1);
         }
-        return s;
-      })
-    }));
+      }
+      
+      return newFormData;
+    });
   };
 
   const updateTimeSlot = (subjectId: string, day: string, slotIndex: number, field: 'start' | 'end', value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      subjects: prev.subjects.map(s => {
-        if (s._id === subjectId) {
-          return {
-            ...s,
-            availability: s.availability.map(a => 
-              a.day === day ? {
-                ...a,
-                slots: a.slots.map((slot, i) => 
-                  i === slotIndex ? { ...slot, [field]: value } : slot
-                )
-              } : a
-            )
-          };
-        }
-        return s;
-      })
-    }));
+    setFormData(prev => {
+      // Create a deep copy of the previous state to ensure proper change detection
+      const newFormData = JSON.parse(JSON.stringify(prev));
+      
+      const subjectIndex = newFormData.subjects.findIndex((s: { _id: string }) => s._id === subjectId);
+      if (subjectIndex === -1) return prev;
+      
+      const subject = newFormData.subjects[subjectIndex];
+      const dayAvailability = subject.availability.find((a: { day: string }) => a.day === day);
+      
+      if (dayAvailability && dayAvailability.slots[slotIndex]) {
+        dayAvailability.slots[slotIndex][field] = value;
+      }
+      
+      return newFormData;
+    });
   };
 
   const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1032,6 +1026,9 @@ const EditTutorProfile: React.FC = () => {
                         }))
                       }));
                     }}
+                    onAddTimeSlot={addTimeSlot}
+                    onRemoveTimeSlot={removeTimeSlot}
+                    onUpdateTimeSlot={updateTimeSlot}
                   />
                 </div>
               </div>
