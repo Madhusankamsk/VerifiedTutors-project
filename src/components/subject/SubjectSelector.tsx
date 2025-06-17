@@ -70,10 +70,11 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({ selectedSubjects, onS
 
   const handleTeachingModeToggle = (mode: 'online' | 'individual' | 'group') => {
     if (!selectedSubjects[0]) return;
-    
-    const updatedSubject = { ...selectedSubjects[0] };
+
+    // Deep clone the subject to avoid mutating nested objects
+    const updatedSubject = JSON.parse(JSON.stringify(selectedSubjects[0]));
     const currentRate = updatedSubject.rates[mode];
-    
+
     // If rate is 0, enable the mode and set default rate
     if (currentRate === 0) {
       updatedSubject.rates[mode] = 500; // Default rate
@@ -81,21 +82,17 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({ selectedSubjects, onS
       // If rate exists, disable the mode and set rate to 0
       updatedSubject.rates[mode] = 0;
     }
-    
+
     onSubjectsChange([updatedSubject]);
   };
 
   const handleRateChange = (type: 'individual' | 'group' | 'online', value: string) => {
     if (!selectedSubjects[0]) return;
-    
+
     const newRate = parseFloat(value) || 0;
-    const updatedSubject = {
-      ...selectedSubjects[0],
-      rates: {
-        ...selectedSubjects[0].rates,
-        [type]: newRate
-      }
-    };
+    // Deep clone the subject to avoid mutating nested objects
+    const updatedSubject = JSON.parse(JSON.stringify(selectedSubjects[0]));
+    updatedSubject.rates[type] = newRate;
     onSubjectsChange([updatedSubject]);
   };
 
