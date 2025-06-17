@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star, CheckCircle, MapPin, Book, Video, Home, Users } from 'lucide-react';
+import { Star, CheckCircle, Book, Video, Home, Users } from 'lucide-react';
 
 interface TutorCardProps {
   tutor: {
@@ -69,41 +69,43 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
           </div>
         </div>
 
-        {/* Location and Subjects */}
+        {/* Subjects only (removed location) */}
         <div className="space-y-1.5 mb-3">
-          <div className="flex items-center text-gray-600">
-            <MapPin className="h-3.5 w-3.5 mr-1.5 text-gray-400" />
-            <span className="text-xs line-clamp-1">{tutor.location}</span>
-          </div>
           <div className="flex items-center text-gray-600">
             <Book className="h-3.5 w-3.5 mr-1.5 text-gray-400" />
             <span className="text-xs line-clamp-1">{tutor.subjects.join(', ')}</span>
           </div>
         </div>
 
-        {/* Pricing Section */}
+        {/* Pricing Section - Only show teaching types with non-zero hourly rates */}
         <div className="grid grid-cols-3 gap-1.5 mb-3">
-          <div className="bg-gray-50 rounded-lg p-1.5 text-center">
-            <div className="flex items-center justify-center mb-0.5">
-              <Video className="h-3.5 w-3.5 text-blue-600" />
+          {tutor.hourlyRate.online > 0 && (
+            <div className="bg-gray-50 rounded-lg p-1.5 text-center">
+              <div className="flex items-center justify-center mb-0.5">
+                <Video className="h-3.5 w-3.5 text-blue-600" />
+              </div>
+              <p className="text-[10px] text-gray-500">Online</p>
+              <p className="font-medium text-xs text-gray-900">Rs. {tutor.hourlyRate.online}/hr</p>
             </div>
-            <p className="text-[10px] text-gray-500">Online</p>
-            <p className="font-medium text-xs text-gray-900">Rs. {tutor.hourlyRate.online}/hr</p>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-1.5 text-center">
-            <div className="flex items-center justify-center mb-0.5">
-              <Home className="h-3.5 w-3.5 text-blue-600" />
+          )}
+          {tutor.hourlyRate.homeVisit > 0 && (
+            <div className="bg-gray-50 rounded-lg p-1.5 text-center">
+              <div className="flex items-center justify-center mb-0.5">
+                <Home className="h-3.5 w-3.5 text-blue-600" />
+              </div>
+              <p className="text-[10px] text-gray-500">Home</p>
+              <p className="font-medium text-xs text-gray-900">Rs. {tutor.hourlyRate.homeVisit}/hr</p>
             </div>
-            <p className="text-[10px] text-gray-500">Home</p>
-            <p className="font-medium text-xs text-gray-900">Rs. {tutor.hourlyRate.homeVisit}/hr</p>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-1.5 text-center">
-            <div className="flex items-center justify-center mb-0.5">
-              <Users className="h-3.5 w-3.5 text-blue-600" />
+          )}
+          {tutor.hourlyRate.group > 0 && (
+            <div className="bg-gray-50 rounded-lg p-1.5 text-center">
+              <div className="flex items-center justify-center mb-0.5">
+                <Users className="h-3.5 w-3.5 text-blue-600" />
+              </div>
+              <p className="text-[10px] text-gray-500">Group</p>
+              <p className="font-medium text-xs text-gray-900">Rs. {tutor.hourlyRate.group}/hr</p>
             </div>
-            <p className="text-[10px] text-gray-500">Group</p>
-            <p className="font-medium text-xs text-gray-900">Rs. {tutor.hourlyRate.group}/hr</p>
-          </div>
+          )}
         </div>
 
         {/* View Profile Button */}
