@@ -29,6 +29,7 @@ const TutorProfilePage: React.FC = () => {
     comment: ''
   });
   const [activeTab, setActiveTab] = useState('about');
+  const [selectedSubjectForBooking, setSelectedSubjectForBooking] = useState<string>('');
 
   useEffect(() => {
     const loadTutorProfile = async () => {
@@ -53,13 +54,25 @@ const TutorProfilePage: React.FC = () => {
       navigate('/login', { state: { from: `/tutors/${id}` } });
       return;
     }
+    
+    // Set the default selected subject for booking
+    if (profile && profile.subjects.length > 0) {
+      setSelectedSubjectForBooking(profile.subjects[0].subject._id);
+    }
+    
     setShowBookingModal(true);
   };
 
-  const handleBookingSubmit = (data: { day: string; timeSlot: string; contactNumber: string }) => {
+  const handleBookingSubmit = (data: { 
+    subject: string;
+    day: string; 
+    timeSlot: string; 
+    contactNumber: string; 
+    learningMethod: 'online' | 'individual' | 'group' 
+  }) => {
     // Here you would typically make an API call to create the booking
     console.log('Booking submitted:', data);
-    toast.success('Session booked successfully!');
+    toast.success(`Session for ${data.subject} booked successfully!`);
     setShowBookingModal(false);
   };
 
@@ -672,6 +685,17 @@ const TutorProfilePage: React.FC = () => {
           }, {} as { [key: string]: { start: string; end: string; }[] })
         }}
         selectedSubject={profile.subjects[0].subject.name}
+        availableMethods={{
+          online: profile.subjects[0].rates.online > 0,
+          individual: profile.subjects[0].rates.individual > 0,
+          group: profile.subjects[0].rates.group > 0
+        }}
+        subjects={profile.subjects.map(subject => ({
+          _id: subject.subject._id,
+          name: subject.subject.name,
+          rates: subject.rates,
+          availability: subject.availability
+        }))}
       />
     </div>
   );
