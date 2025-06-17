@@ -53,6 +53,12 @@ const RegisterPage: React.FC = () => {
       setValue('name', googleName);
       // Skip to role selection step
       setCurrentStep(3);
+      
+      // Generate a random password for Google auth users
+      // This won't be used for login but is required by the form validation
+      const randomPassword = Math.random().toString(36).slice(-10);
+      setValue('password', randomPassword);
+      setValue('confirmPassword', randomPassword);
     }
   }, [isGoogleAuth, googleEmail, googleName, setValue]);
 

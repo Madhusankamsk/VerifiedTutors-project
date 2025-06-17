@@ -172,13 +172,13 @@ export const googleCallback = (req, res, next) => {
 
     const { user, token, isNewUser } = data;
     
-    if (isNewUser) {
-      // For new users, redirect to role selection with temporary token
+    if (isNewUser || user.role === null) {
+      // For new users or users without a role, redirect to role selection with temporary token
       res.redirect(
         `http://localhost:5173/register?token=${token}&email=${encodeURIComponent(user.email)}&name=${encodeURIComponent(user.name)}&isGoogleAuth=true`
       );
     } else {
-      // For existing users, proceed with normal login
+      // For existing users with a role, proceed with normal login
       res.redirect(
         `http://localhost:5173/auth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify(user))}`
       );
@@ -208,11 +208,12 @@ export const updateGoogleUserRole = async (req, res) => {
 
     res.json({
       user: {
-        id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
         profileImage: user.profileImage,
+        socialProvider: user.socialProvider
       }
     });
   } catch (error) {

@@ -30,8 +30,20 @@ const AuthCallback: React.FC = () => {
         // Redirect based on user role
         if (user.role === 'tutor') {
           navigate('/tutor/dashboard');
-        } else {
+        } else if (user.role === 'student') {
           navigate('/student/dashboard');
+        } else if (user.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          // If no role is assigned, redirect to role selection
+          navigate('/register', { 
+            state: { 
+              token,
+              email: user.email,
+              name: user.name,
+              isGoogleAuth: true 
+            }
+          });
         }
       } catch (err) {
         console.error('Error processing auth callback:', err);

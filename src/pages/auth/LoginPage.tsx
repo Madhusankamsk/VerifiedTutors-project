@@ -48,10 +48,19 @@ const LoginPage: React.FC = () => {
           email: googleEmail,
           name: googleName,
           isGoogleAuth: true
-        }
+        },
+        replace: true
       });
     }
-  }, [isGoogleAuth, googleToken, googleEmail, googleName, navigate]);
+    
+    // Check for error in URL params
+    const error = searchParams.get('error');
+    if (error) {
+      clearError();
+      setUser(null);
+      localStorage.removeItem('token');
+    }
+  }, [isGoogleAuth, googleToken, googleEmail, googleName, navigate, searchParams, clearError, setUser]);
 
   const onSubmit = async (data: LoginFormData) => {
     try {
