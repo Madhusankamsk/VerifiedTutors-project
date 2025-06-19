@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Menu, X } from 'lucide-react';
@@ -21,6 +21,7 @@ interface DashboardLayoutProps {
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { user } = useAuth();
+  const location = useLocation();
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -49,17 +50,26 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
           </div>
 
           <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-            {sidebarItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={item.onClick}
-                className="flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-              >
-                {item.icon}
-                <span className="ml-3">{item.name}</span>
-              </Link>
-            ))}
+            {sidebarItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={item.onClick}
+                  className={`flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                    isActive
+                      ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <span className={`${isActive ? 'text-blue-500' : ''}`}>
+                    {item.icon}
+                  </span>
+                  <span className="ml-3">{item.name}</span>
+                </Link>
+              );
+            })}
           </nav>
 
           {/* User Profile Section */}
