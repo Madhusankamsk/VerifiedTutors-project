@@ -13,7 +13,7 @@ interface DashboardStats {
   totalRevenue: number;
 }
 
-interface Tutor {
+export interface Tutor {
   _id: string;
   user?: {
     _id: string;
@@ -25,9 +25,16 @@ interface Tutor {
   mobileNumber?: string;
   bio?: string;
   subjects?: Array<{
-    _id: string;
-    name: string;
-    category: string;
+    subject: {
+      _id: string;
+      name: string;
+      category: string;
+    };
+    rates?: {
+      individual: number;
+      group: number;
+      online: number;
+    };
   }>;
   education?: Array<{
     degree: string;

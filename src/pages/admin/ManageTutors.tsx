@@ -3,42 +3,10 @@ import { useAdmin } from '../../contexts/AdminContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { Search, Filter, ChevronDown, ChevronUp, CheckCircle, XCircle, Eye, AlertCircle } from 'lucide-react';
 
-interface Tutor {
-  _id: string;
-  user?: {
-    _id: string;
-    name: string;
-    email: string;
-    profileImage?: string;
-  };
-  gender?: 'Male' | 'Female' | 'Other';
-  mobileNumber?: string;
-  bio?: string;
-  subjects?: Array<{
-    _id: string;
-    name: string;
-    category: string;
-  }>;
-  education?: Array<{
-    degree: string;
-    institution: string;
-    year: number;
-  }>;
-  experience?: Array<{
-    position: string;
-    institution: string;
-    duration: string;
-    description: string;
-  }>;
-  hourlyRate?: number;
-  rating?: number;
-  totalRatings?: number;
-  isVerified: boolean;
-  documents?: string[];
-  createdAt: string;
-  verificationStatus?: 'pending' | 'approved' | 'rejected';
-  rejectionReason?: string;
-}
+// Use the same Tutor interface from AdminContext
+import { Tutor as AdminTutor } from '../../contexts/AdminContext';
+
+type Tutor = AdminTutor;
 
 interface VerificationChecklist {
   id: string;
@@ -259,7 +227,7 @@ const ManageTutors = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900">
-                      {tutor.subjects?.map((subject) => subject.name).join(', ') || 'No subjects'}
+                      {tutor.subjects?.map((subject) => subject.subject?.name).join(', ') || 'No subjects'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -401,7 +369,7 @@ const ManageTutors = () => {
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">Education</h3>
                   <div className="mt-2 space-y-2">
-                    {selectedTutor?.education?.map((edu, index) => (
+                    {selectedTutor?.education?.map((edu: { degree: string; institution: string; year: number }, index: number) => (
                       <div key={index} className="bg-gray-50 p-3 rounded-md">
                         <p className="text-sm font-medium text-gray-900">{edu.degree}</p>
                         <p className="text-sm text-gray-500">{edu.institution}</p>
@@ -413,7 +381,7 @@ const ManageTutors = () => {
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">Experience</h3>
                   <div className="mt-2 space-y-2">
-                    {selectedTutor?.experience?.map((exp, index) => (
+                    {selectedTutor?.experience?.map((exp: { position: string; institution: string; duration: string; description: string }, index: number) => (
                       <div key={index} className="bg-gray-50 p-3 rounded-md">
                         <p className="text-sm font-medium text-gray-900">{exp.position}</p>
                         <p className="text-sm text-gray-500">{exp.institution}</p>
@@ -426,7 +394,7 @@ const ManageTutors = () => {
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">Documents</h3>
                   <div className="mt-2 grid grid-cols-2 gap-4">
-                    {selectedTutor?.documents?.map((doc, index) => (
+                    {selectedTutor?.documents?.map((doc: string, index: number) => (
                       <a
                         key={index}
                         href={doc}

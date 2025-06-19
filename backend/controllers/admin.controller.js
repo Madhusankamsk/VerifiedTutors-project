@@ -59,7 +59,10 @@ export const getAllTutors = async (req, res) => {
     // Get tutors with pagination
     const tutors = await Tutor.find(query)
       .populate('user', 'name email profileImage')
-      .populate('subjects', 'name category')
+      .populate({
+        path: 'subjects.subject',
+        select: 'name category'
+      })
       .sort(sort)
       .skip((page - 1) * limit)
       .limit(limit);
