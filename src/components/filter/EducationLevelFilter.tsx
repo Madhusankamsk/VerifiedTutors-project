@@ -75,11 +75,11 @@ const EducationLevelFilter: React.FC<EducationLevelFilterProps> = ({
 
   if (loading) {
     return (
-      <div className="p-4">
-        <div className="animate-pulse space-y-4">
-          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-          <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+      <div className="p-2">
+        <div className="animate-pulse space-y-2">
+          <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+          <div className="h-3 bg-gray-200 rounded w-5/6"></div>
         </div>
       </div>
     );
@@ -87,20 +87,20 @@ const EducationLevelFilter: React.FC<EducationLevelFilterProps> = ({
 
   if (error) {
     return (
-      <div className="p-4 text-red-500">
+      <div className="p-2 text-red-500 text-xs">
         {error}
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2">
+    <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-1.5">
         {educationLevels.map((level) => (
           <button
             key={level.value}
             onClick={() => onSelect(level.value)}
-            className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+            className={`px-2 py-1.5 text-xs rounded-md transition-colors ${
               selectedLevel === level.value
                 ? 'bg-primary-100 text-primary-700'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -112,7 +112,7 @@ const EducationLevelFilter: React.FC<EducationLevelFilterProps> = ({
       </div>
 
       {educationLevels.length === 0 && (
-        <div className="text-center text-gray-500 py-4">
+        <div className="text-center text-gray-500 py-2 text-xs">
           No education levels found
         </div>
       )}

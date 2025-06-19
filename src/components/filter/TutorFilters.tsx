@@ -4,7 +4,7 @@ import SubjectFilter from './SubjectFilter';
 import TeachingModeFilter from './TeachingModeFilter';
 import LocationFilter from './LocationFilter';
 import ExtraFilters from './ExtraFilters';
-import { ChevronDown, ChevronUp, X, Filter } from 'lucide-react';
+import { ChevronDown, ChevronUp, X, Filter, SlidersHorizontal } from 'lucide-react';
 import { useSubjects } from '../../contexts/SubjectContext';
 import { useLocations } from '../../contexts/LocationContext';
 
@@ -122,14 +122,12 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
         key: 'gender',
         label: 'Female Tutors Only',
         onRemove: () => {
-          setFilters(prev => ({
-            ...prev,
-            extraFilters: { ...prev.extraFilters, femaleOnly: false }
-          }));
-          onFilterChange({
+          const updatedFilters = {
             ...filters,
             extraFilters: { ...filters.extraFilters, femaleOnly: false }
-          });
+          };
+          setFilters(updatedFilters);
+          onFilterChange(updatedFilters);
         }
       });
     }
@@ -154,9 +152,14 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
         key: 'location',
         label: locationName,
         onRemove: () => {
-          setFilters(prev => ({ ...prev, location: { city: '', town: '', hometown: '' } }));
+          const updatedFilters = {
+            ...filters,
+            location: { city: '', town: '', hometown: '' }
+          };
+          setFilters(updatedFilters);
           setActiveLayer(3);
           setVisibleSections([3, 4]);
+          onFilterChange(updatedFilters);
         }
       });
     }
@@ -166,9 +169,14 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
         key: 'teachingMode',
         label: filters.teachingMode,
         onRemove: () => {
-          setFilters(prev => ({ ...prev, teachingMode: '' }));
+          const updatedFilters = {
+            ...filters,
+            teachingMode: ''
+          };
+          setFilters(updatedFilters);
           setActiveLayer(2);
           setVisibleSections([2, 3]);
+          onFilterChange(updatedFilters);
         }
       });
     }
@@ -179,9 +187,14 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
         key: 'subject',
         label: subjectName,
         onRemove: () => {
-          setFilters(prev => ({ ...prev, subjects: [] }));
+          const updatedFilters = {
+            ...filters,
+            subjects: []
+          };
+          setFilters(updatedFilters);
           setActiveLayer(1);
           setVisibleSections([1, 2]);
+          onFilterChange(updatedFilters);
         }
       });
     }
@@ -191,9 +204,14 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
         key: 'educationLevel',
         label: filters.educationLevel,
         onRemove: () => {
-          setFilters(prev => ({ ...prev, educationLevel: '' }));
+          const updatedFilters = {
+            ...filters,
+            educationLevel: ''
+          };
+          setFilters(updatedFilters);
           setActiveLayer(1);
           setVisibleSections([1, 2]);
+          onFilterChange(updatedFilters);
         }
       });
     }
@@ -206,10 +224,10 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
   };
 
   const renderSectionHeader = (layer: number, title: string, icon?: React.ReactNode) => (
-    <div className="flex items-center justify-between p-4 bg-white border-b">
+    <div className="flex items-center justify-between p-3 bg-white border-b">
       <div className="flex items-center gap-2">
         {icon}
-        <h3 className="font-medium text-gray-900">{title}</h3>
+        <h3 className="font-medium text-gray-900 text-sm">{title}</h3>
       </div>
     </div>
   );
@@ -227,15 +245,15 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
       filters.extraFilters.priceRange[1] < 1000;
 
     return (
-      <div className="w-full bg-white rounded-lg space-y-4">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold">Filter Tutors</h2>
+      <div className="w-full bg-white rounded-lg space-y-3">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-semibold">Filter Tutors</h2>
           {hasActiveFilters && (
             <button
               onClick={handleClearAll}
-              className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1"
+              className="text-xs text-gray-600 hover:text-gray-900 flex items-center gap-1"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3 w-3" />
               Clear All
             </button>
           )}
@@ -243,11 +261,11 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
         {/* Active Filter Tags */}
         {renderFilterTags().length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
+          <div className="flex flex-wrap gap-1 mb-2">
             {renderFilterTags().map((tag) => (
               <div
                 key={tag.key}
-                className={`inline-flex items-center gap-1 px-2 py-1 bg-primary-50 text-primary-700 rounded-full text-xs font-medium ${
+                className={`inline-flex items-center gap-1 px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-medium ${
                   !tag.canRemove ? 'opacity-75' : ''
                 }`}
               >
@@ -257,7 +275,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
                     onClick={tag.onRemove}
                     className="hover:bg-primary-100 rounded-full p-0.5 -mr-0.5"
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-2.5 w-2.5" />
                   </button>
                 )}
               </div>
@@ -339,34 +357,32 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
     <>
       {/* Desktop Horizontal Filters */}
       <div className="hidden lg:block">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white">
           {/* Header Section */}
-          <div className="px-4 py-3 border-b border-gray-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-primary-600" />
-                <h2 className="text-base font-semibold text-gray-900">Quick Filters</h2>
-              </div>
-              {renderFilterTags().length > 0 && (
-                <button
-                  onClick={handleClearAll}
-                  className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-gray-50 transition-colors"
-                >
-                  <X className="h-3.5 w-3.5" />
-                  Clear All
-                </button>
-              )}
+          <div className="px-3 py-2 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <SlidersHorizontal className="h-3.5 w-3.5 text-primary-600" />
+              <h2 className="text-sm font-medium text-gray-900">Filters</h2>
             </div>
+            {renderFilterTags().length > 0 && (
+              <button
+                onClick={handleClearAll}
+                className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 px-1.5 py-0.5 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                <X className="h-3 w-3" />
+                Clear
+              </button>
+            )}
           </div>
 
           {/* Active Filter Tags */}
           {renderFilterTags().length > 0 && (
-            <div className="px-4 py-2.5 border-b border-gray-100 bg-gray-50/50">
-              <div className="flex flex-wrap gap-1.5">
+            <div className="px-3 py-2 border-b border-gray-100 bg-gray-50/50">
+              <div className="flex flex-wrap gap-1">
                 {renderFilterTags().map((tag) => (
                   <div
                     key={tag.key}
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-primary-100 text-primary-700 rounded-full text-xs font-medium shadow-sm ${
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-primary-100 text-primary-700 rounded-full text-xs font-medium shadow-sm ${
                       !tag.canRemove ? 'opacity-75' : ''
                     }`}
                   >
@@ -376,7 +392,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
                         onClick={tag.onRemove}
                         className="hover:bg-primary-50 rounded-full p-0.5 -mr-0.5 transition-colors"
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-2.5 w-2.5" />
                       </button>
                     )}
                   </div>
@@ -388,7 +404,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
           {/* Horizontal Filter Sections */}
           <div className="grid grid-cols-5 divide-x divide-gray-100">
             {/* Education Level */}
-            <div className="p-4">
+            <div className="p-3">
               <EducationLevelFilter
                 selectedLevel={filters.educationLevel}
                 onSelect={handleEducationLevelSelect}
@@ -397,7 +413,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
             {/* Subject */}
             {filters.educationLevel && (
-              <div className="p-4">
+              <div className="p-3">
                 <SubjectFilter
                   selectedSubjects={filters.subjects}
                   educationLevel={filters.educationLevel}
@@ -408,7 +424,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
             {/* Teaching Mode */}
             {filters.subjects.length > 0 && (
-              <div className="p-4">
+              <div className="p-3">
                 <TeachingModeFilter
                   selectedMode={filters.teachingMode}
                   onSelect={handleTeachingModeSelect}
@@ -418,7 +434,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
             {/* Location */}
             {filters.teachingMode && filters.teachingMode !== 'ONLINE' && (
-              <div className="p-4">
+              <div className="p-3">
                 <LocationFilter
                   selectedLocation={filters.location}
                   onSelect={handleLocationSelect}
@@ -428,7 +444,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
             {/* Extra Filters */}
             {filters.teachingMode && (
-              <div className="p-4">
+              <div className="p-3">
                 <ExtraFilters
                   filters={filters.extraFilters}
                   onChange={handleExtraFiltersChange}
@@ -443,9 +459,9 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
       {/* Mobile Filter Button */}
       <button
         onClick={() => setIsMobileFiltersOpen(true)}
-        className="lg:hidden fixed bottom-4 right-4 z-50 bg-primary-600 text-white px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 hover:bg-primary-700 transition-colors"
+        className="lg:hidden fixed bottom-4 right-4 z-50 bg-primary-600 text-white px-3 py-2 rounded-full shadow-lg flex items-center gap-1.5 hover:bg-primary-700 transition-colors text-sm"
       >
-        <Filter className="h-5 w-5" />
+        <Filter className="h-4 w-4" />
         Filters
       </button>
 
@@ -453,16 +469,16 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
       {isMobileFiltersOpen && (
         <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
           <div className="absolute inset-y-0 right-0 w-full max-w-sm bg-white overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between z-10">
-              <h2 className="text-xl font-semibold">Filter Tutors</h2>
+            <div className="sticky top-0 bg-white border-b p-3 flex items-center justify-between z-10">
+              <h2 className="text-lg font-semibold">Filter Tutors</h2>
               <button
                 onClick={() => setIsMobileFiltersOpen(false)}
-                className="p-2 hover:bg-gray-100 rounded-full"
+                className="p-1.5 hover:bg-gray-100 rounded-full"
               >
-                <X className="h-6 w-6" />
+                <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="p-4">
+            <div className="p-3">
               {renderFilterContent()}
             </div>
           </div>

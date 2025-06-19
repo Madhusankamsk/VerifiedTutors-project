@@ -77,18 +77,18 @@ const LocationFilter: React.FC<LocationFilterProps> = ({ selectedLocation, onSel
     switch (activeStep) {
       case 'city':
         return (
-          <div className="space-y-2">
-            <div className="flex items-center gap-1.5">
-              <h3 className="font-medium text-gray-700 text-sm">Select City</h3>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1">
+              <h3 className="font-medium text-gray-700 text-xs">Select City</h3>
               <span className="text-xs text-gray-400">(Step 1/3)</span>
             </div>
-            <div className="max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-              <div className="space-y-1">
+            <div className="max-h-28 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+              <div className="space-y-0.5">
                 {cities.map(city => (
                   <button
                     key={city._id}
                     onClick={() => handleCitySelect(city._id)}
-                    className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-all ${
+                    className={`w-full text-left px-2 py-1 rounded-md text-xs transition-all ${
                       selectedLocation.city === city._id
                         ? 'bg-primary-50 text-primary-700 border border-primary-100 shadow-sm'
                         : 'hover:bg-gray-50 border border-transparent'
@@ -104,28 +104,28 @@ const LocationFilter: React.FC<LocationFilterProps> = ({ selectedLocation, onSel
 
       case 'town':
         return (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <h3 className="font-medium text-gray-700 text-sm">Select Town</h3>
+              <div className="flex items-center gap-1">
+                <h3 className="font-medium text-gray-700 text-xs">Select Town</h3>
                 <span className="text-xs text-gray-400">(Step 2/3)</span>
               </div>
               <button
                 onClick={handleBack}
-                className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 px-2 py-1 rounded-md hover:bg-gray-50 transition-colors"
+                className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-0.5 px-1.5 py-0.5 rounded-md hover:bg-gray-50 transition-colors"
               >
-                <ChevronRight className="h-3 w-3 rotate-180" />
+                <ChevronRight className="h-2.5 w-2.5 rotate-180" />
                 Back
               </button>
             </div>
-            <div className="max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+            <div className="max-h-28 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
               {towns.length > 0 ? (
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   {towns.map(town => (
                     <button
                       key={town._id}
                       onClick={() => handleTownSelect(town._id)}
-                      className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-all ${
+                      className={`w-full text-left px-2 py-1 rounded-md text-xs transition-all ${
                         selectedLocation.town === town._id
                           ? 'bg-primary-50 text-primary-700 border border-primary-100 shadow-sm'
                           : 'hover:bg-gray-50 border border-transparent'
@@ -136,7 +136,7 @@ const LocationFilter: React.FC<LocationFilterProps> = ({ selectedLocation, onSel
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-4 text-sm text-gray-500">
+                <div className="text-center py-2 text-xs text-gray-500">
                   No towns available for this city
                 </div>
               )}
@@ -146,28 +146,28 @@ const LocationFilter: React.FC<LocationFilterProps> = ({ selectedLocation, onSel
 
       case 'hometown':
         return (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <h3 className="font-medium text-gray-700 text-sm">Select Hometown</h3>
+              <div className="flex items-center gap-1">
+                <h3 className="font-medium text-gray-700 text-xs">Select Hometown</h3>
                 <span className="text-xs text-gray-400">(Step 3/3)</span>
               </div>
               <button
                 onClick={handleBack}
-                className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 px-2 py-1 rounded-md hover:bg-gray-50 transition-colors"
+                className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-0.5 px-1.5 py-0.5 rounded-md hover:bg-gray-50 transition-colors"
               >
-                <ChevronRight className="h-3 w-3 rotate-180" />
+                <ChevronRight className="h-2.5 w-2.5 rotate-180" />
                 Back
               </button>
             </div>
-            <div className="max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+            <div className="max-h-28 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
               {hometowns.length > 0 ? (
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   {hometowns.map(hometown => (
                     <button
                       key={hometown._id}
                       onClick={() => handleHometownSelect(hometown._id)}
-                      className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-all ${
+                      className={`w-full text-left px-2 py-1 rounded-md text-xs transition-all ${
                         selectedLocation.hometown === hometown._id
                           ? 'bg-primary-50 text-primary-700 border border-primary-100 shadow-sm'
                           : 'hover:bg-gray-50 border border-transparent'
@@ -178,7 +178,7 @@ const LocationFilter: React.FC<LocationFilterProps> = ({ selectedLocation, onSel
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-4 text-sm text-gray-500">
+                <div className="text-center py-2 text-xs text-gray-500">
                   No hometowns available for this town
                 </div>
               )}

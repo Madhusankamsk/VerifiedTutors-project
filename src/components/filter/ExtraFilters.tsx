@@ -25,12 +25,12 @@ const ExtraFilters: React.FC<ExtraFiltersProps> = ({ filters, onChange, onSortCh
   };
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <h3 className="font-medium text-gray-700 text-sm">Filter Options</h3>
+    <div className="space-y-2">
+      <div className="space-y-1.5">
+        <h3 className="font-medium text-gray-700 text-xs">Filter Options</h3>
         <button
           onClick={() => handleGenderChange(!filters.femaleOnly)}
-          className={`w-full px-3 py-2 rounded-md text-sm transition-all ${
+          className={`w-full px-2 py-1 rounded-md text-xs transition-all ${
             filters.femaleOnly
               ? 'bg-primary-50 text-primary-700 border border-primary-100 shadow-sm'
               : 'hover:bg-gray-50 border border-transparent'
@@ -40,30 +40,30 @@ const ExtraFilters: React.FC<ExtraFiltersProps> = ({ filters, onChange, onSortCh
         </button>
       </div>
 
-      <div className="space-y-2">
-        <h3 className="font-medium text-gray-700 text-sm">Sort By</h3>
-        <div className="flex flex-col gap-2">
+      <div className="space-y-1.5">
+        <h3 className="font-medium text-gray-700 text-xs">Sort By</h3>
+        <div className="flex flex-col gap-1">
           <button
             onClick={() => handleSortOptionClick('rating', 'desc')}
-            className="w-full px-3 py-2 rounded-md text-sm transition-all hover:bg-gray-50 border border-transparent"
+            className="w-full px-2 py-1 rounded-md text-xs transition-all hover:bg-gray-50 border border-transparent"
           >
             Top Rated
           </button>
           <button
             onClick={() => handleSortOptionClick('price', 'asc')}
-            className="w-full px-3 py-2 rounded-md text-sm transition-all hover:bg-gray-50 border border-transparent"
+            className="w-full px-2 py-1 rounded-md text-xs transition-all hover:bg-gray-50 border border-transparent"
           >
             Price: Low to High
           </button>
           <button
             onClick={() => handleSortOptionClick('price', 'desc')}
-            className="w-full px-3 py-2 rounded-md text-sm transition-all hover:bg-gray-50 border border-transparent"
+            className="w-full px-2 py-1 rounded-md text-xs transition-all hover:bg-gray-50 border border-transparent"
           >
             Price: High to Low
           </button>
           <button
             onClick={() => handleSortOptionClick('experience', 'desc')}
-            className="w-full px-3 py-2 rounded-md text-sm transition-all hover:bg-gray-50 border border-transparent"
+            className="w-full px-2 py-1 rounded-md text-xs transition-all hover:bg-gray-50 border border-transparent"
           >
             Most Experienced
           </button>

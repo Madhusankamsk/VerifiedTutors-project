@@ -16,17 +16,17 @@ const TeachingModeFilter: React.FC<TeachingModeFilterProps> = ({
   onSelect,
 }) => {
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-1.5">
-        <h3 className="font-medium text-gray-700 text-sm">Teaching Mode</h3>
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-1">
+        <h3 className="font-medium text-gray-700 text-xs">Teaching Mode</h3>
         <span className="text-xs text-gray-400">(Select one)</span>
       </div>
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1">
         {teachingModes.map((mode) => (
           <button
             key={mode.value}
             onClick={() => onSelect(mode.value)}
-            className={`px-3 py-2 rounded-md text-sm transition-all ${
+            className={`px-2 py-1 rounded-md text-xs transition-all ${
               selectedMode === mode.value
                 ? 'bg-primary-50 text-primary-700 border border-primary-100 shadow-sm'
                 : 'hover:bg-gray-50 border border-transparent'

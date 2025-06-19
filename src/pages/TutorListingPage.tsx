@@ -5,7 +5,8 @@ import { useLocations } from '../contexts/LocationContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import TutorCard from '../components/common/TutorCard';
 import TutorFilters, { FilterState } from '../components/filter/TutorFilters';
-import { Search, X, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { Search, X, Sparkles, SlidersHorizontal, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface Filters {
   subject: string;
@@ -134,43 +135,32 @@ const TutorListingPage: React.FC = () => {
   }, [hasMore, loadingMore, loading, fetchTutors]);
 
   const handleFilterChange = (newFilters: FilterState) => {
-    // Reset all filters to initial state
-    setFilters({
-      subject: '',
-      rating: 0,
-      price: { min: 0, max: 1000 },
-      location: '',
-      educationLevel: '',
-      medium: '',
-      page: 1,
-      limit: 20,
-      sortBy: 'rating',
-      sortOrder: 'desc',
-      availability: 'all',
-      experience: 'all',
-      search: ''
-    });
-
-    // Update filters with new values
-    setFilters(prev => ({
-      ...prev,
-      educationLevel: newFilters.educationLevel || '',
+    // Create a new filters object with updated values
+    const updatedFilters = {
       subject: newFilters.subjects[0] || '',
-      location: JSON.stringify({
-        city: newFilters.location.city,
-        town: newFilters.location.town,
-        hometown: newFilters.location.hometown
-      }),
       rating: newFilters.extraFilters.minRating,
       price: {
         min: newFilters.extraFilters.priceRange[0],
         max: newFilters.extraFilters.priceRange[1]
       },
+      location: JSON.stringify({
+        city: newFilters.location.city,
+        town: newFilters.location.town,
+        hometown: newFilters.location.hometown
+      }),
+      educationLevel: newFilters.educationLevel || '',
       medium: newFilters.teachingMode || '',
+      page: 1,
+      limit: 20,
       sortBy: newFilters.sortBy || 'rating',
       sortOrder: newFilters.sortOrder || 'desc',
-      page: 1
-    }));
+      availability: 'all',
+      experience: 'all',
+      search: searchQuery
+    };
+
+    // Update filters with new values
+    setFilters(updatedFilters);
 
     // Update active filters
     const newActiveFilters: string[] = [];
@@ -183,8 +173,7 @@ const TutorListingPage: React.FC = () => {
     if (newFilters.teachingMode) newActiveFilters.push('teachingMode');
     setActiveFilters(newActiveFilters);
 
-    // Reset page and fetch tutors
-    setFilters(prev => ({ ...prev, page: 1 }));
+    // Fetch tutors with updated filters
     fetchTutors(false);
   };
 
@@ -241,30 +230,52 @@ const TutorListingPage: React.FC = () => {
       <div className="absolute top-0 right-0 w-64 sm:w-96 h-64 sm:h-96 bg-secondary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
       <div className="absolute bottom-0 left-1/2 w-64 sm:w-96 h-64 sm:h-96 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 relative">
-        {/* Filters Section - Now at the top */}
-        <div className="mb-6">
+      {/* Breadcrumb navigation */}
+      <div className="container mx-auto px-4 py-2 relative">
+        <nav className="flex" aria-label="Breadcrumb">
+          <ol className="inline-flex items-center space-x-1 md:space-x-3">
+            <li className="inline-flex items-center">
+              <Link to="/" className="text-sm text-gray-600 hover:text-primary-600 transition-colors">
+                Home
+              </Link>
+            </li>
+            <li aria-current="page">
+              <div className="flex items-center">
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+                <span className="ml-1 text-sm font-medium text-primary-600 md:ml-2">
+                  Tutors
+                </span>
+              </div>
+            </li>
+          </ol>
+        </nav>
+      </div>
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 relative">
+        {/* Combined Search and Filters Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
+          {/* Search Bar - Integrated with filters */}
+          <div className="p-3 border-b border-gray-100">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search tutors by name, subject, or expertise..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+              />
+            </div>
+          </div>
+          
+          {/* Filters Section - Now integrated with search */}
           <TutorFilters onFilterChange={handleFilterChange} />
         </div>
 
-        {/* Search Bar */}
-        <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 mb-4 sm:mb-6 lg:mb-8">
-          <div className="relative max-w-3xl mx-auto">
-            <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search tutors by name, subject, or expertise..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-          </div>
-        </div>
-
         {/* Results Count and Sort */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
           <div className="flex items-center gap-2">
             <h2 className="text-base sm:text-lg font-semibold text-gray-900">
               {loading ? 'Loading...' : `${tutors.length} Tutors Found`}
