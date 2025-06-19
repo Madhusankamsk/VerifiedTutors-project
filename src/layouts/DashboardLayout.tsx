@@ -37,7 +37,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
               <img 
                 src={logo} 
                 alt="VerifiedTutors Logo" 
-                className="h-12 w-auto"
+                className="h-32 w-auto"
               />
             </Link>
             <button
