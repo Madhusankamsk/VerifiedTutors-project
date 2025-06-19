@@ -41,9 +41,14 @@ const RegisterPage: React.FC = () => {
     formState: { errors },
     watch,
     setValue,
-    trigger
+    trigger,
+    reset
   } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema)
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      password: '',
+      confirmPassword: ''
+    }
   });
 
   // Set Google auth data if available
@@ -59,6 +64,10 @@ const RegisterPage: React.FC = () => {
       const randomPassword = Math.random().toString(36).slice(-10);
       setValue('password', randomPassword);
       setValue('confirmPassword', randomPassword);
+    } else {
+      // Ensure password fields are empty for regular registration
+      setValue('password', '');
+      setValue('confirmPassword', '');
     }
   }, [isGoogleAuth, googleEmail, googleName, setValue]);
 
@@ -336,7 +345,7 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
       
