@@ -17,7 +17,7 @@ const BaseLayout: React.FC<BaseLayoutProps> = ({
   return (
     <div className={`flex flex-col min-h-screen ${className}`}>
       {showHeader && <Header />}
-      <main className="flex-grow">
+      <main className="flex-grow pt-20">
         <Outlet />
       </main>
       {showFooter && <Footer />}

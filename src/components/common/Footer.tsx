@@ -41,7 +41,7 @@ const Footer: React.FC = () => {
   ];
 
   return (
-    <footer className="bg-gradient-to-b from-gray-900 to-gray-950 text-white relative overflow-hidden">
+    <footer className="bg-gradient-to-b from-gray-900 to-gray-950 text-white relative overflow-hidden mt-auto">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
       
@@ -54,7 +54,7 @@ const Footer: React.FC = () => {
               <img 
                 src={logo} 
                 alt="VerifiedTutors Logo" 
-                className="h-36 w-auto filter brightness-0 invert opacity-90"
+                className="h-12 w-auto filter brightness-0 invert opacity-90"
               />
             </Link>
             <p className="mt-6 text-gray-300 leading-relaxed max-w-md">

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Menu, X } from 'lucide-react';
 import logo from '../assets/logo.png';
+import Footer from '../components/common/Footer';
 
 interface SidebarItem {
   name: string;
@@ -104,6 +105,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
             </div>
           </div>
         </main>
+        
+        <Footer />
       </div>
     </div>
   );

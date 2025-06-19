@@ -4,7 +4,7 @@ import { HomeIcon, ArrowRight } from 'lucide-react';
 
 const NotFoundPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center px-4">
+    <div className="bg-gradient-to-b from-gray-50 to-white flex items-center justify-center px-4 py-20">
       <div className="relative">
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>

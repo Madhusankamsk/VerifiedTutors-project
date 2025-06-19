@@ -10,7 +10,7 @@ const HomePage: React.FC = () => {
   const { subjects, loading, error } = useSubjects();
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="bg-white">
       {/* Hero Section - modernized with cleaner design and hero image */}
       <div className="relative bg-gradient-to-r from-primary-600 to-primary-800 text-white overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
