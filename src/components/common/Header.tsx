@@ -76,7 +76,7 @@ const Header: React.FC = () => {
               <img 
                 src={logo} 
                 alt="VerifiedTutors Logo" 
-                className="h-12 sm:h-12 w-auto transition-all duration-300 hover:opacity-90"
+                className="h-16 sm:h-32 w-auto transition-all duration-300 hover:opacity-90"
               />
             </Link>
           </div>

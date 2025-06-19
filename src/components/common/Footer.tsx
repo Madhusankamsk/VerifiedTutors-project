@@ -54,7 +54,7 @@ const Footer: React.FC = () => {
               <img 
                 src={logo} 
                 alt="VerifiedTutors Logo" 
-                className="h-12 w-auto filter brightness-0 invert opacity-90"
+                className="h-64 w-auto filter brightness-0 invert opacity-90"
               />
             </Link>
             <p className="mt-6 text-gray-300 leading-relaxed max-w-md">

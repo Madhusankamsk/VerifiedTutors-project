@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
-import { useSubjects, Subject } from '../../contexts/SubjectContext';
+import { useSubjects } from '../../contexts/SubjectContext';
 import { Video, Home, Users, Plus, Trash2, Save, X } from 'lucide-react';
+
+// Define the Subject interface locally since it's not exported from the context
+interface Subject {
+  _id: string;
+  name: string;
+  category: string;
+  educationLevel: string;
+  topics: string[];
+  description: string;
+  isActive: boolean;
+}
 
 interface TutorSubject {
   _id: string;
@@ -318,17 +329,11 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
                         : 'border-gray-100 bg-gray-50'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Icon className={`w-4 h-4 ${isEnabled ? 'text-primary-600' : 'text-gray-400'}`} />
-                        <span className={`font-medium ${isEnabled ? 'text-gray-900' : 'text-gray-500'}`}>
-                          {mode.label}
-                        </span>
-                      </div>
+                    <div className="flex items-center gap-3 mb-2">
                       <button
                         type="button"
                         onClick={() => handleTeachingModeToggle(mode.id)}
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${
                           isEnabled 
                             ? 'border-primary-500 bg-primary-500' 
                             : 'border-gray-300 hover:border-primary-300'
@@ -340,6 +345,12 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
                           </svg>
                         )}
                       </button>
+                      <div className="flex items-center gap-2">
+                        <Icon className={`w-4 h-4 ${isEnabled ? 'text-primary-600' : 'text-gray-400'}`} />
+                        <span className={`font-medium ${isEnabled ? 'text-gray-900' : 'text-gray-500'}`}>
+                          {mode.label}
+                        </span>
+                      </div>
                     </div>
                     <div className={`relative ${!isEnabled && 'opacity-50'}`}>
                       <input

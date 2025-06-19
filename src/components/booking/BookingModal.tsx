@@ -111,26 +111,26 @@ const BookingModal: React.FC<BookingModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl max-w-md w-full p-6 relative">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
+      <div className="bg-white rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto relative">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-600 transition-colors z-10 p-2 -m-2"
         >
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
 
         {/* Modal content */}
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-900">Book a Session</h2>
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+          <div className="pr-8 sm:pr-12">
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Book a Session</h2>
             <p className="mt-1 text-sm text-gray-500">
               Select your preferred subject, day, and time slot
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* Subject selection */}
             {subjects.length > 1 && (
               <div>
@@ -141,7 +141,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
                   <select
                     value={selectedSubjectId}
                     onChange={(e) => setSelectedSubjectId(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 appearance-none bg-white"
+                    className="w-full px-3 sm:px-4 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 appearance-none bg-white text-sm"
                   >
                     {subjects.map((subject) => (
                       <option key={subject._id} value={subject._id}>
@@ -149,8 +149,8 @@ const BookingModal: React.FC<BookingModalProps> = ({
                       </option>
                     ))}
                   </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <BookOpen className="w-5 h-5 text-gray-400" />
+                  <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                   </div>
                 </div>
               </div>
@@ -161,7 +161,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Select Day
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-2 gap-2">
                 {DAYS_OF_WEEK.map((day) => {
                   const hasAvailability = tutorAvailability.availability[day]?.length > 0;
                   return (
@@ -170,7 +170,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
                       type="button"
                       onClick={() => setSelectedDay(day)}
                       disabled={!hasAvailability}
-                      className={`px-4 py-2 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 ${
+                      className={`px-3 sm:px-4 py-3 sm:py-2 text-xs sm:text-sm rounded-lg border transition-all flex items-center justify-center gap-1 sm:gap-2 min-h-[44px] ${
                         selectedDay === day
                           ? 'border-primary-500 bg-primary-50 text-primary-700'
                           : hasAvailability
@@ -178,8 +178,8 @@ const BookingModal: React.FC<BookingModalProps> = ({
                             : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
                       }`}
                     >
-                      <Calendar className="w-4 h-4" />
-                      {day}
+                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                      <span className="truncate">{day}</span>
                     </button>
                   );
                 })}
@@ -191,47 +191,47 @@ const BookingModal: React.FC<BookingModalProps> = ({
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Select Learning Method
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {availableMethods.online && (
                   <button
                     type="button"
                     onClick={() => setLearningMethod('online')}
-                    className={`px-4 py-2 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 ${
+                    className={`px-3 sm:px-4 py-3 sm:py-2 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 min-h-[44px] ${
                       learningMethod === 'online'
                         ? 'border-primary-500 bg-primary-50 text-primary-700'
                         : 'border-gray-200 hover:border-primary-300 text-gray-700'
                     }`}
                   >
-                    <Video className="w-4 h-4" />
-                    Online
+                    <Video className="w-4 h-4 flex-shrink-0" />
+                    <span>Online</span>
                   </button>
                 )}
                 {availableMethods.individual && (
                   <button
                     type="button"
                     onClick={() => setLearningMethod('individual')}
-                    className={`px-4 py-2 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 ${
+                    className={`px-3 sm:px-4 py-3 sm:py-2 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 min-h-[44px] ${
                       learningMethod === 'individual'
                         ? 'border-primary-500 bg-primary-50 text-primary-700'
                         : 'border-gray-200 hover:border-primary-300 text-gray-700'
                     }`}
                   >
-                    <Home className="w-4 h-4" />
-                    Home Visit
+                    <Home className="w-4 h-4 flex-shrink-0" />
+                    <span>Home Visit</span>
                   </button>
                 )}
                 {availableMethods.group && (
                   <button
                     type="button"
                     onClick={() => setLearningMethod('group')}
-                    className={`px-4 py-2 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 ${
+                    className={`px-3 sm:px-4 py-3 sm:py-2 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 min-h-[44px] ${
                       learningMethod === 'group'
                         ? 'border-primary-500 bg-primary-50 text-primary-700'
                         : 'border-gray-200 hover:border-primary-300 text-gray-700'
                     }`}
                   >
-                    <Users className="w-4 h-4" />
-                    Group
+                    <Users className="w-4 h-4 flex-shrink-0" />
+                    <span>Group</span>
                   </button>
                 )}
               </div>
@@ -242,29 +242,29 @@ const BookingModal: React.FC<BookingModalProps> = ({
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Select Time Slot
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {availableTimeSlots.map((slot) => (
                   <button
                     key={`${slot.start}-${slot.end}`}
                     type="button"
                     onClick={() => setSelectedTimeSlot(`${slot.start} - ${slot.end}`)}
-                    className={`px-4 py-2 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 ${
+                    className={`px-3 sm:px-4 py-3 sm:py-2 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 min-h-[44px] ${
                       selectedTimeSlot === `${slot.start} - ${slot.end}`
                         ? 'border-primary-500 bg-primary-50 text-primary-700'
                         : 'border-gray-200 hover:border-primary-300 text-gray-700'
                     }`}
                   >
-                    <Clock className="w-4 h-4" />
-                    {slot.start} - {slot.end}
+                    <Clock className="w-4 h-4 flex-shrink-0" />
+                    <span className="whitespace-nowrap">{slot.start} - {slot.end}</span>
                   </button>
                 ))}
                 {availableTimeSlots.length === 0 && selectedDay && (
-                  <p className="col-span-2 text-sm text-gray-500 text-center py-2">
+                  <p className="col-span-1 sm:col-span-2 text-sm text-gray-500 text-center py-4">
                     No available time slots for {selectedDay}
                   </p>
                 )}
                 {!selectedDay && (
-                  <p className="col-span-2 text-sm text-gray-500 text-center py-2">
+                  <p className="col-span-1 sm:col-span-2 text-sm text-gray-500 text-center py-4">
                     Please select a day to view available time slots
                   </p>
                 )}
@@ -282,7 +282,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
                 value={contactNumber}
                 onChange={(e) => setContactNumber(e.target.value)}
                 placeholder="Enter your contact number"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 sm:px-4 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
                 required
                 minLength={10}
                 maxLength={15}
@@ -296,18 +296,18 @@ const BookingModal: React.FC<BookingModalProps> = ({
             </div>
 
             {/* Submit button */}
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-800"
+                className="px-4 py-3 sm:py-2 text-sm font-medium text-gray-700 hover:text-gray-800 order-2 sm:order-1"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={!selectedTimeSlot || !selectedDay || !contactNumber || contactNumber.length < 10}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-3 sm:py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2"
               >
                 Book Session
               </button>
