@@ -232,7 +232,7 @@ const TutorListingPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100 pt-16 sm:pt-20 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
       

@@ -53,7 +53,7 @@ const BlogPostPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4">
         <button
           onClick={() => navigate('/blogs')}
           className="flex items-center text-gray-600 hover:text-gray-800 mb-8"

@@ -137,7 +137,7 @@ const CoursesPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 py-16">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
@@ -160,7 +160,7 @@ const CoursesPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4">
         {/* Filters */}
         <div className="flex flex-wrap gap-4 mb-8">
           <div className="flex items-center space-x-2 bg-white rounded-lg shadow-sm p-2">

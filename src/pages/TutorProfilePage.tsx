@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTutor, TutorProfile, TutorReview } from '../contexts/TutorContext';
 import { useAuth } from '../contexts/AuthContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { Star, MapPin, BookOpen, GraduationCap, Briefcase, FileText, User, Clock, Video, Home, Users, MessageCircle, Calendar, CheckCircle, Phone, Mail, AlertCircle, X, Eye, ArrowLeft } from 'lucide-react';
+import { Star, MapPin, BookOpen, GraduationCap, Briefcase, FileText, User, Clock, Video, Home, Users, MessageCircle, Calendar, CheckCircle, Phone, Mail, AlertCircle, X, Eye, ArrowLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { ReviewList } from '../components/ReviewList';
 import { Rating } from '../components/Rating';
@@ -209,16 +209,34 @@ const TutorProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-16">
-      {/* Back button */}
+    <div className="min-h-screen bg-white">
+      {/* Breadcrumb navigation */}
       <div className="container mx-auto px-4 py-4">
-        <button 
-          onClick={() => navigate(-1)}
-          className="flex items-center text-gray-600 hover:text-primary-600 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          <span>Back</span>
-        </button>
+        <nav className="flex" aria-label="Breadcrumb">
+          <ol className="inline-flex items-center space-x-1 md:space-x-3">
+            <li className="inline-flex items-center">
+              <Link to="/" className="text-sm text-gray-600 hover:text-primary-600 transition-colors">
+                Home
+              </Link>
+            </li>
+            <li>
+              <div className="flex items-center">
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+                <Link to="/tutors" className="ml-1 text-sm text-gray-600 hover:text-primary-600 md:ml-2 transition-colors">
+                  Tutors
+                </Link>
+              </div>
+            </li>
+            <li aria-current="page">
+              <div className="flex items-center">
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+                <span className="ml-1 text-sm font-medium text-primary-600 md:ml-2">
+                  {profile.user.name}
+                </span>
+              </div>
+            </li>
+          </ol>
+        </nav>
       </div>
 
       {/* Header Section - modernized with gradient background */}
