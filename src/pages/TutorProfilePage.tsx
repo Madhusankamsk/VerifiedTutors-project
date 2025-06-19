@@ -276,9 +276,29 @@ const TutorProfilePage: React.FC = () => {
                   <span>{profile.locations.map(loc => loc.name).join(', ')}</span>
                 </div>
               </div>
-              <p className="text-gray-700 text-base leading-relaxed max-w-2xl mx-auto md:mx-0">
-                {profile.bio.split('.')[0]}.
-              </p>
+              
+              {/* Teaching Modes */}
+              <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-3">
+                {profile.subjects.some(subject => subject.rates.online > 0) && (
+                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm border border-blue-100">
+                    <Video className="h-4 w-4 mr-1.5" />
+                    <span>Online</span>
+                  </div>
+                )}
+                {profile.subjects.some(subject => subject.rates.individual > 0) && (
+                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-50 text-green-700 text-sm border border-green-100">
+                    <Home className="h-4 w-4 mr-1.5" />
+                    <span>Home Visit</span>
+                  </div>
+                )}
+                {profile.subjects.some(subject => subject.rates.group > 0) && (
+                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-sm border border-purple-100">
+                    <Users className="h-4 w-4 mr-1.5" />
+                    <span>Group</span>
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
         </div>
@@ -416,7 +436,11 @@ const TutorProfilePage: React.FC = () => {
                 </div>
 
                 {/* Social Media Links */}
-                {profile.socialMedia && (
+                {profile.socialMedia && 
+                  (profile.socialMedia.instagram || 
+                   profile.socialMedia.youtube || 
+                   profile.socialMedia.facebook || 
+                   profile.socialMedia.linkedin) && (
                   <div className="bg-white p-6 rounded-lg shadow-sm">
                     <h2 className="text-xl font-semibold mb-4 text-gray-900">Social Media</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
