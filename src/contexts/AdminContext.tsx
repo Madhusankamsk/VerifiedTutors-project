@@ -54,6 +54,8 @@ export interface Tutor {
   documents?: string[];
   createdAt: string;
   verificationStatus?: 'pending' | 'approved' | 'rejected';
+  verificationDate?: string | Date;
+  verifiedBy?: string;
   rejectionReason?: string;
 }
 

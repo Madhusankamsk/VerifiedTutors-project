@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { Search, Filter, ChevronDown, ChevronUp, CheckCircle, XCircle, Eye, AlertCircle } from 'lucide-react';
+import { Search, Filter, ChevronDown, ChevronUp, CheckCircle, XCircle, Eye, AlertCircle, AlertTriangle, Check } from 'lucide-react';
 
 // Use the same Tutor interface from AdminContext
 import { Tutor as AdminTutor } from '../../contexts/AdminContext';
 
 type Tutor = AdminTutor;
 
-interface VerificationChecklist {
+interface VerificationRequirement {
   id: string;
   label: string;
   isChecked: boolean;
+  isRequired: boolean;
+  validationFn: (tutor: Tutor) => { isValid: boolean; message: string };
 }
 
 const ManageTutors = () => {
@@ -40,12 +42,88 @@ const ManageTutors = () => {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
-  const [verificationChecklist, setVerificationChecklist] = useState<VerificationChecklist[]>([
-    { id: 'documents', label: 'Valid ID Documents', isChecked: false },
-    { id: 'education', label: 'Education Certificates', isChecked: false },
-    { id: 'experience', label: 'Experience Verification', isChecked: false },
-    { id: 'background', label: 'Background Check', isChecked: false },
-    { id: 'interview', label: 'Interview Completed', isChecked: false }
+  const [verificationRequirements, setVerificationRequirements] = useState<VerificationRequirement[]>([
+    { 
+      id: 'personalInfo', 
+      label: 'Personal Information', 
+      isChecked: false,
+      isRequired: true,
+      validationFn: (tutor) => {
+        const hasName = !!tutor.user?.name;
+        const hasEmail = !!tutor.user?.email;
+        const hasGender = !!tutor.gender;
+        const hasPhone = !!tutor.mobileNumber;
+        const hasBio = !!tutor.bio;
+        
+        const isValid = hasName && hasEmail && hasGender && hasPhone && hasBio;
+        let message = '';
+        
+        if (!isValid) {
+          const missing = [];
+          if (!hasName) missing.push('name');
+          if (!hasEmail) missing.push('email');
+          if (!hasGender) missing.push('gender');
+          if (!hasPhone) missing.push('phone number');
+          if (!hasBio) missing.push('bio');
+          
+          message = `Missing: ${missing.join(', ')}`;
+        }
+        
+        return { isValid, message };
+      }
+    },
+    { 
+      id: 'education', 
+      label: 'Education Certificates', 
+      isChecked: false,
+      isRequired: true,
+      validationFn: (tutor) => {
+        const hasEducation = Array.isArray(tutor.education) && tutor.education.length > 0;
+        return { 
+          isValid: hasEducation, 
+          message: hasEducation ? `${tutor.education?.length} education records` : 'No education records provided' 
+        };
+      }
+    },
+    { 
+      id: 'experience', 
+      label: 'Experience Verification', 
+      isChecked: false,
+      isRequired: false,
+      validationFn: (tutor) => {
+        const hasExperience = Array.isArray(tutor.experience) && tutor.experience.length > 0;
+        return { 
+          isValid: hasExperience, 
+          message: hasExperience ? `${tutor.experience?.length} experience records` : 'No experience records provided' 
+        };
+      }
+    },
+    { 
+      id: 'documents', 
+      label: 'Valid ID Documents', 
+      isChecked: false,
+      isRequired: true,
+      validationFn: (tutor) => {
+        const hasDocuments = Array.isArray(tutor.documents) && tutor.documents.length > 0;
+        return { 
+          isValid: hasDocuments, 
+          message: hasDocuments ? `${tutor.documents?.length} documents uploaded` : 'No documents uploaded' 
+        };
+      }
+    },
+    { 
+      id: 'subjects', 
+      label: 'Subject Information', 
+      isChecked: false,
+      isRequired: true,
+      validationFn: (tutor) => {
+        const hasSubjects = Array.isArray(tutor.subjects) && tutor.subjects.length > 0;
+        return { 
+          isValid: hasSubjects, 
+          message: hasSubjects ? `${tutor.subjects?.length} subjects added` : 'No subjects added' 
+        };
+      }
+    }
   ]);
 
   useEffect(() => {
@@ -65,7 +143,7 @@ const ManageTutors = () => {
 
   const handleVerify = async (tutorId: string) => {
     try {
-      const allChecked = verificationChecklist.every(item => item.isChecked);
+      const allChecked = verificationRequirements.every(item => item.isChecked);
       if (!allChecked) {
         setLocalError('Please complete all verification checks before approving');
         return;
@@ -74,7 +152,7 @@ const ManageTutors = () => {
       await verifyTutor(tutorId);
       
       // Reset checklist after successful verification
-      setVerificationChecklist(prev =>
+      setVerificationRequirements(prev =>
         prev.map(item => ({ ...item, isChecked: false }))
       );
       
@@ -129,11 +207,24 @@ const ManageTutors = () => {
 
   const handleViewDetails = (tutor: Tutor) => {
     setSelectedTutor(tutor);
+    
+    // Evaluate each verification requirement based on the tutor data
+    setVerificationRequirements(prev => 
+      prev.map(req => {
+        const validation = req.validationFn(tutor);
+        return {
+          ...req,
+          // If the tutor is already verified, pre-check all items
+          isChecked: tutor.isVerified ? true : req.isChecked
+        };
+      })
+    );
+    
     setShowTutorDetails(true);
   };
 
   const handleChecklistChange = (id: string) => {
-    setVerificationChecklist(prev =>
+    setVerificationRequirements(prev =>
       prev.map(item =>
         item.id === id ? { ...item, isChecked: !item.isChecked } : item
       )
@@ -364,7 +455,12 @@ const ManageTutors = () => {
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">Tutor Verification</h2>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Tutor Verification</h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {selectedTutor.user?.name} ({selectedTutor.user?.email})
+                  </p>
+                </div>
                 <button
                   onClick={() => setShowTutorDetails(false)}
                   className="text-gray-400 hover:text-gray-500"
@@ -373,89 +469,316 @@ const ManageTutors = () => {
                 </button>
               </div>
 
-              {/* Verification Checklist */}
-              <div className="mb-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-3">Verification Checklist</h3>
-                <div className="space-y-2">
-                  {verificationChecklist.map((item) => (
-                    <div key={item.id} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id={item.id}
-                        checked={item.isChecked}
-                        onChange={() => handleChecklistChange(item.id)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor={item.id} className="ml-2 text-sm text-gray-700">
-                        {item.label}
-                      </label>
-                    </div>
-                  ))}
+              {/* Verification Status Summary */}
+              <div className="mb-6 p-4 rounded-lg border" style={{ backgroundColor: selectedTutor.isVerified ? '#f0fdf4' : '#fef2f2', borderColor: selectedTutor.isVerified ? '#bbf7d0' : '#fecaca' }}>
+                <div className="flex items-center mb-3">
+                  {selectedTutor.isVerified ? (
+                    <CheckCircle className="h-6 w-6 text-green-600 mr-2" />
+                  ) : (
+                    <AlertCircle className="h-6 w-6 text-red-600 mr-2" />
+                  )}
+                  <h3 className="text-lg font-medium" style={{ color: selectedTutor.isVerified ? '#166534' : '#b91c1c' }}>
+                    {selectedTutor.isVerified ? 'Verified Tutor' : 'Unverified Tutor'}
+                  </h3>
                 </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <p className="text-sm text-gray-600">Status</p>
+                    <p className="text-sm font-medium" style={{ color: selectedTutor.isVerified ? '#166534' : '#b91c1c' }}>
+                      {selectedTutor.verificationStatus || 'Unknown'}
+                    </p>
+                  </div>
+                  {selectedTutor.verificationDate && (
+                    <div>
+                      <p className="text-sm text-gray-600">Verification Date</p>
+                      <p className="text-sm font-medium text-gray-800">
+                        {new Date(selectedTutor.verificationDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Verification Progress */}
+                <div className="mt-3">
+                  <p className="text-sm text-gray-600 mb-1">Verification Progress</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className={`h-2.5 rounded-full ${selectedTutor.isVerified ? 'bg-green-600' : 'bg-blue-600'}`}
+                      style={{ 
+                        width: `${Math.round(
+                          (verificationRequirements.filter(req => 
+                            req.validationFn(selectedTutor).isValid
+                          ).length / 
+                          verificationRequirements.filter(req => req.isRequired).length) * 100
+                        )}%` 
+                      }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between text-xs mt-1">
+                    <span>
+                      {verificationRequirements.filter(req => req.validationFn(selectedTutor).isValid && req.isRequired).length} 
+                      of {verificationRequirements.filter(req => req.isRequired).length} requirements met
+                    </span>
+                    <span>
+                      {Math.round(
+                        (verificationRequirements.filter(req => 
+                          req.validationFn(selectedTutor).isValid && req.isRequired
+                        ).length / 
+                        verificationRequirements.filter(req => req.isRequired).length) * 100
+                      )}%
+                    </span>
+                  </div>
+                </div>
+                
+                {selectedTutor.rejectionReason && (
+                  <div className="mt-3 p-2 bg-red-50 border border-red-100 rounded">
+                    <p className="text-sm font-medium text-red-800">Rejection Reason:</p>
+                    <p className="text-sm text-red-700">{selectedTutor.rejectionReason}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Verification Checklist */}
+              <div className="mb-6 border rounded-lg p-4 bg-gray-50">
+                <h3 className="text-lg font-medium text-gray-900 mb-3">Verification Requirements</h3>
+                <div className="space-y-4">
+                  {verificationRequirements.map((item) => {
+                    const validation = item.validationFn(selectedTutor);
+                    return (
+                      <div key={item.id} className="flex flex-col">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              id={item.id}
+                              checked={item.isChecked}
+                              onChange={() => handleChecklistChange(item.id)}
+                              className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <label htmlFor={item.id} className="ml-2 text-sm font-medium text-gray-700 flex items-center">
+                              {item.label}
+                              {item.isRequired && <span className="text-red-500 ml-1">*</span>}
+                            </label>
+                          </div>
+                          <div className="flex items-center">
+                            {validation.isValid ? (
+                              <span className="text-green-600 flex items-center text-sm">
+                                <Check size={16} className="mr-1" />
+                                Complete
+                              </span>
+                            ) : (
+                              <span className="text-red-600 flex items-center text-sm">
+                                <AlertTriangle size={16} className="mr-1" />
+                                {item.isRequired ? 'Required' : 'Optional'}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="ml-7 mt-1 text-xs text-gray-500">
+                          {validation.message}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {!verificationRequirements.every(item => item.isChecked || (!item.isRequired && !item.validationFn(selectedTutor).isValid)) && (
+                  <div className="mt-4 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-700 flex items-center">
+                    <AlertTriangle size={16} className="mr-2" />
+                    Please review all required items before approving this tutor
+                  </div>
+                )}
               </div>
 
               {/* Tutor Details */}
               <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Personal Information</h3>
-                  <div className="mt-2 grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Name</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedTutor?.user?.name || 'Not provided'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Email</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedTutor?.user?.email || 'Not provided'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Gender</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedTutor?.gender || 'Not provided'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Mobile Number</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedTutor?.mobileNumber || 'Not provided'}</p>
-                    </div>
+                {/* Personal Information Section */}
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="bg-gray-100 px-4 py-2 flex justify-between items-center">
+                    <h3 className="font-medium text-gray-900">Personal Information</h3>
+                    {selectedTutor?.user?.name && selectedTutor?.gender && selectedTutor?.mobileNumber ? (
+                      <span className="text-green-600 text-sm flex items-center">
+                        <Check size={16} className="mr-1" />
+                        Complete
+                      </span>
+                    ) : (
+                      <span className="text-red-600 text-sm flex items-center">
+                        <AlertTriangle size={16} className="mr-1" />
+                        Incomplete
+                      </span>
+                    )}
                   </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Education</h3>
-                  <div className="mt-2 space-y-2">
-                    {selectedTutor?.education?.map((edu: { degree: string; institution: string; year: number }, index: number) => (
-                      <div key={index} className="bg-gray-50 p-3 rounded-md">
-                        <p className="text-sm font-medium text-gray-900">{edu.degree}</p>
-                        <p className="text-sm text-gray-500">{edu.institution}</p>
-                        <p className="text-sm text-gray-500">Year: {edu.year}</p>
+                  <div className="p-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500">Name</p>
+                        <p className={`text-sm font-medium ${selectedTutor?.user?.name ? 'text-gray-900' : 'text-red-500'}`}>
+                          {selectedTutor?.user?.name || 'Not provided'}
+                        </p>
                       </div>
-                    )) || <p className="text-sm text-gray-500">No education information provided</p>}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Experience</h3>
-                  <div className="mt-2 space-y-2">
-                    {selectedTutor?.experience?.map((exp: { position: string; institution: string; duration: string; description: string }, index: number) => (
-                      <div key={index} className="bg-gray-50 p-3 rounded-md">
-                        <p className="text-sm font-medium text-gray-900">{exp.position}</p>
-                        <p className="text-sm text-gray-500">{exp.institution}</p>
-                        <p className="text-sm text-gray-500">{exp.duration}</p>
-                        <p className="text-sm text-gray-500">{exp.description}</p>
+                      <div>
+                        <p className="text-sm text-gray-500">Email</p>
+                        <p className={`text-sm font-medium ${selectedTutor?.user?.email ? 'text-gray-900' : 'text-red-500'}`}>
+                          {selectedTutor?.user?.email || 'Not provided'}
+                        </p>
                       </div>
-                    )) || <p className="text-sm text-gray-500">No experience information provided</p>}
+                      <div>
+                        <p className="text-sm text-gray-500">Gender</p>
+                        <p className={`text-sm font-medium ${selectedTutor?.gender ? 'text-gray-900' : 'text-red-500'}`}>
+                          {selectedTutor?.gender || 'Not provided'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Mobile Number</p>
+                        <p className={`text-sm font-medium ${selectedTutor?.mobileNumber ? 'text-gray-900' : 'text-red-500'}`}>
+                          {selectedTutor?.mobileNumber || 'Not provided'}
+                        </p>
+                      </div>
+                    </div>
+                    {selectedTutor?.bio ? (
+                      <div className="mt-3">
+                        <p className="text-sm text-gray-500">Bio</p>
+                        <p className="text-sm text-gray-900 mt-1">{selectedTutor.bio}</p>
+                      </div>
+                    ) : (
+                      <p className="mt-3 text-sm text-red-500">Bio not provided</p>
+                    )}
                   </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Documents</h3>
-                  <div className="mt-2 grid grid-cols-2 gap-4">
-                    {selectedTutor?.documents?.map((doc: string, index: number) => (
-                      <a
-                        key={index}
-                        href={doc}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 text-sm"
-                      >
-                        Document {index + 1}
-                      </a>
-                    )) || <p className="text-sm text-gray-500">No documents provided</p>}
+
+                {/* Education Section */}
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="bg-gray-100 px-4 py-2 flex justify-between items-center">
+                    <h3 className="font-medium text-gray-900">Education</h3>
+                    {selectedTutor?.education && selectedTutor.education.length > 0 ? (
+                      <span className="text-green-600 text-sm flex items-center">
+                        <Check size={16} className="mr-1" />
+                        {selectedTutor.education.length} Records
+                      </span>
+                    ) : (
+                      <span className="text-red-600 text-sm flex items-center">
+                        <AlertTriangle size={16} className="mr-1" />
+                        No Records
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    {selectedTutor?.education && selectedTutor.education.length > 0 ? (
+                      <div className="space-y-3">
+                        {selectedTutor.education.map((edu: { degree: string; institution: string; year: number }, index: number) => (
+                          <div key={index} className="bg-gray-50 p-3 rounded-md">
+                            <p className="text-sm font-medium text-gray-900">{edu.degree}</p>
+                            <p className="text-sm text-gray-500">{edu.institution}</p>
+                            <p className="text-sm text-gray-500">Year: {edu.year}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-red-500">No education information provided</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Experience Section */}
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="bg-gray-100 px-4 py-2 flex justify-between items-center">
+                    <h3 className="font-medium text-gray-900">Experience</h3>
+                    {selectedTutor?.experience && selectedTutor.experience.length > 0 ? (
+                      <span className="text-green-600 text-sm flex items-center">
+                        <Check size={16} className="mr-1" />
+                        {selectedTutor.experience.length} Records
+                      </span>
+                    ) : (
+                      <span className="text-yellow-600 text-sm flex items-center">
+                        <AlertTriangle size={16} className="mr-1" />
+                        Optional
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    {selectedTutor?.experience && selectedTutor.experience.length > 0 ? (
+                      <div className="space-y-3">
+                        {selectedTutor.experience.map((exp: { position: string; institution: string; duration: string; description: string }, index: number) => (
+                          <div key={index} className="bg-gray-50 p-3 rounded-md">
+                            <p className="text-sm font-medium text-gray-900">{exp.position}</p>
+                            <p className="text-sm text-gray-500">{exp.institution}</p>
+                            <p className="text-sm text-gray-500">{exp.duration}</p>
+                            <p className="text-sm text-gray-500">{exp.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">No experience information provided (optional)</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Documents Section */}
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="bg-gray-100 px-4 py-2 flex justify-between items-center">
+                    <h3 className="font-medium text-gray-900">Documents</h3>
+                    {selectedTutor?.documents && selectedTutor.documents.length > 0 ? (
+                      <span className="text-green-600 text-sm flex items-center">
+                        <Check size={16} className="mr-1" />
+                        {selectedTutor.documents.length} Documents
+                      </span>
+                    ) : (
+                      <span className="text-red-600 text-sm flex items-center">
+                        <AlertTriangle size={16} className="mr-1" />
+                        No Documents
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    {selectedTutor?.documents && selectedTutor.documents.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        {selectedTutor.documents.map((doc: string, index: number) => (
+                          <a
+                            key={index}
+                            href={doc}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                          >
+                            Document {index + 1}
+                          </a>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-red-500">No documents provided</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Subjects Section */}
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="bg-gray-100 px-4 py-2 flex justify-between items-center">
+                    <h3 className="font-medium text-gray-900">Subjects</h3>
+                    {selectedTutor?.subjects && selectedTutor.subjects.length > 0 ? (
+                      <span className="text-green-600 text-sm flex items-center">
+                        <Check size={16} className="mr-1" />
+                        {selectedTutor.subjects.length} Subjects
+                      </span>
+                    ) : (
+                      <span className="text-red-600 text-sm flex items-center">
+                        <AlertTriangle size={16} className="mr-1" />
+                        No Subjects
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    {selectedTutor?.subjects && selectedTutor.subjects.length > 0 ? (
+                      <div className="space-y-3">
+                        {selectedTutor.subjects.map((subj, index) => (
+                          <div key={index} className="bg-gray-50 p-3 rounded-md">
+                            <p className="text-sm font-medium text-gray-900">{subj.subject?.name}</p>
+                            <p className="text-sm text-gray-500">Category: {subj.subject?.category}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-red-500">No subjects added</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -472,7 +795,7 @@ const ManageTutors = () => {
                   <button
                     onClick={() => handleVerify(selectedTutor._id)}
                     className="px-4 py-2 bg-green-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-green-700"
-                    disabled={!verificationChecklist.every(item => item.isChecked)}
+                    disabled={!verificationRequirements.every(item => item.isChecked)}
                   >
                     Approve Tutor
                   </button>
