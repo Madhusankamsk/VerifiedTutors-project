@@ -21,10 +21,22 @@ export const getAllTutors = async (req, res) => {
 
     // Search by name or email
     if (search) {
-      query.$or = [
-        { 'user.name': { $regex: search, $options: 'i' } },
-        { 'user.email': { $regex: search, $options: 'i' } }
-      ];
+      // First, find users with matching name or email
+      const users = await User.find({
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } }
+        ]
+      }).select('_id');
+      
+      // Then, filter tutors by these user IDs
+      if (users.length > 0) {
+        const userIds = users.map(user => user._id);
+        query.user = { $in: userIds };
+      } else {
+        // If no matching users, return empty result
+        query.user = { $in: [] };
+      }
     }
 
     // Filter by verification status
@@ -370,6 +382,73 @@ export const notifyTutorAboutBooking = async (req, res) => {
     console.error('Error in notifyTutorAboutBooking:', error);
     res.status(500).json({ 
       message: 'Failed to notify tutor',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Toggle tutor verification status
+// @route   PATCH /api/admin/tutors/:id/toggle-verification
+// @access  Private/Admin
+export const toggleTutorVerification = async (req, res) => {
+  try {
+    const tutor = await Tutor.findById(req.params.id).populate('user', 'email name');
+    
+    if (!tutor) {
+      return res.status(404).json({ message: 'Tutor not found' });
+    }
+
+    // Toggle verification status
+    tutor.isVerified = !tutor.isVerified;
+    
+    // Update verification status based on isVerified flag
+    if (tutor.isVerified) {
+      tutor.verificationStatus = 'approved';
+      tutor.verificationDate = new Date();
+      tutor.verifiedBy = req.user._id;
+    } else {
+      tutor.verificationStatus = 'pending';
+      // We don't remove verificationDate or verifiedBy to keep the history
+    }
+
+    await tutor.save();
+
+    // Send email notification based on new status
+    try {
+      if (tutor.isVerified) {
+        await sendEmail({
+          to: tutor.user.email,
+          subject: 'Tutor Profile Verified',
+          template: 'tutorApproved',
+          context: {
+            name: tutor.user.name,
+            loginUrl: `${process.env.FRONTEND_URL}/login`
+          }
+        });
+      } else {
+        await sendEmail({
+          to: tutor.user.email,
+          subject: 'Tutor Verification Status Changed',
+          template: 'tutorStatusChanged',
+          context: {
+            name: tutor.user.name,
+            message: 'Your verification status has been changed to unverified. Please contact support for more information.'
+          }
+        });
+      }
+    } catch (emailError) {
+      console.error('Failed to send status change email:', emailError);
+      // Don't fail the verification toggle if email fails
+    }
+
+    res.json({
+      message: `Tutor ${tutor.isVerified ? 'verified' : 'unverified'} successfully`,
+      tutor
+    });
+  } catch (error) {
+    console.error('Error in toggleTutorVerification:', error);
+    res.status(500).json({ 
+      message: 'Failed to toggle tutor verification status',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }

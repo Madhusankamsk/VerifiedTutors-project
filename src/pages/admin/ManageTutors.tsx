@@ -24,7 +24,8 @@ const ManageTutors = () => {
     fetchTutors, 
     verifyTutor, 
     rejectTutor, 
-    deleteTutor 
+    deleteTutor,
+    toggleTutorVerification
   } = useAdmin();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -49,7 +50,18 @@ const ManageTutors = () => {
 
   useEffect(() => {
     fetchTutors(currentPage, searchTerm, filters);
-  }, [currentPage, searchTerm, filters]);
+  }, [currentPage, filters]);
+
+  // Handle search separately to avoid auto-searching on every keystroke
+  const handleSearch = () => {
+    fetchTutors(1, searchTerm, filters);
+  };
+
+  // Clear search and reset to first page
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    fetchTutors(1, '', filters);
+  };
 
   const handleVerify = async (tutorId: string) => {
     try {
@@ -103,6 +115,18 @@ const ManageTutors = () => {
     }
   };
 
+  const handleToggleVerification = async (tutorId: string, isVerified: boolean) => {
+    const action = isVerified ? 'unverify' : 'verify';
+    if (window.confirm(`Are you sure you want to ${action} this tutor?`)) {
+      try {
+        await toggleTutorVerification(tutorId);
+        fetchTutors(currentPage, searchTerm, filters);
+      } catch (err) {
+        setLocalError(err instanceof Error ? err.message : `Failed to ${action} tutor`);
+      }
+    }
+  };
+
   const handleViewDetails = (tutor: Tutor) => {
     setSelectedTutor(tutor);
     setShowTutorDetails(true);
@@ -136,15 +160,34 @@ const ManageTutors = () => {
 
       {/* Search Bar */}
       <div className="mb-6">
-        <div className="relative">
+        <div className="relative flex">
           <input
             type="text"
             placeholder="Search tutors by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSearch();
+              }
+            }}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+          <button
+            onClick={handleSearch}
+            className="bg-blue-600 text-white px-4 py-2 hover:bg-blue-700 transition-colors"
+          >
+            Search
+          </button>
+          {searchTerm && (
+            <button
+              onClick={handleClearSearch}
+              className="bg-gray-200 text-gray-700 px-4 py-2 rounded-r-md hover:bg-gray-300 transition-colors"
+            >
+              Clear
+            </button>
+          )}
         </div>
       </div>
 
@@ -254,7 +297,7 @@ const ManageTutors = () => {
                       >
                         <Eye className="h-5 w-5" />
                       </button>
-                      {!tutor.isVerified && (
+                      {!tutor.isVerified ? (
                         <>
                           <button
                             onClick={() => handleVerify(tutor._id)}
@@ -274,6 +317,14 @@ const ManageTutors = () => {
                             <XCircle className="h-5 w-5" />
                           </button>
                         </>
+                      ) : (
+                        <button
+                          onClick={() => handleToggleVerification(tutor._id, tutor.isVerified)}
+                          className="text-yellow-600 hover:text-yellow-900"
+                          title="Change to Unverified"
+                        >
+                          <XCircle className="h-5 w-5" />
+                        </button>
                       )}
                     </div>
                   </td>
@@ -417,13 +468,23 @@ const ManageTutors = () => {
                 >
                   Cancel
                 </button>
-                {!selectedTutor.isVerified && (
+                {!selectedTutor.isVerified ? (
                   <button
                     onClick={() => handleVerify(selectedTutor._id)}
                     className="px-4 py-2 bg-green-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-green-700"
                     disabled={!verificationChecklist.every(item => item.isChecked)}
                   >
                     Approve Tutor
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      handleToggleVerification(selectedTutor._id, selectedTutor.isVerified);
+                      setShowTutorDetails(false);
+                    }}
+                    className="px-4 py-2 bg-yellow-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-yellow-700"
+                  >
+                    Change to Unverified
                   </button>
                 )}
               </div>

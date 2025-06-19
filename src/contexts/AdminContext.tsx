@@ -222,6 +222,7 @@ interface AdminContextType {
   rejectTutor: (tutorId: string, reason: string) => Promise<void>;
   deleteTutor: (tutorId: string) => Promise<void>;
   deleteStudent: (studentId: string) => Promise<void>;
+  toggleTutorVerification: (tutorId: string) => Promise<void>;
   
   // Subject Management
   subjects: Subject[];
@@ -390,6 +391,26 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const errorMessage = err.response?.data?.message || 'Failed to delete tutor';
       setError(errorMessage);
       console.error('Delete tutor error:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleTutorVerification = async (tutorId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      await axios.patch(`${API_URL}/api/admin/tutors/${tutorId}/toggle-verification`, {}, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      await fetchDashboardStats();
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to toggle tutor verification status';
+      setError(errorMessage);
+      console.error('Toggle verification error:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -661,6 +682,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     rejectTutor,
     deleteTutor,
     deleteStudent,
+    toggleTutorVerification,
     
     // Subject Management
     subjects,
