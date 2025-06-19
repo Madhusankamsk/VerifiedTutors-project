@@ -218,7 +218,7 @@ const EditTutorProfile: React.FC = () => {
               topics: [],
               educationLevel: subject.educationLevel as keyof typeof EDUCATION_LEVELS,
               isActive: subject.isActive,
-              createdAt: subject.createdAt
+              createdAt: new Date().toISOString()
             },
             rates: s.rates,
             availability: s.availability
