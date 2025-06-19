@@ -947,7 +947,12 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (params.medium && params.medium.trim() !== '') {
         queryParams.append('teachingMode', params.medium.toUpperCase());
       }
-      if (params.search) queryParams.append('search', params.search);
+      // Ensure search parameter is properly handled
+      console.log('Search param:', params.search);
+      if (params.search && params.search.trim() !== '') {
+        queryParams.append('search', params.search.trim());
+        console.log('Adding search param to query:', params.search.trim());
+      } // If search is empty or undefined, don't add it to query params
       if (params.page) queryParams.append('page', params.page.toString());
       if (params.limit) queryParams.append('limit', params.limit.toString());
       if (params.sortBy) queryParams.append('sortBy', params.sortBy);

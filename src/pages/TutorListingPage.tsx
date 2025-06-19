@@ -77,9 +77,12 @@ const TutorListingPage: React.FC = () => {
         setLoading(true);
       }
       setError(null);
+      
+      // Always pass the search parameter from filters, which is already properly set
+      console.log('Fetching tutors with filters:', filters);
+      
       const response = await searchTutors({
-        ...filters,
-        search: searchQuery
+        ...filters
       });
       
       if (isLoadMore) {
@@ -101,16 +104,19 @@ const TutorListingPage: React.FC = () => {
     }
   }, [filters, searchQuery, searchTutors]);
 
+  // Remove auto-search while typing - only update the searchQuery state
+  // No useEffect for search query changes anymore
+  
+  // Effect for handling filter changes (except search)
   useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      setFilters(prev => ({ ...prev, page: 1 }));
-      fetchTutors(false);
-    }, 500);
-
-    return () => clearTimeout(debounceTimer);
+    console.log('Non-search filters changed, fetching tutors');
+    fetchTutors(false);
   }, [filters.subject, filters.rating, filters.price, filters.location, 
       filters.educationLevel, filters.medium, filters.sortBy, filters.sortOrder, 
-      filters.availability, filters.experience, searchQuery]);
+      filters.availability, filters.experience]);
+      
+  // Note: We're not watching filters.search here, as we want search to be triggered
+  // only by the search button or Enter key
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -156,7 +162,7 @@ const TutorListingPage: React.FC = () => {
       sortOrder: newFilters.sortOrder || 'desc',
       availability: 'all',
       experience: 'all',
-      search: searchQuery
+      search: searchQuery.trim() // Ensure search query is trimmed
     };
 
     // Update filters with new values
@@ -256,17 +262,57 @@ const TutorListingPage: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
           {/* Search Bar - Integrated with filters */}
           <div className="p-3 border-b border-gray-100">
-            <div className="relative">
+            <div className="relative flex">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="h-4 w-4 text-gray-400" />
               </div>
-              <input
-                type="text"
-                placeholder="Search tutors by name, subject, or expertise..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-              />
+              <div className="relative flex-grow">
+                <input
+                  type="text"
+                  placeholder="Search by tutor name, subject, location, or expertise..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    // Only update the search query state, don't trigger search
+                    setSearchQuery(e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      // When Enter is pressed, update filters with search query and trigger search
+                      const searchParam = searchQuery.trim();
+                      setFilters(prev => ({ ...prev, page: 1, search: searchParam }));
+                      fetchTutors(false);
+                    }
+                  }}
+                  className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-l-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                />
+                {searchQuery && (
+                  <button 
+                    onClick={() => {
+                      // Clear the search input field
+                      setSearchQuery('');
+                      // Clear search parameter to show all tutors and trigger search
+                      setFilters(prev => ({ ...prev, page: 1, search: '' }));
+                      fetchTutors(false);
+                    }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={() => {
+                  // Update filters with search query and fetch tutors
+                  console.log("Search button clicked with query:", searchQuery);
+                  const searchParam = searchQuery.trim();
+                  setFilters(prev => ({ ...prev, page: 1, search: searchParam }));
+                  fetchTutors(false);
+                }}
+                className="px-4 bg-primary-600 hover:bg-primary-700 text-white rounded-r-lg transition-colors flex items-center justify-center"
+              >
+                <Search className="h-4 w-4" />
+                <span className="ml-1 hidden sm:inline">Search</span>
+              </button>
             </div>
           </div>
           

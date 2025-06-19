@@ -20,6 +20,7 @@ export const getTutors = async (req, res) => {
       minRating,
       priceRange,
       femaleOnly,
+      search,
       page = 1,
       limit = 10,
       sortBy = 'rating',
@@ -28,6 +29,100 @@ export const getTutors = async (req, res) => {
 
     let query = {};
     const sortOptions = {};
+    
+    // Handle search parameter for tutor name, subject, or location
+    if (search && search.trim() !== '') {
+      const searchTerm = search.trim();
+      console.log('Search term:', searchTerm);
+      
+      // Find users whose names match the search term
+      const matchingUsers = await User.find({
+        name: { $regex: new RegExp(searchTerm, 'i') }
+      }).select('_id name');
+      
+      console.log(`Found ${matchingUsers.length} matching users for "${searchTerm}"`);
+      matchingUsers.forEach(user => console.log(`User: ${user.name}, ID: ${user._id}`));
+      
+      // Find subjects that match the search term
+      const matchingSubjects = await Subject.find({
+        name: { $regex: new RegExp(searchTerm, 'i') }
+      }).select('_id name');
+      
+      console.log(`Found ${matchingSubjects.length} matching subjects for "${searchTerm}"`);
+      matchingSubjects.forEach(subject => console.log(`Subject: ${subject.name}, ID: ${subject._id}`));
+      
+      // Find locations that match the search term
+      // Use text search across all location fields
+      const matchingLocations = await Location.find({
+        $or: [
+          { city: { $regex: new RegExp(searchTerm, 'i') } },
+          { town: { $regex: new RegExp(searchTerm, 'i') } },
+          { hometown: { $regex: new RegExp(searchTerm, 'i') } }
+        ]
+      }).select('_id');
+      
+      console.log(`Found ${matchingLocations.length} matching locations for "${searchTerm}"`);
+      matchingLocations.forEach(loc => console.log(`Location ID: ${loc._id}`));
+      
+      // Combine the search conditions
+      const searchConditions = [];
+      
+      if (matchingUsers.length > 0) {
+        searchConditions.push({ user: { $in: matchingUsers.map(user => user._id) } });
+      }
+      
+      if (matchingSubjects.length > 0) {
+        searchConditions.push({ 'subjects.subject': { $in: matchingSubjects.map(subject => subject._id) } });
+      }
+      
+      if (matchingLocations.length > 0) {
+        searchConditions.push({ locations: { $in: matchingLocations.map(location => location._id) } });
+      }
+      
+      // Direct search on tutor bio
+      searchConditions.push({ bio: { $regex: new RegExp(searchTerm, 'i') } });
+      
+      // If we have any matching conditions, add them to the query
+      if (searchConditions.length > 0) {
+        console.log('Adding search conditions to query:', JSON.stringify(searchConditions));
+        query.$or = searchConditions;
+      } else {
+        // If no matches found in our initial search, try a more generic approach with bio text
+        query.$or = [
+          { bio: { $regex: new RegExp(searchTerm, 'i') } }
+        ];
+        
+        // Also search in education and experience fields
+        const educationSearch = {
+          education: {
+            $elemMatch: {
+              $or: [
+                { degree: { $regex: new RegExp(searchTerm, 'i') } },
+                { institution: { $regex: new RegExp(searchTerm, 'i') } }
+              ]
+            }
+          }
+        };
+        
+        const experienceSearch = {
+          experience: {
+            $elemMatch: {
+              $or: [
+                { title: { $regex: new RegExp(searchTerm, 'i') } },
+                { company: { $regex: new RegExp(searchTerm, 'i') } },
+                { description: { $regex: new RegExp(searchTerm, 'i') } }
+              ]
+            }
+          }
+        };
+        
+        query.$or.push(educationSearch, experienceSearch);
+      }
+    } else {
+      // If no search term is provided, ensure we return all tutors
+      // by not adding any search-specific filters to the query
+      console.log('No search term provided, showing all tutors');
+    }
 
     // Filter by education level
     if (educationLevel) {
@@ -197,6 +292,7 @@ export const getTutors = async (req, res) => {
 
     // Log the final query for debugging
     console.log('Final Query:', JSON.stringify(query, null, 2));
+    console.log('Search parameter received:', search);
 
     // Execute query with pagination and sorting
     const tutors = await Tutor.find(query)
