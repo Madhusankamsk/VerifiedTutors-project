@@ -79,10 +79,19 @@ export const getAllTutors = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(limit);
 
+    // Map phone to mobileNumber if mobileNumber is not present
+    const mappedTutors = tutors.map(tutor => {
+      const tutorObj = tutor.toObject();
+      if (!tutorObj.mobileNumber && tutorObj.phone) {
+        tutorObj.mobileNumber = tutorObj.phone;
+      }
+      return tutorObj;
+    });
+
     // Ensure we're sending a proper JSON response
     res.setHeader('Content-Type', 'application/json');
     res.status(200).json({
-      tutors,
+      tutors: mappedTutors,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       totalTutors: total

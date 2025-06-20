@@ -374,9 +374,17 @@ export const createTutorProfile = async (req, res) => {
       return res.status(400).json({ message: 'Tutor profile already exists' });
     }
 
+    // Ensure mobileNumber is set to the same value as phone if phone is provided
+    const tutorData = { ...req.body };
+    if (tutorData.phone && !tutorData.mobileNumber) {
+      tutorData.mobileNumber = tutorData.phone;
+    } else if (tutorData.mobileNumber && !tutorData.phone) {
+      tutorData.phone = tutorData.mobileNumber;
+    }
+
     const tutor = new Tutor({
       user: req.user.id,
-      ...req.body
+      ...tutorData
     });
 
     await tutor.save();
@@ -541,6 +549,7 @@ export const updateTutorProfile = async (req, res) => {
       {
         $set: {
           phone: req.body.phone,
+          mobileNumber: req.body.phone,
           bio: req.body.bio,
           gender: req.body.gender,
           socialMedia: req.body.socialMedia,

@@ -23,6 +23,7 @@ export interface Tutor {
   };
   gender?: 'Male' | 'Female' | 'Other';
   mobileNumber?: string;
+  phone?: string;
   bio?: string;
   subjects?: Array<{
     subject: {
