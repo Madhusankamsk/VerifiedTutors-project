@@ -5,6 +5,8 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import passport from 'passport';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import './config/passport.js'; // Import passport configuration
 
 // Route imports
@@ -28,6 +30,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Middleware
 app.use(cors({
   origin: ['http://localhost:3000', 'http://localhost:5173', 'http://100.81.203.23:3000'],
@@ -39,6 +45,9 @@ app.use(cookieParser());
 
 // Initialize Passport
 app.use(passport.initialize());
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -52,9 +61,14 @@ app.use('/api/ratings', ratingRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/bookings', bookingRoutes);
 
-// Base route
-app.get('/', (req, res) => {
+// Base API route
+app.get('/api', (req, res) => {
   res.send('VerifiedTutors API is running');
+});
+
+// All other routes should serve the React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Error handler

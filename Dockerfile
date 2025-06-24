@@ -1,37 +1,43 @@
-# Build stage
-FROM node:18-alpine as build
+FROM node:18-alpine AS frontend-build
 
-WORKDIR /app
+# Set working directory for frontend
+WORKDIR /app/frontend
 
-# Copy package files
+# Copy frontend package files
 COPY package*.json ./
 
-# Install dependencies
+# Install frontend dependencies
 RUN npm ci
 
-# Copy source code
+# Copy frontend source code
 COPY . .
 
-# Build the application
+# Build the frontend application
 RUN npm run build
 
-# Production stage
-FROM nginx:alpine
+# Backend and final stage
+FROM node:18-alpine
 
-# Install envsubst
-RUN apk add --no-cache bash
+# Set working directory for backend
+WORKDIR /app/backend
 
-# Copy built assets from build stage
-COPY --from=build /app/dist /usr/share/nginx/html
+# Copy backend package files
+COPY backend/package*.json ./
 
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Install backend dependencies
+RUN npm ci --only=production
 
-# Add script to replace environment variables
-COPY docker-entrypoint.sh /
-RUN chmod +x /docker-entrypoint.sh
+# Copy backend source code
+COPY backend/ ./
 
-# Expose port 3000
-EXPOSE 3000
+# Create a directory for static files
+RUN mkdir -p ./public
 
-CMD ["/docker-entrypoint.sh"] 
+# Copy built frontend from the frontend-build stage
+COPY --from=frontend-build /app/frontend/dist ./public
+
+# Expose port
+EXPOSE 5000
+
+# Start the application
+CMD ["node", "server.js"] 

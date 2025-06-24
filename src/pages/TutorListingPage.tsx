@@ -79,11 +79,15 @@ const TutorListingPage: React.FC = () => {
       setError(null);
       
       // Always pass the search parameter from filters, which is already properly set
-      console.log('Fetching tutors with filters:', filters);
+      console.log(`fetchTutors called with isLoadMore=${isLoadMore}`);
+      console.log('Current filters:', filters);
+      console.log('Search parameter:', filters.search);
       
       const response = await searchTutors({
         ...filters
       });
+      
+      console.log(`Received ${response.tutors.length} tutors from API`);
       
       if (isLoadMore) {
         setTutors(prev => [...prev, ...response.tutors]);
@@ -95,6 +99,7 @@ const TutorListingPage: React.FC = () => {
       setHasMore(response.pagination.page < response.pagination.pages);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch tutors');
+      console.error('Error fetching tutors:', err);
     } finally {
       if (isLoadMore) {
         setLoadingMore(false);
@@ -102,21 +107,20 @@ const TutorListingPage: React.FC = () => {
         setLoading(false);
       }
     }
-  }, [filters, searchQuery, searchTutors]);
+  }, [filters, searchTutors]);
 
   // Remove auto-search while typing - only update the searchQuery state
   // No useEffect for search query changes anymore
   
   // Effect for handling filter changes (except search)
   useEffect(() => {
-    console.log('Non-search filters changed, fetching tutors');
+    console.log('Non-search filters changed, fetching tutors with filters:', filters);
     fetchTutors(false);
   }, [filters.subject, filters.rating, filters.price, filters.location, 
       filters.educationLevel, filters.medium, filters.sortBy, filters.sortOrder, 
-      filters.availability, filters.experience]);
+      filters.availability, filters.experience, filters.search]);
       
-  // Note: We're not watching filters.search here, as we want search to be triggered
-  // only by the search button or Enter key
+  // Note: We're now watching filters.search here to ensure search changes trigger a fetch
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -141,6 +145,9 @@ const TutorListingPage: React.FC = () => {
   }, [hasMore, loadingMore, loading, fetchTutors]);
 
   const handleFilterChange = (newFilters: FilterState) => {
+    console.log("Filter change with current filters:", filters);
+    console.log("Current search query:", filters.search);
+    
     // Create a new filters object with updated values
     const updatedFilters = {
       subject: newFilters.subjects[0] || '',
@@ -162,8 +169,10 @@ const TutorListingPage: React.FC = () => {
       sortOrder: newFilters.sortOrder || 'desc',
       availability: 'all',
       experience: 'all',
-      search: searchQuery.trim() // Ensure search query is trimmed
+      search: filters.search // Keep the existing search query when filters change
     };
+
+    console.log("Updated filters with preserved search:", updatedFilters);
 
     // Update filters with new values
     setFilters(updatedFilters);
@@ -279,8 +288,13 @@ const TutorListingPage: React.FC = () => {
                     if (e.key === 'Enter') {
                       // When Enter is pressed, update filters with search query and trigger search
                       const searchParam = searchQuery.trim();
-                      setFilters(prev => ({ ...prev, page: 1, search: searchParam }));
-                      fetchTutors(false);
+                      console.log("Enter key pressed with search param:", searchParam);
+                      setFilters(prev => {
+                        const newFilters = { ...prev, page: 1, search: searchParam };
+                        console.log("New filters:", newFilters);
+                        return newFilters;
+                      });
+                      // Note: fetchTutors will be called automatically by the useEffect that watches filters.search
                     }
                   }}
                   className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-l-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
@@ -291,8 +305,13 @@ const TutorListingPage: React.FC = () => {
                       // Clear the search input field
                       setSearchQuery('');
                       // Clear search parameter to show all tutors and trigger search
-                      setFilters(prev => ({ ...prev, page: 1, search: '' }));
-                      fetchTutors(false);
+                      console.log("Clearing search");
+                      setFilters(prev => {
+                        const newFilters = { ...prev, page: 1, search: '' };
+                        console.log("New filters after clearing search:", newFilters);
+                        return newFilters;
+                      });
+                      // Note: fetchTutors will be called automatically by the useEffect that watches filters.search
                     }}
                     className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
@@ -305,8 +324,13 @@ const TutorListingPage: React.FC = () => {
                   // Update filters with search query and fetch tutors
                   console.log("Search button clicked with query:", searchQuery);
                   const searchParam = searchQuery.trim();
-                  setFilters(prev => ({ ...prev, page: 1, search: searchParam }));
-                  fetchTutors(false);
+                  console.log("Setting search param:", searchParam);
+                  setFilters(prev => {
+                    const newFilters = { ...prev, page: 1, search: searchParam };
+                    console.log("New filters:", newFilters);
+                    return newFilters;
+                  });
+                  // Note: fetchTutors will be called automatically by the useEffect that watches filters.search
                 }}
                 className="px-4 bg-primary-600 hover:bg-primary-700 text-white rounded-r-lg transition-colors flex items-center justify-center"
               >

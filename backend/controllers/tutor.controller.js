@@ -27,6 +27,9 @@ export const getTutors = async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
+    console.log('getTutors called with query params:', req.query);
+    console.log('Search parameter:', search);
+
     let query = {};
     const sortOptions = {};
     

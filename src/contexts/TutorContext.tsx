@@ -928,7 +928,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setError(null);
       
       const queryParams = new URLSearchParams();
-      console.log("params", params);
+      console.log("TutorContext searchTutors called with params:", params);
       // Add filters only if they have values
       if (params.subject) queryParams.append('subjects', params.subject);
       if (params.rating && params.rating > 0) queryParams.append('minRating', params.rating.toString());
@@ -952,13 +952,19 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (params.search && params.search.trim() !== '') {
         queryParams.append('search', params.search.trim());
         console.log('Adding search param to query:', params.search.trim());
-      } // If search is empty or undefined, don't add it to query params
+      } else {
+        console.log('No search param provided or empty search');
+      }
       if (params.page) queryParams.append('page', params.page.toString());
       if (params.limit) queryParams.append('limit', params.limit.toString());
       if (params.sortBy) queryParams.append('sortBy', params.sortBy);
       if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
-      const response = await axios.get(`${API_URL}/api/tutors?${queryParams.toString()}`);
+      const queryString = queryParams.toString();
+      console.log(`Making API request to: ${API_URL}/api/tutors?${queryString}`);
+      
+      const response = await axios.get(`${API_URL}/api/tutors?${queryString}`);
+      console.log('Search response received:', response.data.tutors.length, 'tutors found');
       return response.data;
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Failed to search tutors';
