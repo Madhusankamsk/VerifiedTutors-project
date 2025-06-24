@@ -6,10 +6,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js",
-    "build:frontend": "cd .. && npm run build:backend",
-    "build": "npm run build:frontend",
-    "deploy": "npm run build && npm start"
+    "dev": "nodemon server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
