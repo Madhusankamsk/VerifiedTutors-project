@@ -1,72 +1,57 @@
-# VerifiedTutors Project
+# VerifiedTutors
 
-A tutoring platform that connects students with verified tutors.
+A platform for connecting students with verified tutors.
 
-## Setup Without Docker
+## Project Overview
+
+VerifiedTutors is a full-stack application built with:
+- Frontend: React, TypeScript, Vite, Tailwind CSS
+- Backend: Node.js, Express, MongoDB
+
+## Deploying to Vercel
+
+This project is configured for deployment as a single application on Vercel, with both frontend and backend components.
 
 ### Prerequisites
 
-- Node.js (v18 or later recommended)
-- npm (v9 or later recommended)
+1. A [Vercel](https://vercel.com) account
+2. A [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) database
+3. [Cloudinary](https://cloudinary.com) account for image storage (optional)
 
-### Installation and Setup
+### Environment Variables
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd VerifiedTutors-project
+Create the following environment variables in your Vercel project settings:
+
 ```
-
-2. Install frontend dependencies:
-```bash
-npm install
-```
-
-3. Install backend dependencies:
-```bash
-cd backend
-npm install
-cd ..
-```
-
-4. Create a `.env` file in the `backend` directory with the following environment variables:
-```
-NODE_ENV=production
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
+MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<dbname>?retryWrites=true&w=majority
 JWT_SECRET=your_jwt_secret
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+CALLBACK_URL=https://your-vercel-url.vercel.app/api/auth/google/callback
+EMAIL_SERVICE=gmail
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_password
 ```
 
-### Building and Running
+### Deployment Steps
 
-#### Development Mode
+1. Fork or clone this repository
+2. Connect your GitHub repository to Vercel
+3. Configure the environment variables
+4. Deploy!
 
-1. Start the backend server:
-```bash
-cd backend
-npm run dev
-```
+Vercel will automatically:
+1. Install dependencies
+2. Build the frontend (React/TypeScript)
+3. Set up the serverless API functions
+4. Deploy everything to a global CDN
 
-2. In a separate terminal, start the frontend development server:
-```bash
-npm run dev
-```
+### Local Development
 
-3. Access the frontend at http://localhost:5173 and the backend at http://localhost:5000
-
-#### Production Mode
-
-1. Build the frontend and copy to backend:
-```bash
-cd backend
-npm run deploy
-```
-
-2. Access the full application at http://localhost:5000
-
-## Development Setup
-
-### Frontend Development
+To run the project locally:
 
 ```bash
 # Install dependencies
@@ -76,27 +61,20 @@ npm install
 npm run dev
 ```
 
-### Backend Development
-
-```bash
-# Navigate to backend directory
-cd backend
-
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-```
+The frontend will be available at http://localhost:5173 and will proxy API requests to the backend.
 
 ## Project Structure
 
-- `src/` - React frontend code
-- `backend/` - Node.js backend code
-  - `controllers/` - API controllers
-  - `models/` - MongoDB models
-  - `routes/` - API routes
-  - `middleware/` - Express middleware
-  - `config/` - Configuration files
-  - `services/` - Additional services
-  - `server.js` - Main server file 
+```
+/
+├── src/                  # Frontend React application
+├── backend/              # Backend Express application
+├── dist/                 # Built frontend (generated)
+│   └── api/              # Serverless API functions (generated)
+├── scripts/              # Build scripts
+└── vercel.json           # Vercel configuration
+```
+
+## License
+
+[MIT](LICENSE) 
