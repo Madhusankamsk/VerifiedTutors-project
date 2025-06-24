@@ -1,6 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Star, CheckCircle, Book, Video, Home, Users } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Star, CheckCircle, Book, Video, Home, Users, Heart } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useStudent } from '../../contexts/StudentContext';
+import { toast } from 'react-toastify';
 
 interface TutorCardProps {
   tutor: {
@@ -21,6 +24,34 @@ interface TutorCardProps {
 }
 
 const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
+  const { isAuthenticated, user } = useAuth();
+  const { isFavorite, addFavorite, removeFavorite } = useStudent();
+  const navigate = useNavigate();
+  
+  const isStudent = user?.role === 'student';
+  const isTutorFavorite = isFavorite(tutor.id);
+  
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigating to tutor profile
+    
+    if (!isAuthenticated) {
+      toast.info('Please login as a student to add tutors to favorites');
+      navigate('/login', { state: { from: `/tutors` } });
+      return;
+    }
+    
+    if (!isStudent) {
+      toast.info('Only students can add tutors to favorites');
+      return;
+    }
+    
+    if (isTutorFavorite) {
+      removeFavorite(tutor.id);
+    } else {
+      addFavorite(tutor.id);
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group">
       {/* Profile Image Section */}
@@ -43,6 +74,17 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
             <CheckCircle className="h-4 w-4 text-blue-600" />
           </div>
         )}
+        
+        {/* Favorite Button */}
+        <button 
+          onClick={handleFavoriteClick}
+          className="absolute top-2 left-2 bg-white rounded-full p-1.5 shadow-sm hover:bg-gray-50 transition-colors"
+          aria-label={isTutorFavorite ? "Remove from favorites" : "Add to favorites"}
+        >
+          <Heart 
+            className={`h-4 w-4 ${isTutorFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
+          />
+        </button>
       </div>
 
       {/* Content Section */}

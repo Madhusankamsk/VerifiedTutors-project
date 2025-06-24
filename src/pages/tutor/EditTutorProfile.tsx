@@ -210,16 +210,7 @@ const EditTutorProfile: React.FC = () => {
             throw new Error(`Subject with id ${s._id} not found`);
           }
           return {
-            subject: {
-              _id: subject._id,
-              name: subject.name,
-              category: subject.category,
-              description: subject.description,
-              topics: [],
-              educationLevel: subject.educationLevel as keyof typeof EDUCATION_LEVELS,
-              isActive: subject.isActive,
-              createdAt: new Date().toISOString()
-            },
+            subject: subject as Subject,
             rates: s.rates,
             availability: s.availability
           };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { Search, Filter, ChevronDown, ChevronUp, CheckCircle, XCircle, Eye, AlertCircle, AlertTriangle, Check } from 'lucide-react';
+import { Search, Filter, ChevronDown, ChevronUp, CheckCircle, XCircle, Eye, AlertCircle, AlertTriangle, Check, X } from 'lucide-react';
 
 // Use the same Tutor interface from AdminContext
 import { Tutor as AdminTutor } from '../../contexts/AdminContext';
@@ -52,7 +52,7 @@ const ManageTutors = () => {
         const hasName = !!tutor.user?.name;
         const hasEmail = !!tutor.user?.email;
         const hasGender = !!tutor.gender;
-        const hasPhone = !!tutor.mobileNumber;
+        const hasPhone = !!tutor.mobileNumber || !!tutor.phone;
         const hasBio = !!tutor.bio;
         
         const isValid = hasName && hasEmail && hasGender && hasPhone && hasBio;
@@ -451,24 +451,23 @@ const ManageTutors = () => {
 
       {/* Tutor Details Modal */}
       {showTutorDetails && selectedTutor && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-2 md:p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="p-3 md:p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="pr-8">
-                  <h2 className="text-xl md:text-2xl font-bold text-gray-900">Tutor Verification</h2>
-                  <p className="text-xs md:text-sm text-gray-500 mt-1 break-words">
-                    {selectedTutor.user?.name} ({selectedTutor.user?.email})
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowTutorDetails(false)}
-                  className="text-gray-400 hover:text-gray-500 flex-shrink-0"
-                >
-                  <XCircle className="h-6 w-6" />
-                </button>
+        <div className="fixed inset-0 z-50 bg-gray-500 bg-opacity-75 flex items-start justify-center overflow-y-auto overflow-x-hidden pt-10 pb-10">
+          <div className="relative bg-white rounded-lg w-full max-w-4xl mx-4 my-auto shadow-xl">
+            <div className="sticky top-0 z-10 bg-white border-b border-gray-200 rounded-t-lg flex justify-between items-center p-4">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Tutor Verification</h2>
+                <p className="text-xs md:text-sm text-gray-500 mt-1 break-words">
+                  {selectedTutor.user?.name} ({selectedTutor.user?.email})
+                </p>
               </div>
-
+              <button
+                onClick={() => setShowTutorDetails(false)}
+                className="text-gray-400 hover:text-gray-500 flex-shrink-0"
+              >
+                <XCircle className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="p-4 md:p-6 overflow-y-auto max-h-[calc(100vh-10rem)]">
               {/* Verification Status Summary */}
               <div className="mb-6 p-3 md:p-4 rounded-lg border" style={{ backgroundColor: selectedTutor.isVerified ? '#f0fdf4' : '#fef2f2', borderColor: selectedTutor.isVerified ? '#bbf7d0' : '#fecaca' }}>
                 <div className="flex items-center mb-3">
@@ -596,7 +595,7 @@ const ManageTutors = () => {
                 <div className="border rounded-lg overflow-hidden">
                   <div className="bg-gray-100 px-3 py-2 flex justify-between items-center">
                     <h3 className="font-medium text-sm md:text-base text-gray-900">Personal Information</h3>
-                    {selectedTutor?.user?.name && selectedTutor?.gender && selectedTutor?.mobileNumber ? (
+                    {selectedTutor?.user?.name && selectedTutor?.gender && (selectedTutor?.mobileNumber || selectedTutor?.phone) ? (
                       <span className="text-green-600 text-xs md:text-sm flex items-center">
                         <Check size={16} className="mr-1 flex-shrink-0" />
                         Complete
@@ -630,8 +629,8 @@ const ManageTutors = () => {
                       </div>
                       <div>
                         <p className="text-xs md:text-sm text-gray-500">Mobile Number</p>
-                        <p className={`text-xs md:text-sm font-medium ${selectedTutor?.mobileNumber ? 'text-gray-900' : 'text-red-500'}`}>
-                          {selectedTutor?.mobileNumber || 'Not provided'}
+                        <p className={`text-xs md:text-sm font-medium ${(selectedTutor?.mobileNumber || selectedTutor?.phone) ? 'text-gray-900' : 'text-red-500'}`}>
+                          {selectedTutor?.mobileNumber || selectedTutor?.phone || 'Not provided'}
                         </p>
                       </div>
                     </div>
@@ -784,7 +783,7 @@ const ManageTutors = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="mt-4 md:mt-6 flex flex-wrap justify-end gap-2">
+              <div className="mt-6 flex flex-wrap justify-end gap-2">
                 <button
                   onClick={() => setShowTutorDetails(false)}
                   className="px-3 py-1.5 md:px-4 md:py-2 border border-gray-300 rounded-md text-xs md:text-sm font-medium text-gray-700 hover:bg-gray-50"
@@ -818,18 +817,18 @@ const ManageTutors = () => {
 
       {/* Rejection Modal */}
       {showRejectModal && selectedTutor && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-2 md:p-4">
-          <div className="bg-white rounded-lg w-full max-w-lg">
-            <div className="p-3 md:p-6">
-              <div className="flex justify-between items-start mb-4">
-                <h2 className="text-lg md:text-xl font-bold text-gray-900">Reject Tutor</h2>
-                <button
-                  onClick={() => setShowRejectModal(false)}
-                  className="text-gray-400 hover:text-gray-500"
-                >
-                  <XCircle className="h-5 w-5 md:h-6 md:w-6" />
-                </button>
-              </div>
+        <div className="fixed inset-0 z-50 bg-gray-500 bg-opacity-75 flex items-start justify-center overflow-y-auto overflow-x-hidden pt-10 pb-10">
+          <div className="relative bg-white rounded-lg w-full max-w-lg mx-4 my-auto shadow-xl">
+            <div className="sticky top-0 z-10 bg-white border-b border-gray-200 rounded-t-lg flex justify-between items-center p-4">
+              <h2 className="text-lg font-bold text-gray-900">Reject Tutor</h2>
+              <button
+                onClick={() => setShowRejectModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XCircle className="h-5 w-5 md:h-6 md:w-6" />
+              </button>
+            </div>
+            <div className="p-4 md:p-6">
               <div className="mb-4">
                 <label htmlFor="rejectionReason" className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                   Reason for Rejection
@@ -865,10 +864,16 @@ const ManageTutors = () => {
 
       {/* Error Alert */}
       {(contextError || localError) && (
-        <div className="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="fixed bottom-4 right-4 z-50 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded shadow-lg">
           <div className="flex items-center">
-            <AlertCircle className="h-5 w-5 mr-2" />
-            <span>{contextError || localError}</span>
+            <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
+            <span className="text-sm">{contextError || localError}</span>
+            <button 
+              onClick={() => setLocalError(null)} 
+              className="ml-3 text-red-700 hover:text-red-900"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}

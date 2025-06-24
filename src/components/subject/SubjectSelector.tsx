@@ -43,7 +43,7 @@ const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'S
 
 const TEACHING_MODES = [
   { id: 'online', label: 'Online', icon: Video },
-  { id: 'individual', label: 'Home Visit', icon: Home },
+  { id: 'individual', label: 'Individual', icon: Home },
   { id: 'group', label: 'Group', icon: Users }
 ] as const;
 
@@ -97,12 +97,16 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
     const updatedSubject = JSON.parse(JSON.stringify(selectedSubjects[0]));
     const currentRate = updatedSubject.rates[mode];
 
-    // If rate is 0, enable the mode and set default rate
-    if (currentRate === 0) {
-      updatedSubject.rates[mode] = 500; // Default rate
+    // Toggle between 0 and a small positive number to control the checkbox state
+    // When toggled on, we use 0.01 which is effectively 0 but allows the checkbox to be checked
+    // This will be displayed as empty in the UI but keeps the checkbox checked
+    if (!currentRate || currentRate === 0) {
+      updatedSubject.rates[mode] = 0.01; // Tiny value to keep checkbox checked
+      console.log(`Enabling ${mode} teaching mode`);
     } else {
       // If rate exists, disable the mode and set rate to 0
       updatedSubject.rates[mode] = 0;
+      console.log(`Disabling ${mode} teaching mode`);
     }
 
     onSubjectsChange([updatedSubject]);
@@ -111,10 +115,20 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
   const handleRateChange = (type: 'individual' | 'group' | 'online', value: string) => {
     if (!selectedSubjects[0]) return;
 
-    const newRate = parseFloat(value) || 0;
+    // If value is empty string, use our special "enabled but empty" value of 0.01
+    // Otherwise use the parsed value or 0
+    const newRate = value === '' ? 0.01 : parseFloat(value) || 0;
+    
     // Deep clone the subject to avoid mutating nested objects
     const updatedSubject = JSON.parse(JSON.stringify(selectedSubjects[0]));
     updatedSubject.rates[type] = newRate;
+    
+    // Automatically untick the teaching mode if rate is explicitly set to 0
+    if (newRate === 0) {
+      // The UI will update based on the rate being 0
+      console.log(`Auto-disabling ${type} teaching mode due to zero rate`);
+    }
+    
     onSubjectsChange([updatedSubject]);
   };
 
@@ -356,19 +370,22 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
                       <input
                         type="number"
                         min="0"
-                        value={selectedSubjects[0].rates[mode.id]}
+                        value={selectedSubjects[0].rates[mode.id] < 0.1 ? '' : selectedSubjects[0].rates[mode.id]}
                         onChange={(e) => handleRateChange(mode.id, e.target.value)}
                         disabled={!isEnabled}
+                        onBlur={(e) => {
+                          // When input loses focus, ensure zero values are properly handled
+                          if (!e.target.value || parseFloat(e.target.value) === 0) {
+                            handleRateChange(mode.id, '0');
+                          }
+                        }}
                         className={`w-full px-3 py-2 rounded-lg border ${
                           isEnabled 
                             ? 'border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500' 
                             : 'border-gray-100 bg-gray-50'
                         } transition-all duration-200`}
-                        placeholder="Rate per hour"
+                        placeholder="Rate in LKR"
                       />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                        LKR/hr
-                      </div>
                     </div>
                   </div>
                 );
