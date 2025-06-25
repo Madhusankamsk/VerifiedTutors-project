@@ -22,8 +22,6 @@ export interface FilterState {
     priceRange: [number, number];
     femaleOnly: boolean;
   };
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
 }
 
 interface TutorFiltersProps {
@@ -43,9 +41,7 @@ const initialFilterState: FilterState = {
     minRating: 0,
     priceRange: [0, 1000],
     femaleOnly: false
-  },
-  sortBy: 'rating',
-  sortOrder: 'desc'
+  }
 };
 
 const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
@@ -94,10 +90,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
     onFilterChange({ ...filters, extraFilters });
   };
 
-  const handleSortChange = (sortBy: string, sortOrder: 'asc' | 'desc') => {
-    setFilters(prev => ({ ...prev, sortBy, sortOrder }));
-    onFilterChange({ ...filters, sortBy, sortOrder });
-  };
+
 
   const handleClearAll = () => {
     // Reset all filters to initial state
@@ -344,7 +337,6 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
               <ExtraFilters
                 filters={filters.extraFilters}
                 onChange={handleExtraFiltersChange}
-                onSortChange={handleSortChange}
               />
             </div>
           </div>
@@ -448,7 +440,6 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
                 <ExtraFilters
                   filters={filters.extraFilters}
                   onChange={handleExtraFiltersChange}
-                  onSortChange={handleSortChange}
                 />
               </div>
             )}

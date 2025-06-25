@@ -5,7 +5,7 @@ import { useLocations } from '../contexts/LocationContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import TutorCard from '../components/common/TutorCard';
 import TutorFilters, { FilterState } from '../components/filter/TutorFilters';
-import { Search, X, Sparkles, SlidersHorizontal, ChevronRight } from 'lucide-react';
+import { Search, X, Sparkles, SlidersHorizontal, ChevronRight, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface Filters {
@@ -165,8 +165,8 @@ const TutorListingPage: React.FC = () => {
       medium: newFilters.teachingMode || '',
       page: 1,
       limit: 20,
-      sortBy: newFilters.sortBy || 'rating',
-      sortOrder: newFilters.sortOrder || 'desc',
+      sortBy: filters.sortBy || 'rating',
+      sortOrder: filters.sortOrder || 'desc',
       availability: 'all',
       experience: 'all',
       search: filters.search // Keep the existing search query when filters change
@@ -212,18 +212,7 @@ const TutorListingPage: React.FC = () => {
     setActiveFilters([]);
   };
 
-  const getSortLabel = (): string => {
-    if (filters.sortBy === 'rating' && filters.sortOrder === 'desc') {
-      return 'Top Rated';
-    } else if (filters.sortBy === 'price' && filters.sortOrder === 'asc') {
-      return 'Price: Low to High';
-    } else if (filters.sortBy === 'price' && filters.sortOrder === 'desc') {
-      return 'Price: High to Low';
-    } else if (filters.sortBy === 'experience' && filters.sortOrder === 'desc') {
-      return 'Most Experienced';
-    }
-    return 'Relevance';
-  };
+
 
   if (error) {
     return (
@@ -350,12 +339,35 @@ const TutorListingPage: React.FC = () => {
             <h2 className="text-base sm:text-lg font-semibold text-gray-900">
               {loading ? 'Loading...' : `${tutors.length} Tutors Found`}
             </h2>
-            {!loading && tutors.length > 0 && (
-              <span className="px-2 py-1 bg-primary-50 text-primary-700 rounded-full text-xs sm:text-sm">
-                {getSortLabel()}
-              </span>
-            )}
           </div>
+          
+          {/* Sort By Dropdown */}
+          {!loading && tutors.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 hidden sm:inline">Sort by:</span>
+              <div className="relative">
+                <select
+                  value={`${filters.sortBy}-${filters.sortOrder}`}
+                  onChange={(e) => {
+                    const [sortBy, sortOrder] = e.target.value.split('-');
+                    setFilters(prev => ({
+                      ...prev,
+                      sortBy,
+                      sortOrder: sortOrder as 'asc' | 'desc',
+                      page: 1
+                    }));
+                  }}
+                  className="appearance-none px-3 py-1.5 pr-8 text-sm border border-gray-200 rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all cursor-pointer hover:border-gray-300"
+                >
+                  <option value="rating-desc">Top Rated</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                  <option value="experience-desc">Most Experienced</option>
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Tutor Grid */}
