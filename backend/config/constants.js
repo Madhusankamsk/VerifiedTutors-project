@@ -1,84 +1,5 @@
-// Sri Lankan Education System Categories
-export const SUBJECT_CATEGORIES = {
-  PRIMARY: [
-    'Sinhala Language',
-    'Tamil Language',
-    'English Language',
-    'Mathematics',
-    'Environmental Studies',
-    'Religion',
-    'Aesthetics',
-    'Health & Physical Education'
-  ],
-  JUNIOR_SECONDARY: [
-    'Sinhala Language',
-    'Tamil Language',
-    'English Language',
-    'Mathematics',
-    'Science',
-    'History',
-    'Geography',
-    'Citizenship Education',
-    'Health & Physical Education',
-    'Aesthetics',
-    'Practical & Technical Skills',
-    'Religion'
-  ],
-  SENIOR_SECONDARY: [
-    'Sinhala Language',
-    'Tamil Language',
-    'English Language',
-    'Mathematics',
-    'Science',
-    'History',
-    'Geography',
-    'Citizenship Education',
-    'Health & Physical Education',
-    'Aesthetics',
-    'Practical & Technical Skills',
-    'Religion',
-    'Information & Communication Technology',
-    'Entrepreneurship Studies'
-  ],
-  ADVANCED_LEVEL: {
-    ARTS: [
-      'Sinhala',
-      'Tamil',
-      'English',
-      'Buddhism',
-      'Christianity',
-      'Hinduism',
-      'Islam',
-      'History',
-      'Geography',
-      'Political Science',
-      'Economics',
-      'Logic & Scientific Method',
-      'Art',
-      'Music',
-      'Dancing',
-      'Drama & Theatre',
-      'Information & Communication Technology'
-    ],
-    COMMERCE: [
-      'Business Studies',
-      'Economics',
-      'Accounting',
-      'Business Statistics',
-      'Information & Communication Technology'
-    ],
-    SCIENCE: [
-      'Physics',
-      'Chemistry',
-      'Biology',
-      'Combined Mathematics',
-      'Information & Communication Technology',
-      'Agricultural Science',
-      'Engineering Technology',
-      'Bio Systems Technology'
-    ]
-  }
-};
+// Remove the SUBJECT_CATEGORIES constant as we're simplifying the subject structure
+// Subjects will now be managed directly with topics by admins
 
 // Education Levels
 export const EDUCATION_LEVELS = {
@@ -87,6 +8,32 @@ export const EDUCATION_LEVELS = {
   SENIOR_SECONDARY: 'Senior Secondary (Grade 10-11)',
   ADVANCED_LEVEL: 'Advanced Level (Grade 12-13)',
   HIGHER_EDUCATION: 'Higher Education'
+};
+
+export const MEDIUM_OPTIONS = [
+  'English',
+  'Sinhala',
+  'Tamil'
+];
+
+export const TEACHING_MODES = [
+  'ONLINE',
+  'INDIVIDUAL',
+  'GROUP'
+];
+
+export const BOOKING_STATUS = {
+  PENDING: 'pending',
+  CONFIRMED: 'confirmed',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled'
+};
+
+export const PAYMENT_STATUS = {
+  PENDING: 'pending',
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+  REFUNDED: 'refunded'
 };
 
 // Difficulty Levels

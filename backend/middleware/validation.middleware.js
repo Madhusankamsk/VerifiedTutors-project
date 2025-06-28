@@ -91,18 +91,14 @@ export const validateTutorProfile = (req, res, next) => {
             'string.empty': 'Subject name is required',
             'any.required': 'Subject name is required'
           }),
-          category: Joi.string().required().messages({
-            'string.empty': 'Subject category is required',
-            'any.required': 'Subject category is required'
-          }),
-          educationLevel: Joi.string().required().messages({
-            'string.empty': 'Education level is required',
-            'any.required': 'Education level is required'
-          }),
           topics: Joi.array().items(Joi.string()).default([]).messages({
             'array.base': 'Topics must be an array of strings'
           })
         }).required(),
+        bestTopics: Joi.array().items(Joi.string()).max(5).required().messages({
+          'array.max': 'A tutor can have at most 5 best topics per subject',
+          'any.required': 'Best topics are required'
+        }),
         hourlyRate: Joi.number().min(0).required().messages({
           'number.min': 'Hourly rate must be a positive number',
           'any.required': 'Hourly rate is required'
@@ -366,18 +362,14 @@ export const validateSubjects = (req, res, next) => {
             'string.empty': 'Subject name is required',
             'any.required': 'Subject name is required'
           }),
-          category: Joi.string().required().messages({
-            'string.empty': 'Subject category is required',
-            'any.required': 'Subject category is required'
-          }),
-          educationLevel: Joi.string().required().messages({
-            'string.empty': 'Education level is required',
-            'any.required': 'Education level is required'
-          }),
           topics: Joi.array().items(Joi.string()).default([]).messages({
             'array.base': 'Topics must be an array of strings'
           })
         }).required(),
+        bestTopics: Joi.array().items(Joi.string()).max(5).required().messages({
+          'array.max': 'A tutor can have at most 5 best topics per subject',
+          'any.required': 'Best topics are required'
+        }),
         hourlyRate: Joi.number().min(0).required().messages({
           'number.min': 'Hourly rate must be a positive number',
           'any.required': 'Hourly rate is required'

@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import EducationLevelFilter from './EducationLevelFilter';
 import SubjectFilter from './SubjectFilter';
 import TeachingModeFilter from './TeachingModeFilter';
 import LocationFilter from './LocationFilter';
 import ExtraFilters from './ExtraFilters';
 import { X, Filter, SlidersHorizontal } from 'lucide-react';
-import { useSubjects } from '../../contexts/SubjectContext';
 
 export interface FilterState {
-  educationLevel: string;
-  subjects: string[];
+  selectedSubject: string | null;
+  selectedTopic: string | null;
   teachingMode: string;
   location: string;
   extraFilters: {
@@ -24,8 +22,8 @@ interface TutorFiltersProps {
 }
 
 const initialFilterState: FilterState = {
-  educationLevel: '',
-  subjects: [],
+  selectedSubject: null,
+  selectedTopic: null,
   teachingMode: '',
   location: '',
   extraFilters: {
@@ -37,51 +35,41 @@ const initialFilterState: FilterState = {
 
 const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
   const [filters, setFilters] = useState<FilterState>(initialFilterState);
-  const [activeLayer, setActiveLayer] = useState<number>(1);
-  const [visibleSections, setVisibleSections] = useState<number[]>([1, 2]);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const { subjects } = useSubjects();
 
-  const handleEducationLevelSelect = (level: string) => {
-    setFilters(prev => ({ ...prev, educationLevel: level }));
-    setActiveLayer(2);
-    onFilterChange({ ...filters, educationLevel: level });
-    setVisibleSections([2, 3]);
+  const handleSubjectSelect = (subjectId: string | null) => {
+    const newFilters = { ...filters, selectedSubject: subjectId, selectedTopic: null };
+    setFilters(newFilters);
+    onFilterChange(newFilters);
   };
 
-  const handleSubjectSelect = (subjects: string[]) => {
-    setFilters(prev => ({ ...prev, subjects }));
-    setActiveLayer(3);
-    onFilterChange({ ...filters, subjects });
-    setVisibleSections([3, 4]);
+  const handleTopicSelect = (topic: string | null) => {
+    const newFilters = { ...filters, selectedTopic: topic };
+    setFilters(newFilters);
+    onFilterChange(newFilters);
   };
 
   const handleTeachingModeSelect = (mode: string) => {
     const newMode = mode || '';
-    setFilters(prev => ({ ...prev, teachingMode: newMode }));
-    setActiveLayer(4);
-    onFilterChange({ ...filters, teachingMode: newMode });
-    if (newMode === 'ONLINE') {
-      setVisibleSections([5]);
-    } else {
-      setVisibleSections([4, 5]);
-    }
+    const newFilters = { ...filters, teachingMode: newMode };
+    setFilters(newFilters);
+    onFilterChange(newFilters);
   };
 
   const handleLocationSelect = (location: FilterState['location']) => {
-    setFilters(prev => ({ ...prev, location }));
-    onFilterChange({ ...filters, location });
+    const newFilters = { ...filters, location };
+    setFilters(newFilters);
+    onFilterChange(newFilters);
   };
 
   const handleExtraFiltersChange = (extraFilters: FilterState['extraFilters']) => {
-    setFilters(prev => ({ ...prev, extraFilters }));
-    onFilterChange({ ...filters, extraFilters });
+    const newFilters = { ...filters, extraFilters };
+    setFilters(newFilters);
+    onFilterChange(newFilters);
   };
 
   const handleClearAll = () => {
     setFilters(initialFilterState);
-    setActiveLayer(1);
-    setVisibleSections([1, 2]);
     setIsMobileFiltersOpen(false);
     onFilterChange(initialFilterState);
   };
@@ -114,8 +102,6 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
             location: ''
           };
           setFilters(updatedFilters);
-          setActiveLayer(3);
-          setVisibleSections([3, 4]);
           onFilterChange(updatedFilters);
         }
       });
@@ -131,43 +117,37 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
             teachingMode: ''
           };
           setFilters(updatedFilters);
-          setActiveLayer(2);
-          setVisibleSections([2, 3]);
           onFilterChange(updatedFilters);
         }
       });
     }
 
-    if (filters.subjects.length > 0) {
-      const subjectName = subjects.find(s => s._id === filters.subjects[0])?.name || filters.subjects[0];
+    if (filters.selectedTopic) {
+      tags.push({
+        key: 'topic',
+        label: filters.selectedTopic,
+        onRemove: () => {
+          const updatedFilters = {
+            ...filters,
+            selectedTopic: null
+          };
+          setFilters(updatedFilters);
+          onFilterChange(updatedFilters);
+        }
+      });
+    }
+
+    if (filters.selectedSubject) {
       tags.push({
         key: 'subject',
-        label: subjectName,
+        label: 'Subject Selected',
         onRemove: () => {
           const updatedFilters = {
             ...filters,
-            subjects: []
+            selectedSubject: null,
+            selectedTopic: null
           };
           setFilters(updatedFilters);
-          setActiveLayer(1);
-          setVisibleSections([1, 2]);
-          onFilterChange(updatedFilters);
-        }
-      });
-    }
-
-    if (filters.educationLevel) {
-      tags.push({
-        key: 'educationLevel',
-        label: filters.educationLevel,
-        onRemove: () => {
-          const updatedFilters = {
-            ...filters,
-            educationLevel: ''
-          };
-          setFilters(updatedFilters);
-          setActiveLayer(1);
-          setVisibleSections([1, 2]);
           onFilterChange(updatedFilters);
         }
       });
@@ -175,7 +155,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
     return tags.map((tag, index) => ({
       ...tag,
-      canRemove: index === 0
+      canRemove: true
     }));
   };
 
@@ -198,8 +178,8 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
   const renderFilterContent = () => {
     const hasActiveFilters = 
-      filters.educationLevel || 
-      filters.subjects.length > 0 || 
+      filters.selectedSubject || 
+      filters.selectedTopic || 
       filters.teachingMode || 
       filters.location || 
       filters.extraFilters.minRating > 0 || 
@@ -247,51 +227,35 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
           </div>
         )}
         
-        {/* Education Level Section */}
-        {visibleSections.includes(1) && activeLayer >= 1 && (
-          <div className="px-4">
-            {renderSectionHeader('Education Level', !!filters.educationLevel)}
-            <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
-              <EducationLevelFilter
-                selectedLevel={filters.educationLevel}
-                onSelect={handleEducationLevelSelect}
-              />
-            </div>
+        {/* Subject & Topic Section */}
+        <div className="px-4">
+          {renderSectionHeader('Subject & Topic', !!(filters.selectedSubject || filters.selectedTopic))}
+          <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <SubjectFilter
+              selectedSubject={filters.selectedSubject}
+              selectedTopic={filters.selectedTopic}
+              onSubjectSelect={handleSubjectSelect}
+              onTopicSelect={handleTopicSelect}
+            />
           </div>
-        )}
-
-        {/* Subject Section */}
-        {visibleSections.includes(2) && activeLayer >= 2 && filters.educationLevel && (
-          <div className="px-4">
-            {renderSectionHeader('Subjects', filters.subjects.length > 0)}
-            <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
-              <SubjectFilter
-                selectedSubjects={filters.subjects}
-                educationLevel={filters.educationLevel}
-                onSelect={handleSubjectSelect}
-              />
-            </div>
-          </div>
-        )}
+        </div>
 
         {/* Teaching Mode Section */}
-        {visibleSections.includes(3) && activeLayer >= 3 && filters.subjects.length > 0 && (
-          <div className="px-4">
-            {renderSectionHeader('Teaching Mode', !!filters.teachingMode)}
-            <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
-              <TeachingModeFilter
-                selectedMode={filters.teachingMode}
-                onSelect={handleTeachingModeSelect}
-              />
-            </div>
+        <div className="px-4">
+          {renderSectionHeader('Teaching Mode', !!filters.teachingMode)}
+          <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <TeachingModeFilter
+              selectedMode={filters.teachingMode}
+              onSelect={handleTeachingModeSelect}
+            />
           </div>
-        )}
+        </div>
 
-        {/* Location Section - Show Cities only when no city is selected */}
-        {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && !filters.location && (
-          <div>
+        {/* Location Section - Show only when not online */}
+        {filters.teachingMode && filters.teachingMode !== 'ONLINE' && (
+          <div className="px-4">
             {renderSectionHeader('Location', !!filters.location)}
-            <div className="py-4">
+            <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
               <LocationFilter
                 selectedLocation={filters.location}
                 onSelect={handleLocationSelect}
@@ -301,17 +265,15 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
         )}
 
         {/* Extra Filters Section */}
-        {visibleSections.includes(5) && (
-          <div className="px-4">
-            {renderSectionHeader('Additional Filters')}
-            <div className="py-4">
-              <ExtraFilters
-                filters={filters.extraFilters}
-                onChange={handleExtraFiltersChange}
-              />
-            </div>
+        <div className="px-4">
+          {renderSectionHeader('Additional Filters')}
+          <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <ExtraFilters
+              filters={filters.extraFilters}
+              onChange={handleExtraFiltersChange}
+            />
           </div>
-        )}
+        </div>
       </div>
     );
   };
@@ -366,51 +328,35 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
           {/* Always Visible Filter Sections */}
           <div className="p-4 space-y-2">
-            {/* Education Level */}
-            {visibleSections.includes(1) && activeLayer >= 1 && (
-              <div>
-                {renderSectionHeader('Education Level', !!filters.educationLevel)}
-                <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <EducationLevelFilter
-                    selectedLevel={filters.educationLevel}
-                    onSelect={handleEducationLevelSelect}
-                  />
-                </div>
+            {/* Subject & Topic */}
+            <div>
+              {renderSectionHeader('Subject & Topic', !!(filters.selectedSubject || filters.selectedTopic))}
+              <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                <SubjectFilter
+                  selectedSubject={filters.selectedSubject}
+                  selectedTopic={filters.selectedTopic}
+                  onSubjectSelect={handleSubjectSelect}
+                  onTopicSelect={handleTopicSelect}
+                />
               </div>
-            )}
-
-            {/* Subject */}
-            {visibleSections.includes(2) && activeLayer >= 2 && filters.educationLevel && (
-              <div>
-                {renderSectionHeader('Subjects', filters.subjects.length > 0)}
-                <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <SubjectFilter
-                    selectedSubjects={filters.subjects}
-                    educationLevel={filters.educationLevel}
-                    onSelect={handleSubjectSelect}
-                  />
-                </div>
-              </div>
-            )}
+            </div>
 
             {/* Teaching Mode */}
-            {visibleSections.includes(3) && activeLayer >= 3 && filters.subjects.length > 0 && (
-              <div>
-                {renderSectionHeader('Teaching Mode', !!filters.teachingMode)}
-                <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <TeachingModeFilter
-                    selectedMode={filters.teachingMode}
-                    onSelect={handleTeachingModeSelect}
-                  />
-                </div>
+            <div>
+              {renderSectionHeader('Teaching Mode', !!filters.teachingMode)}
+              <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                <TeachingModeFilter
+                  selectedMode={filters.teachingMode}
+                  onSelect={handleTeachingModeSelect}
+                />
               </div>
-            )}
+            </div>
 
             {/* Location */}
-            {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && !filters.location && (
+            {filters.teachingMode && filters.teachingMode !== 'ONLINE' && (
               <div>
                 {renderSectionHeader('Location', !!filters.location)}
-                <div className="py-4">
+                <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
                   <LocationFilter
                     selectedLocation={filters.location}
                     onSelect={handleLocationSelect}
@@ -420,17 +366,15 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
             )}
 
             {/* Extra Filters */}
-            {visibleSections.includes(5) && activeLayer >= 5 && (
-              <div>
-                {renderSectionHeader('Additional Filters')}
-                <div className="py-4">
-                  <ExtraFilters
-                    filters={filters.extraFilters}
-                    onChange={handleExtraFiltersChange}
-                  />
-                </div>
+            <div>
+              {renderSectionHeader('Additional Filters')}
+              <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                <ExtraFilters
+                  filters={filters.extraFilters}
+                  onChange={handleExtraFiltersChange}
+                />
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
@@ -449,17 +393,17 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
         )}
       </button>
 
-      {/* Mobile Filter Overlay */}
+      {/* Mobile Filter Modal */}
       {isMobileFiltersOpen && (
-        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-          <div className="absolute inset-y-0 right-0 w-full max-w-sm bg-white overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between z-10">
-              <h2 className="text-lg font-semibold text-gray-900">Filter Tutors</h2>
+        <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50 flex items-end">
+          <div className="bg-white w-full max-h-[90vh] overflow-y-auto rounded-t-lg">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
               <button
                 onClick={() => setIsMobileFiltersOpen(false)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="text-gray-500 hover:text-gray-700"
               >
-                <X className="h-5 w-5" />
+                <X className="h-6 w-6" />
               </button>
             </div>
             <div className="p-4">

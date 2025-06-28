@@ -192,11 +192,11 @@ interface TutorContextType {
   // Search & Filter
   searchTutors: (params: {
     subject?: string;
+    topic?: string;
     rating?: number;
     price?: { min: number; max: number };
     location?: string;
-    educationLevel?: string;
-    medium?: string;
+    teachingMode?: string;
     search?: string;
     page?: number;
     limit?: number;
@@ -857,11 +857,11 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Search & Filter
   const searchTutors = useCallback(async (params: {
     subject?: string;
+    topic?: string;
     rating?: number;
     price?: { min: number; max: number };
     location?: string;
-    educationLevel?: string;
-    medium?: string;
+    teachingMode?: string;
     search?: string;
     page?: number;
     limit?: number;
@@ -874,8 +874,10 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       
       const queryParams = new URLSearchParams();
       console.log("TutorContext searchTutors called with params:", params);
+      
       // Add filters only if they have values
-      if (params.subject) queryParams.append('subjects', params.subject);
+      if (params.subject) queryParams.append('subject', params.subject);
+      if (params.topic) queryParams.append('topic', params.topic);
       if (params.rating && params.rating > 0) queryParams.append('minRating', params.rating.toString());
       if (params.price) {
         queryParams.append('priceRange', JSON.stringify([params.price.min, params.price.max]));
@@ -888,9 +890,8 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           console.error('Error parsing location:', err);
         }
       }
-      if (params.educationLevel) queryParams.append('educationLevel', params.educationLevel);
-      if (params.medium && params.medium.trim() !== '') {
-        queryParams.append('teachingMode', params.medium.toUpperCase());
+      if (params.teachingMode && params.teachingMode.trim() !== '') {
+        queryParams.append('teachingMode', params.teachingMode.toUpperCase());
       }
       // Ensure search parameter is properly handled
       console.log('Search param:', params.search);
