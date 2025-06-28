@@ -168,7 +168,7 @@ const TutorProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
         <LoadingSpinner size="large" />
       </div>
     );
@@ -176,16 +176,21 @@ const TutorProfilePage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center bg-white p-8 rounded-lg shadow-sm max-w-md">
-          <h2 className="text-xl font-semibold text-red-600 mb-3">Error</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-6 py-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 transition-all duration-200"
-          >
-            Try Again
-          </button>
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center px-4">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-lg border border-red-100 p-6">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <X className="h-6 w-6 text-red-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Profile</h3>
+            <p className="text-red-600 text-sm mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -193,226 +198,240 @@ const TutorProfilePage: React.FC = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center bg-white p-8 rounded-lg shadow-sm max-w-md">
-          <h2 className="text-xl font-semibold text-gray-800 mb-3">Tutor Not Found</h2>
-          <p className="text-gray-600 mb-4">The tutor profile you're looking for doesn't exist.</p>
-          <button
-            onClick={() => navigate('/tutors')}
-            className="px-6 py-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 transition-all duration-200"
-          >
-            Browse Tutors
-          </button>
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center px-4">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <User className="h-6 w-6 text-gray-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Tutor Not Found</h3>
+            <p className="text-gray-600 text-sm mb-4">The tutor profile you're looking for doesn't exist.</p>
+            <button
+              onClick={() => navigate('/tutors')}
+              className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Browse Tutors
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Breadcrumb navigation */}
-      <div className="container mx-auto px-4 py-4">
-        <nav className="flex" aria-label="Breadcrumb">
-          <ol className="inline-flex items-center space-x-1 md:space-x-3">
-            <li className="inline-flex items-center">
-              <Link to="/" className="text-sm text-gray-600 hover:text-primary-600 transition-colors">
-                Home
-              </Link>
-            </li>
-            <li>
-              <div className="flex items-center">
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-                <Link to="/tutors" className="ml-1 text-sm text-gray-600 hover:text-primary-600 md:ml-2 transition-colors">
-                  Tutors
-                </Link>
-              </div>
-            </li>
-            <li aria-current="page">
-              <div className="flex items-center">
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-                <span className="ml-1 text-sm font-medium text-primary-600 md:ml-2">
-                  {profile.user.name}
-                </span>
-              </div>
-            </li>
-          </ol>
-        </nav>
-      </div>
-
-      {/* Header Section - modernized with gradient background */}
-      <div className="bg-gradient-to-r from-primary-50 to-blue-50 border-b">
-        <div className="container mx-auto px-4 py-8">
-          <div className="relative flex flex-col md:flex-row items-center md:items-start gap-8">
-            {/* Profile Image - enhanced */}
-            <div className="relative flex-shrink-0">
-              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
-                {profile.user.profileImage ? (
-                  <img
-                    src={profile.user.profileImage}
-                    alt={profile.user.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-4xl text-white font-bold">
-                      {profile.user.name.charAt(0)}
-                    </span>
-                  </div>
-                )}
-              </div>
-              {profile.isVerified && (
-                <div className="absolute bottom-0 right-0 bg-primary-500 rounded-full p-1.5 shadow-md border-2 border-white">
-                  <CheckCircle className="h-5 w-5 text-white" />
-                </div>
-              )}
-            </div>
-
-            {/* Profile Info - improved typography and layout */}
-            <div className="flex-1 text-center md:text-left pt-4">
-              <div className="flex flex-col md:flex-row items-center justify-center md:justify-start mb-2">
-                <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">
-                  {profile.user.name}
-                </h1>
-                {profile.isVerified && (
-                  <span className="mt-2 md:mt-0 md:ml-3 px-3 py-1 text-sm font-semibold text-primary-700 bg-primary-100 rounded-full shadow-sm">
-                    Verified
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2 my-4 text-gray-600">
-                <div className="flex items-center text-base">
-                  <Star className="h-5 w-5 text-yellow-500 mr-1.5" />
-                  <span className="font-semibold text-gray-800">{profile.rating.toFixed(1)}</span>
-                  <span className="text-gray-500 ml-1">({profile.totalReviews} reviews)</span>
-                </div>
-                <div className="flex items-center text-base">
-                  <Users className="h-5 w-5 text-gray-500 mr-1.5" />
-                  <span>{profile.totalStudents} students</span>
-                </div>
-                <div className="flex items-center text-base">
-                  <MapPin className="h-5 w-5 text-gray-500 mr-1.5" />
-                  <span>{profile.locations.map(loc => loc.name).join(', ')}</span>
-                </div>
-              </div>
-              
-              {/* Teaching Modes */}
-              <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-3">
-                {profile.subjects.some(subject => subject.rates.online > 0) && (
-                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm border border-blue-100">
-                    <Video className="h-4 w-4 mr-1.5" />
-                    <span>Online</span>
-                  </div>
-                )}
-                {profile.subjects.some(subject => subject.rates.individual > 0) && (
-                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-50 text-green-700 text-sm border border-green-100">
-                    <Home className="h-4 w-4 mr-1.5" />
-                    <span>Home Visit</span>
-                  </div>
-                )}
-                {profile.subjects.some(subject => subject.rates.group > 0) && (
-                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-sm border border-purple-100">
-                    <Users className="h-4 w-4 mr-1.5" />
-                    <span>Group</span>
-                  </div>
-                )}
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none"></div>
       
-      {/* Quick Actions */}
-      <div className="bg-white border-b sticky top-16 z-10">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-wrap items-center justify-between py-2">
-            <div className="flex items-center gap-2 overflow-x-auto py-2 no-scrollbar">
-              <button 
-                onClick={() => setActiveTab('about')}
-                className={`px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${
-                  activeTab === 'about' 
-                    ? 'bg-primary-50 text-primary-600' 
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                About
-              </button>
-              <button 
-                onClick={() => setActiveTab('subjects')}
-                className={`px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${
-                  activeTab === 'subjects' 
-                    ? 'bg-primary-50 text-primary-600' 
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                Subjects & Rates
-              </button>
-              <button 
-                onClick={() => setActiveTab('education')}
-                className={`px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${
-                  activeTab === 'education' 
-                    ? 'bg-primary-50 text-primary-600' 
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                Education
-              </button>
-              <button 
-                onClick={() => setActiveTab('experience')}
-                className={`px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${
-                  activeTab === 'experience' 
-                    ? 'bg-primary-50 text-primary-600' 
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                Experience
-              </button>
-              <button 
-                onClick={() => setActiveTab('reviews')}
-                className={`px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${
-                  activeTab === 'reviews' 
-                    ? 'bg-primary-50 text-primary-600' 
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                Reviews
-              </button>
-            </div>
-            <div className="flex items-center gap-2 mt-2 sm:mt-0">
-              <button 
-                onClick={handleBookSession}
-                className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-full hover:bg-primary-700 transition-colors"
-              >
-                Book Session
-              </button>
-              <button 
-                onClick={handleWriteReview}
-                className="px-4 py-2 bg-white border border-gray-300 text-sm font-medium rounded-full hover:bg-gray-50 transition-colors"
-              >
-                Write Review
-              </button>
-            </div>
-          </div>
+      {/* Decorative Elements */}
+      <div className="absolute top-0 left-0 w-64 h-64 bg-primary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob pointer-events-none"></div>
+      <div className="absolute top-0 right-0 w-64 h-64 bg-secondary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-1/2 w-64 h-64 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 pointer-events-none"></div>
+
+      {/* Breadcrumb navigation */}
+      <div className="relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <nav className="flex" aria-label="Breadcrumb">
+            <ol className="inline-flex items-center space-x-1 md:space-x-3">
+              <li className="inline-flex items-center">
+                <Link to="/" className="text-sm text-gray-600 hover:text-primary-600 transition-colors">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <div className="flex items-center">
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                  <Link to="/tutors" className="ml-1 text-sm text-gray-600 hover:text-primary-600 md:ml-2 transition-colors">
+                    Tutors
+                  </Link>
+                </div>
+              </li>
+              <li aria-current="page">
+                <div className="flex items-center">
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                  <span className="ml-1 text-sm font-medium text-primary-600 md:ml-2">
+                    {profile.user.name}
+                  </span>
+                </div>
+              </li>
+            </ol>
+          </nav>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+        {/* Header Section - modernized with gradient background */}
+        <div className="bg-gradient-to-r from-primary-50 via-blue-50 to-indigo-50 rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
+          <div className="p-6 sm:p-8">
+            <div className="relative flex flex-col md:flex-row items-center md:items-start gap-8">
+              {/* Profile Image - enhanced */}
+              <div className="relative flex-shrink-0">
+                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
+                  {profile.user.profileImage ? (
+                    <img
+                      src={profile.user.profileImage}
+                      alt={profile.user.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-4xl text-white font-bold">
+                        {profile.user.name.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {profile.isVerified && (
+                  <div className="absolute bottom-0 right-0 bg-primary-500 rounded-full p-1.5 shadow-md border-2 border-white">
+                    <CheckCircle className="h-5 w-5 text-white" />
+                  </div>
+                )}
+              </div>
+
+              {/* Profile Info - improved typography and layout */}
+              <div className="flex-1 text-center md:text-left pt-4">
+                <div className="flex flex-col md:flex-row items-center justify-center md:justify-start mb-2">
+                  <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">
+                    {profile.user.name}
+                  </h1>
+                  {profile.isVerified && (
+                    <span className="mt-2 md:mt-0 md:ml-3 px-3 py-1 text-sm font-semibold text-primary-700 bg-primary-100 rounded-full shadow-sm">
+                      Verified
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2 my-4 text-gray-600">
+                  <div className="flex items-center text-base">
+                    <Star className="h-5 w-5 text-yellow-500 mr-1.5" />
+                    <span className="font-semibold text-gray-800">{profile.rating.toFixed(1)}</span>
+                    <span className="text-gray-500 ml-1">({profile.totalReviews} reviews)</span>
+                  </div>
+                  <div className="flex items-center text-base">
+                    <Users className="h-5 w-5 text-gray-500 mr-1.5" />
+                    <span>{profile.totalStudents} students</span>
+                  </div>
+                  <div className="flex items-center text-base">
+                    <MapPin className="h-5 w-5 text-gray-500 mr-1.5" />
+                    <span>{profile.locations.map(loc => loc.name).join(', ')}</span>
+                  </div>
+                </div>
+                
+                {/* Teaching Modes */}
+                <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-3">
+                  {profile.subjects.some(subject => subject.rates.online > 0) && (
+                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm border border-blue-100">
+                      <Video className="h-4 w-4 mr-1.5" />
+                      <span>Online</span>
+                    </div>
+                  )}
+                  {profile.subjects.some(subject => subject.rates.individual > 0) && (
+                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-50 text-green-700 text-sm border border-green-100">
+                      <Home className="h-4 w-4 mr-1.5" />
+                      <span>Home Visit</span>
+                    </div>
+                  )}
+                  {profile.subjects.some(subject => subject.rates.group > 0) && (
+                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-sm border border-purple-100">
+                      <Users className="h-4 w-4 mr-1.5" />
+                      <span>Group</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Quick Actions */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
+          <div className="p-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-2 overflow-x-auto py-2 no-scrollbar">
+                <button 
+                  onClick={() => setActiveTab('about')}
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                    activeTab === 'about' 
+                      ? 'bg-primary-50 text-primary-600 shadow-sm' 
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  About
+                </button>
+                <button 
+                  onClick={() => setActiveTab('subjects')}
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                    activeTab === 'subjects' 
+                      ? 'bg-primary-50 text-primary-600 shadow-sm' 
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  Subjects & Rates
+                </button>
+                <button 
+                  onClick={() => setActiveTab('education')}
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                    activeTab === 'education' 
+                      ? 'bg-primary-50 text-primary-600 shadow-sm' 
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  Education
+                </button>
+                <button 
+                  onClick={() => setActiveTab('experience')}
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                    activeTab === 'experience' 
+                      ? 'bg-primary-50 text-primary-600 shadow-sm' 
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  Experience
+                </button>
+                <button 
+                  onClick={() => setActiveTab('reviews')}
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                    activeTab === 'reviews' 
+                      ? 'bg-primary-50 text-primary-600 shadow-sm' 
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  Reviews
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={handleBookSession}
+                  className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-full hover:bg-primary-700 transition-all duration-200 shadow-sm"
+                >
+                  Book Session
+                </button>
+                <button 
+                  onClick={handleWriteReview}
+                  className="px-4 py-2 bg-white border border-gray-300 text-sm font-medium rounded-full hover:bg-gray-50 transition-all duration-200 shadow-sm"
+                >
+                  Write Review
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content Column */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
             {/* About Tab */}
             {activeTab === 'about' && (
               <div className="space-y-6">
                 {/* About Section */}
-                <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                   <h2 className="text-xl font-semibold mb-4 text-gray-900">About</h2>
-                  <p className="text-gray-600 whitespace-pre-line">{profile.bio}</p>
+                  <p className="text-gray-600 whitespace-pre-line leading-relaxed">{profile.bio}</p>
                 </div>
 
                 {/* Teaching Mediums */}
                 {profile.teachingMediums && profile.teachingMediums.length > 0 && (
-                  <div className="bg-white p-6 rounded-lg shadow-sm">
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h2 className="text-xl font-semibold mb-4 text-gray-900">Teaching Mediums</h2>
                     <div className="flex flex-wrap gap-2">
                       {profile.teachingMediums.map((medium) => {
@@ -427,7 +446,7 @@ const TutorProfilePage: React.FC = () => {
                         return (
                           <div
                             key={medium}
-                            className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm"
+                            className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm border border-gray-200"
                           >
                             <span className="mr-1">{mediumInfo.flag}</span>
                             {mediumInfo.name}
@@ -439,13 +458,13 @@ const TutorProfilePage: React.FC = () => {
                 )}
 
                 {/* Teaching Locations */}
-                <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                   <h2 className="text-xl font-semibold mb-4 text-gray-900">Teaching Locations</h2>
                   <div className="flex flex-wrap gap-2">
                     {profile.locations.map((location, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
+                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm border border-gray-200"
                       >
                         {location.name}
                       </span>
@@ -459,7 +478,7 @@ const TutorProfilePage: React.FC = () => {
                    profile.socialMedia.youtube || 
                    profile.socialMedia.facebook || 
                    profile.socialMedia.linkedin) && (
-                  <div className="bg-white p-6 rounded-lg shadow-sm">
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h2 className="text-xl font-semibold mb-4 text-gray-900">Social Media</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {profile.socialMedia.instagram && (
@@ -467,7 +486,7 @@ const TutorProfilePage: React.FC = () => {
                           href={`https://instagram.com/${profile.socialMedia.instagram}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200"
+                          className="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
                         >
                           <svg className="w-5 h-5 mr-3 text-pink-500" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
@@ -480,7 +499,7 @@ const TutorProfilePage: React.FC = () => {
                           href={`https://youtube.com/${profile.socialMedia.youtube}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200"
+                          className="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
                         >
                           <svg className="w-5 h-5 mr-3 text-red-500" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
@@ -493,7 +512,7 @@ const TutorProfilePage: React.FC = () => {
                           href={`https://facebook.com/${profile.socialMedia.facebook}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200"
+                          className="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
                         >
                           <svg className="w-5 h-5 mr-3 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/>
@@ -506,7 +525,7 @@ const TutorProfilePage: React.FC = () => {
                           href={`https://linkedin.com/in/${profile.socialMedia.linkedin}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200"
+                          className="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
                         >
                           <svg className="w-5 h-5 mr-3 text-blue-700" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M4.98 3.5c0 1.381-1.11 2.5-2.48 2.5s-2.48-1.119-2.48-2.5c0-1.38 1.11-2.5 2.48-2.5s2.48 1.12 2.48 2.5zm.02 4.5h-5v16h5v-16zm7.982 0h-4.968v16h4.969v-8.399c0-4.67 6.029-5.052 6.029 0v8.399h4.988v-10.131c0-7.88-8.922-7.593-11.018-3.714v-2.155z"/>
@@ -522,11 +541,11 @@ const TutorProfilePage: React.FC = () => {
 
             {/* Subjects & Rates Tab */}
             {activeTab === 'subjects' && (
-              <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h2 className="text-xl font-semibold mb-4 text-gray-900">Subjects & Rates</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
                   {profile.subjects.map((subject, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-all duration-200">
+                    <div key={index} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-200 bg-gradient-to-br from-gray-50 to-white">
                       <h3 className="font-medium text-lg mb-3 text-gray-900">{subject.subject.name}</h3>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
@@ -559,11 +578,11 @@ const TutorProfilePage: React.FC = () => {
 
             {/* Education Tab */}
             {activeTab === 'education' && (
-              <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h2 className="text-xl font-semibold mb-4 text-gray-900">Education</h2>
                 <div className="space-y-4">
                   {profile.education.map((edu, index) => (
-                    <div key={index} className="flex items-start p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                    <div key={index} className="flex items-start p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200 border border-gray-100">
                       <GraduationCap className="h-5 w-5 text-primary-600 mt-1 mr-3" />
                       <div>
                         <h3 className="font-medium text-gray-900">{edu.degree}</h3>
@@ -578,11 +597,11 @@ const TutorProfilePage: React.FC = () => {
 
             {/* Experience Tab */}
             {activeTab === 'experience' && (
-              <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h2 className="text-xl font-semibold mb-4 text-gray-900">Experience</h2>
                 <div className="space-y-4">
                   {profile.experience.map((exp, index) => (
-                    <div key={index} className="flex items-start p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                    <div key={index} className="flex items-start p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200 border border-gray-100">
                       <Briefcase className="h-5 w-5 text-primary-600 mt-1 mr-3" />
                       <div>
                         <h3 className="font-medium text-gray-900">{exp.title}</h3>
@@ -598,7 +617,7 @@ const TutorProfilePage: React.FC = () => {
 
             {/* Reviews Tab */}
             {activeTab === 'reviews' && (
-              <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <ReviewList
                   reviews={mappedReviews}
                   averageRating={profile.rating}
@@ -610,67 +629,51 @@ const TutorProfilePage: React.FC = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Quick Stats Card */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            {/* Contact Information Card */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
               <h2 className="text-lg font-medium mb-4 text-gray-900">Contact Information</h2>
               <div className="space-y-3">
-                <div className="flex items-center">
+                <div className="flex items-center p-3 rounded-lg bg-gray-50">
                   <Phone className="h-4 w-4 text-gray-500 mr-3" />
                   <span className="text-gray-600 text-sm">{profile.phone}</span>
                 </div>
-                <div className="flex items-center">
+                <div className="flex items-center p-3 rounded-lg bg-gray-50">
                   <Mail className="h-4 w-4 text-gray-500 mr-3" />
                   <span className="text-gray-600 text-sm">{profile.user.email}</span>
                 </div>
               </div>
-              {/* <div className="mt-4 space-y-3">
-                <button 
-                  onClick={handleBookSession}
-                  className="w-full py-2 bg-primary-600 text-white rounded-full text-sm font-medium hover:bg-primary-700 transition-all duration-200 flex items-center justify-center gap-1"
-                >
-                  <Calendar className="h-4 w-4" />
-                  Book a Session
-                </button>
-                <button
-                  onClick={handleWriteReview}
-                  className="w-full py-2 bg-white border border-gray-300 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-1"
-                >
-                  <Star className="h-4 w-4" />
-                  Write a Review
-                </button>
-              </div> */}
             </div>
 
-            {/* Availability Widget */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            {/* Quick Stats Card */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
               <h2 className="text-lg font-medium mb-4 text-gray-900">Quick Stats</h2>
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
                   <span className="text-gray-600 text-sm">Teaching Experience</span>
                   <span className="font-medium text-gray-900">{profile.experience.length > 0 ? `${profile.experience.length} years` : 'N/A'}</span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
                   <span className="text-gray-600 text-sm">Students Taught</span>
                   <span className="font-medium text-gray-900">{profile.totalStudents}</span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
                   <span className="text-gray-600 text-sm">Average Rating</span>
                   <div className="flex items-center">
                     <span className="font-medium text-gray-900 mr-1">{profile.rating.toFixed(1)}</span>
                     <Star className="h-4 w-4 text-yellow-400" />
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
                   <span className="text-gray-600 text-sm">Subjects</span>
                   <span className="font-medium text-gray-900">{profile.subjects.length}</span>
                 </div>
               </div>
             </div>
 
-            {/* Other Tutors You May Like */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            {/* Verification Status Card */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
               <h2 className="text-lg font-medium mb-4 text-gray-900">Verification Status</h2>
-              <div className={`flex items-center p-3 rounded-lg ${profile.isVerified ? 'bg-green-50' : 'bg-yellow-50'}`}>
+              <div className={`flex items-center p-4 rounded-xl ${profile.isVerified ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
                 {profile.isVerified ? (
                   <>
                     <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
@@ -697,7 +700,7 @@ const TutorProfilePage: React.FC = () => {
       {/* Review Form Modal */}
       {showReviewForm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-lg">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl border border-gray-100">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium text-gray-900">Write a Review</h3>
               <button
