@@ -1,53 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { useLocations, Location } from '../../contexts/LocationContext';
+import React from 'react';
 
 interface LocationFilterProps {
-  selectedLocation: {
-    city: string;
-    town: string;
-    hometown: string;
-  };
-  onSelect: (location: { city: string; town: string; hometown: string }) => void;
+  selectedLocation: string;
+  onSelect: (location: string) => void;
 }
 
 const LocationFilter: React.FC<LocationFilterProps> = ({ selectedLocation, onSelect }) => {
-  const { locations } = useLocations();
-
-  // Get cities (level 1 locations)
-  const cities = locations.filter(loc => loc.level === 1);
-
-  const handleCitySelect = (cityId: string) => {
-    onSelect({
-      city: cityId,
-      town: '',
-      hometown: ''
-    });
-  };
-
   return (
     <div className="w-full">
       <div className="space-y-1.5">
         <div className="filter-container">
-          {cities.map(city => (
-            <button
-              key={city._id}
-              onClick={() => handleCitySelect(city._id)}
-              className={`filter-btn ${
-                selectedLocation.city === city._id
-                  ? 'filter-btn-selected'
-                  : 'filter-btn-unselected'
-              }`}
-            >
-              {city.name}
-            </button>
-          ))}
+          <input
+            type="text"
+            value={selectedLocation}
+            onChange={(e) => onSelect(e.target.value)}
+            placeholder="Enter location (e.g., Colombo, Kandy)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
+          />
         </div>
         
-        {cities.length === 0 && (
-          <div className="text-center py-2 text-xs text-gray-500">
-            No cities available
-          </div>
-        )}
+        <div className="text-center py-2 text-xs text-gray-500">
+          Type the location you're looking for
+        </div>
       </div>
     </div>
   );

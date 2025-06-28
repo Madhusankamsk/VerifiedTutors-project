@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTutor, TutorProfile } from '../contexts/TutorContext';
 import { useSubjects } from '../contexts/SubjectContext';
-import { useLocations } from '../contexts/LocationContext';
 import TutorFilters, { FilterState } from '../components/filter/TutorFilters';
 import { useScrollToTop } from '../hooks/useScrollToTop';
 import {
@@ -48,7 +47,6 @@ interface TransformedTutor {
 
 const TutorListingPage: React.FC = () => {
   const { searchTutors } = useTutor();
-  const { locations } = useLocations();
   const { subjects } = useSubjects();
   const [filters, setFilters] = useState<Filters>({
     subject: '',
@@ -156,9 +154,7 @@ const TutorListingPage: React.FC = () => {
     const isClearAll = !newFilters.educationLevel && 
                       newFilters.subjects.length === 0 && 
                       !newFilters.teachingMode && 
-                      !newFilters.location.city && 
-                      !newFilters.location.town && 
-                      !newFilters.location.hometown && 
+                      !newFilters.location && 
                       newFilters.extraFilters.minRating === 0 && 
                       newFilters.extraFilters.priceRange[0] === 0 && 
                       newFilters.extraFilters.priceRange[1] === 1000 && 
@@ -195,11 +191,7 @@ const TutorListingPage: React.FC = () => {
           min: newFilters.extraFilters.priceRange[0],
           max: newFilters.extraFilters.priceRange[1]
         },
-        location: JSON.stringify({
-          city: newFilters.location.city,
-          town: newFilters.location.town,
-          hometown: newFilters.location.hometown
-        }),
+        location: newFilters.location,
         educationLevel: newFilters.educationLevel || '',
         medium: newFilters.teachingMode || '',
         page: 1,
@@ -217,7 +209,7 @@ const TutorListingPage: React.FC = () => {
       const newActiveFilters: string[] = [];
       if (newFilters.educationLevel) newActiveFilters.push('educationLevel');
       if (newFilters.subjects.length > 0) newActiveFilters.push('subject');
-      if (newFilters.location.city || newFilters.location.town || newFilters.location.hometown) {
+      if (newFilters.location) {
         newActiveFilters.push('location');
       }
       if (newFilters.extraFilters.femaleOnly) newActiveFilters.push('gender');
@@ -273,7 +265,7 @@ const TutorListingPage: React.FC = () => {
       name: tutor.user?.name || 'Unknown Tutor',
       profileImage: tutor.user?.profileImage,
       subjects: tutor.subjects?.map(s => s.subject?.name).filter(Boolean) || [],
-      location: tutor.locations?.[0]?.name || 'Not specified',
+      location: tutor.availableLocations || 'Not specified',
       rating: tutor.rating || 0,
       reviewCount: tutor.totalReviews || 0,
       verified: tutor.isVerified || false,

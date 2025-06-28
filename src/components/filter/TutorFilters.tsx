@@ -6,19 +6,12 @@ import LocationFilter from './LocationFilter';
 import ExtraFilters from './ExtraFilters';
 import { X, Filter, SlidersHorizontal } from 'lucide-react';
 import { useSubjects } from '../../contexts/SubjectContext';
-import { useLocations } from '../../contexts/LocationContext';
-import TownsFilter from './TownsFilter';
-import HometownsFilter from './HometownsFilter';
 
 export interface FilterState {
   educationLevel: string;
   subjects: string[];
   teachingMode: string;
-  location: {
-    city: string;
-    town: string;
-    hometown: string;
-  };
+  location: string;
   extraFilters: {
     minRating: number;
     priceRange: [number, number];
@@ -34,11 +27,7 @@ const initialFilterState: FilterState = {
   educationLevel: '',
   subjects: [],
   teachingMode: '',
-  location: {
-    city: '',
-    town: '',
-    hometown: ''
-  },
+  location: '',
   extraFilters: {
     minRating: 0,
     priceRange: [0, 1000],
@@ -52,7 +41,6 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
   const [visibleSections, setVisibleSections] = useState<number[]>([1, 2]);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const { subjects } = useSubjects();
-  const { locations } = useLocations();
 
   const handleEducationLevelSelect = (level: string) => {
     setFilters(prev => ({ ...prev, educationLevel: level }));
@@ -116,29 +104,14 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
       });
     }
 
-    if (filters.location.city || filters.location.town || filters.location.hometown) {
-      let locationName = '';
-      if (filters.location.hometown) {
-        const city = locations.find(l => l._id === filters.location.city);
-        const town = city?.children?.find(t => t._id === filters.location.town);
-        const hometown = town?.children?.find(h => h._id === filters.location.hometown);
-        locationName = hometown?.name || filters.location.hometown;
-      } else if (filters.location.town) {
-        const city = locations.find(l => l._id === filters.location.city);
-        const town = city?.children?.find(t => t._id === filters.location.town);
-        locationName = town?.name || filters.location.town;
-      } else if (filters.location.city) {
-        const city = locations.find(l => l._id === filters.location.city);
-        locationName = city?.name || filters.location.city;
-      }
-
+    if (filters.location) {
       tags.push({
         key: 'location',
-        label: locationName,
+        label: filters.location,
         onRemove: () => {
           const updatedFilters = {
             ...filters,
-            location: { city: '', town: '', hometown: '' }
+            location: ''
           };
           setFilters(updatedFilters);
           setActiveLayer(3);
@@ -228,9 +201,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
       filters.educationLevel || 
       filters.subjects.length > 0 || 
       filters.teachingMode || 
-      filters.location.city || 
-      filters.location.town || 
-      filters.location.hometown || 
+      filters.location || 
       filters.extraFilters.minRating > 0 || 
       filters.extraFilters.priceRange[0] > 0 || 
       filters.extraFilters.priceRange[1] < 1000;
@@ -317,10 +288,10 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
         )}
 
         {/* Location Section - Show Cities only when no city is selected */}
-        {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && !filters.location.city && (
-          <div className="px-4">
-            {renderSectionHeader('Location', !!filters.location.city)}
-            <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+        {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && !filters.location && (
+          <div>
+            {renderSectionHeader('Location', !!filters.location)}
+            <div className="py-4">
               <LocationFilter
                 selectedLocation={filters.location}
                 onSelect={handleLocationSelect}
@@ -329,52 +300,11 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
           </div>
         )}
 
-        {/* Towns Section - Show Towns only when city is selected but no town */}
-        {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && filters.location.city && !filters.location.town && (
-          <div className="px-4">
-            {renderSectionHeader('Towns', !!filters.location.town)}
-            <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
-              <TownsFilter
-                selectedTown={filters.location.town}
-                selectedCity={filters.location.city}
-                onSelect={(townId: string) => handleLocationSelect({
-                  ...filters.location,
-                  town: townId,
-                  hometown: ''
-                })}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Hometowns Section - Show Hometowns only when town is selected but no hometown */}
-        {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && filters.location.city && filters.location.town && !filters.location.hometown && (
-          <div className="px-4">
-            {renderSectionHeader('Hometowns', !!filters.location.hometown)}
-            <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
-              <HometownsFilter
-                selectedHometown={filters.location.hometown}
-                selectedTown={filters.location.town}
-                selectedCity={filters.location.city}
-                onSelect={(hometownId: string) => handleLocationSelect({
-                  ...filters.location,
-                  hometown: hometownId
-                })}
-              />
-            </div>
-          </div>
-        )}
-
         {/* Extra Filters Section */}
-        {visibleSections.includes(5) && activeLayer >= 5 && (
+        {visibleSections.includes(5) && (
           <div className="px-4">
-            {renderSectionHeader('Additional Filters', 
-              filters.extraFilters.minRating > 0 || 
-              filters.extraFilters.priceRange[0] > 0 || 
-              filters.extraFilters.priceRange[1] < 1000 || 
-              filters.extraFilters.femaleOnly
-            )}
-            <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+            {renderSectionHeader('Additional Filters')}
+            <div className="py-4">
               <ExtraFilters
                 filters={filters.extraFilters}
                 onChange={handleExtraFiltersChange}
@@ -477,10 +407,10 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
             )}
 
             {/* Location */}
-            {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && !filters.location.city && (
+            {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && !filters.location && (
               <div>
-                {renderSectionHeader('Location', !!filters.location.city)}
-                <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                {renderSectionHeader('Location', !!filters.location)}
+                <div className="py-4">
                   <LocationFilter
                     selectedLocation={filters.location}
                     onSelect={handleLocationSelect}
@@ -489,52 +419,11 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
               </div>
             )}
 
-            {/* Towns */}
-            {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && filters.location.city && !filters.location.town && (
-              <div>
-                {renderSectionHeader('Towns', !!filters.location.town)}
-                <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <TownsFilter
-                    selectedTown={filters.location.town}
-                    selectedCity={filters.location.city}
-                    onSelect={(townId: string) => handleLocationSelect({
-                      ...filters.location,
-                      town: townId,
-                      hometown: ''
-                    })}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Hometowns */}
-            {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && filters.location.city && filters.location.town && !filters.location.hometown && (
-              <div>
-                {renderSectionHeader('Hometowns', !!filters.location.hometown)}
-                <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <HometownsFilter
-                    selectedHometown={filters.location.hometown}
-                    selectedTown={filters.location.town}
-                    selectedCity={filters.location.city}
-                    onSelect={(hometownId: string) => handleLocationSelect({
-                      ...filters.location,
-                      hometown: hometownId
-                    })}
-                  />
-                </div>
-              </div>
-            )}
-
             {/* Extra Filters */}
             {visibleSections.includes(5) && activeLayer >= 5 && (
               <div>
-                {renderSectionHeader('Additional Filters', 
-                  filters.extraFilters.minRating > 0 || 
-                  filters.extraFilters.priceRange[0] > 0 || 
-                  filters.extraFilters.priceRange[1] < 1000 || 
-                  filters.extraFilters.femaleOnly
-                )}
-                <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                {renderSectionHeader('Additional Filters')}
+                <div className="py-4">
                   <ExtraFilters
                     filters={filters.extraFilters}
                     onChange={handleExtraFiltersChange}

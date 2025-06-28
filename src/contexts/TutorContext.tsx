@@ -3,7 +3,6 @@ import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { API_URL } from '../config/constants';
 import { Subject } from './AdminContext';
-import { Location } from './LocationContext';
 
 // Types
 export interface TutorProfile {
@@ -50,7 +49,7 @@ export interface TutorProfile {
       }[];
     }[];
   }[];
-  locations: Location[];
+  availableLocations: string;
   documents: {
     id: string;
     url: string;
@@ -151,10 +150,6 @@ interface TutorContextType {
   // Document Management
   uploadDocument: (file: File, type: 'qualification' | 'identity' | 'other') => Promise<void>;
   deleteDocument: (documentId: string) => Promise<void>;
-  
-  // Location Management
-  addLocation: (locationId: string) => Promise<void>;
-  removeLocation: (locationId: string) => Promise<void>;
   
   // Reviews & Ratings
   reviews: TutorReview[];
@@ -744,56 +739,6 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
-  // Location Management
-  const addLocation = useCallback(async (locationId: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.post(
-        `${API_URL}/api/tutors/locations`,
-        { locationId },
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        }
-      );
-      setProfile(prev => prev ? { ...prev, locations: [...prev.locations, response.data] } : null);
-      return response.data;
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to add location';
-      setError(errorMessage);
-      console.error('Add location error:', err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const removeLocation = useCallback(async (locationId: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      await axios.delete(`${API_URL}/api/tutors/locations/${locationId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      setProfile(prev => {
-        if (!prev) return null;
-        const updatedLocations = prev.locations.filter(loc => loc._id !== locationId);
-        return { ...prev, locations: updatedLocations };
-      });
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to remove location';
-      setError(errorMessage);
-      console.error('Remove location error:', err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   // Reviews & Ratings
   const fetchReviews = useCallback(async (tutorId?: string) => {
     const targetTutorId = tutorId || profile?._id;
@@ -1033,8 +978,6 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     getAvailabilityForDateRange,
     uploadDocument,
     deleteDocument,
-    addLocation,
-    removeLocation,
     reviews,
     fetchReviews,
     addReview,

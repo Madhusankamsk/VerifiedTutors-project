@@ -145,20 +145,9 @@ export const validateTutorProfile = (req, res, next) => {
       'array.min': 'At least one subject is required',
       'any.required': 'Subjects are required'
     }),
-    locations: Joi.array().items(
-      Joi.object({
-        _id: Joi.string().required().messages({
-          'string.empty': 'Location ID is required',
-          'any.required': 'Location ID is required'
-        }),
-        name: Joi.string().required().messages({
-          'string.empty': 'Location name is required',
-          'any.required': 'Location name is required'
-        })
-      })
-    ).min(1).required().messages({
-      'array.min': 'At least one location is required',
-      'any.required': 'Locations are required'
+    availableLocations: Joi.string().required().trim().messages({
+      'string.empty': 'Available locations are required',
+      'any.required': 'Available locations are required'
     }),
     documents: Joi.array().items(
       Joi.object({

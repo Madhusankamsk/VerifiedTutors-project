@@ -4,7 +4,6 @@ import Blog from '../models/blog.model.js';
 import Subject from '../models/subject.model.js';
 import Rating from '../models/rating.model.js';
 import Session from '../models/session.model.js';
-import Location from '../models/location.model.js';
 import Booking from '../models/booking.model.js';
 
 // @desc    Get all tutors
@@ -54,20 +53,7 @@ export const getTutors = async (req, res) => {
       console.log(`Found ${matchingSubjects.length} matching subjects for "${searchTerm}"`);
       matchingSubjects.forEach(subject => console.log(`Subject: ${subject.name}, ID: ${subject._id}`));
       
-      // Find locations that match the search term
-      // Use text search across all location fields
-      const matchingLocations = await Location.find({
-        $or: [
-          { city: { $regex: new RegExp(searchTerm, 'i') } },
-          { town: { $regex: new RegExp(searchTerm, 'i') } },
-          { hometown: { $regex: new RegExp(searchTerm, 'i') } }
-        ]
-      }).select('_id');
-      
-      console.log(`Found ${matchingLocations.length} matching locations for "${searchTerm}"`);
-      matchingLocations.forEach(loc => console.log(`Location ID: ${loc._id}`));
-      
-      // Combine the search conditions
+      // Search in availableLocations field
       const searchConditions = [];
       
       if (matchingUsers.length > 0) {
@@ -78,12 +64,9 @@ export const getTutors = async (req, res) => {
         searchConditions.push({ 'subjects.subject': { $in: matchingSubjects.map(subject => subject._id) } });
       }
       
-      if (matchingLocations.length > 0) {
-        searchConditions.push({ locations: { $in: matchingLocations.map(location => location._id) } });
-      }
-      
-      // Direct search on tutor bio
+      // Direct search on tutor bio and availableLocations
       searchConditions.push({ bio: { $regex: new RegExp(searchTerm, 'i') } });
+      searchConditions.push({ availableLocations: { $regex: new RegExp(searchTerm, 'i') } });
       
       // If we have any matching conditions, add them to the query
       if (searchConditions.length > 0) {
@@ -234,44 +217,9 @@ export const getTutors = async (req, res) => {
     // Filter by location
     if (location) {
       try {
-        const locationObj = JSON.parse(location);
-        console.log('Location filter object:', locationObj);
-        
-        // Build location query based on the hierarchical structure
-        const locationQuery = {};
-        
-        // If hometown is provided, search for exact match
-        if (locationObj.hometown) {
-          locationQuery._id = locationObj.hometown;
-        }
-        // If town is provided, search for town and its hometowns
-        else if (locationObj.town) {
-          locationQuery.$or = [
-            { _id: locationObj.town },
-            { parent: locationObj.town }
-          ];
-        }
-        // If city is provided, search for city and all its descendants
-        else if (locationObj.city) {
-          locationQuery.$or = [
-            { _id: locationObj.city },
-            { parent: locationObj.city },
-            { 'parent.parent': locationObj.city }
-          ];
-        }
-        
-        console.log('Location query:', locationQuery);
-        
-        const matchingLocations = await Location.find(locationQuery).select('_id');
-        console.log('Matching locations:', matchingLocations);
-        
-        if (matchingLocations.length > 0) {
-          const locationIds = matchingLocations.map(loc => loc._id);
-          console.log('Location IDs to search for:', locationIds);
-          query.locations = { $in: locationIds };
-        } else {
-          console.log('No matching locations found');
-        }
+        // Search in availableLocations field for the location string
+        query.availableLocations = { $regex: new RegExp(location, 'i') };
+        console.log('Location filter applied:', location);
       } catch (err) {
         console.error('Error in location filtering:', err);
       }
@@ -301,7 +249,6 @@ export const getTutors = async (req, res) => {
     const tutors = await Tutor.find(query)
       .populate('user', 'name email profileImage')
       .populate('subjects.subject', 'name category educationLevel')
-      .populate('locations', 'city town hometown')
       .sort(sortOptions)
       .skip(skip)
       .limit(Number(limit));
@@ -315,7 +262,7 @@ export const getTutors = async (req, res) => {
       returnedTutors: tutors.length,
       firstTutor: tutors[0] ? {
         id: tutors[0]._id,
-        locations: tutors[0].locations,
+        availableLocations: tutors[0].availableLocations,
         subjects: tutors[0].subjects.map(s => ({
           name: s.subject?.name,
           educationLevel: s.subject?.educationLevel,
@@ -349,8 +296,7 @@ export const getTutor = async (req, res) => {
   try {
     const tutor = await Tutor.findById(req.params.id)
       .populate('user', 'name email profileImage')
-      .populate('subjects.subject', 'name category educationLevel')
-      .populate('locations', 'name');
+      .populate('subjects.subject', 'name category educationLevel');
 
     if (!tutor) {
       return res.status(404).json({ message: 'Tutor not found' });
@@ -547,33 +493,26 @@ export const updateTutorProfile = async (req, res) => {
     }
 
     // Update the tutor profile
-    const updatedTutor = await Tutor.findByIdAndUpdate(
-      tutor._id,
-      {
-        $set: {
-          phone: req.body.phone,
-          mobileNumber: req.body.phone,
-          bio: req.body.bio,
-          gender: req.body.gender,
-          socialMedia: req.body.socialMedia,
-          teachingMediums: req.body.teachingMediums,
-          education: req.body.education,
-          experience: req.body.experience,
-          subjects: req.body.subjects,
-          locations: req.body.locations,
-          documents: req.body.documents,
-          updatedAt: new Date()
-        }
-      },
-      { 
-        new: true, 
-        runValidators: true,
-        context: 'query'
-      }
+    const updatedTutor = await Tutor.findOneAndUpdate(
+      { user: req.user.id },
+      { $set: {
+        phone: req.body.phone,
+        mobileNumber: req.body.phone,
+        bio: req.body.bio,
+        gender: req.body.gender,
+        socialMedia: req.body.socialMedia,
+        teachingMediums: req.body.teachingMediums,
+        education: req.body.education,
+        experience: req.body.experience,
+        subjects: req.body.subjects,
+        locations: req.body.locations,
+        documents: req.body.documents,
+        updatedAt: new Date()
+      } },
+      { new: true, runValidators: true }
     )
     .populate('user', 'name email profileImage')
-    .populate('subjects.subject', 'name category educationLevel')
-    .populate('locations', 'name');
+    .populate('subjects.subject', 'name category educationLevel');
 
     if (!updatedTutor) {
       return res.status(404).json({ message: 'Failed to update tutor profile' });
@@ -822,8 +761,7 @@ export const getTutorByUserId = async (req, res) => {
 
     const tutor = await Tutor.findOne({ user: req.user.id })
       .populate('user', 'name email profileImage')
-      .populate('subjects.subject', 'name category educationLevel')
-      .populate('locations', 'name');
+      .populate('subjects.subject', 'name category educationLevel');
 
     if (!tutor) {
       // If user is a tutor but profile doesn't exist, create one
@@ -835,8 +773,7 @@ export const getTutorByUserId = async (req, res) => {
         
         const populatedTutor = await Tutor.findById(newTutor._id)
           .populate('user', 'name email profileImage')
-          .populate('subjects.subject', 'name category educationLevel')
-          .populate('locations', 'name');
+          .populate('subjects.subject', 'name category educationLevel');
           
         return res.json(populatedTutor);
       }

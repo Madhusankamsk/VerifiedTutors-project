@@ -93,15 +93,6 @@ export interface Booking {
   createdAt: string;
 }
 
-export interface Location {
-  _id: string;
-  name: string;
-  level: number;
-  parent: string | null;
-  isActive: boolean;
-  children?: Location[];
-}
-
 export interface Subject {
   _id: string;
   name: string;
@@ -235,14 +226,6 @@ interface AdminContextType {
   deleteSubject: (id: string) => Promise<void>;
   toggleSubjectStatus: (id: string) => Promise<void>;
   
-  // Location Management
-  locations: Location[];
-  fetchLocations: () => Promise<void>;
-  createLocation: (locationData: Omit<Location, '_id' | 'children'>) => Promise<Location>;
-  updateLocation: (id: string, locationData: Partial<Location>) => Promise<Location>;
-  deleteLocation: (id: string) => Promise<void>;
-  getAvailableParents: (level: number) => Location[];
-
   // Booking Management
   bookings: Booking[];
   bookingLoading: boolean;
@@ -277,7 +260,6 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -527,98 +509,6 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Location Management
-  const fetchLocations = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.get(`${API_URL}/api/locations`);      
-      // Handle the new response structure
-      const locationsData = response.data.tree || [];
-      setLocations(locationsData);
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to fetch locations';
-      setError(errorMessage);
-      console.error('Fetch locations error:', err);
-      setLocations([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createLocation = async (locationData: Omit<Location, '_id' | 'children'>) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.post(`${API_URL}/api/locations`, locationData);
-      await fetchLocations();
-      return response.data;
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to create location';
-      setError(errorMessage);
-      console.error('Create location error:', err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateLocation = async (id: string, locationData: Partial<Location>) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.put(`${API_URL}/api/locations/${id}`, locationData);
-      await fetchLocations();
-      return response.data;
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to update location';
-      setError(errorMessage);
-      console.error('Update location error:', err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteLocation = async (id: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      await axios.delete(`${API_URL}/api/locations/${id}`);
-      await fetchLocations();
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to delete location';
-      setError(errorMessage);
-      console.error('Delete location error:', err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getAvailableParents = (level: number): Location[] => {
-    if (!Array.isArray(locations)) return [];
-    
-    // For Towns (level 2), show only cities (level 1)
-    if (level === 2) {
-      return locations.filter(loc => loc.level === 1);
-    }
-    
-    // For Home Towns (level 3), show only towns (level 2)
-    if (level === 3) {
-      // Flatten the nested structure to get all towns
-      const allTowns: Location[] = [];
-      locations.forEach(city => {
-        if (city.children) {
-          allTowns.push(...city.children);
-        }
-      });
-      return allTowns;
-    }
-    
-    return [];
-  };
-
   // Fetch bookings with pagination and filters
   const fetchBookings = async (page: number, status: string, sortBy: string) => {
     try {
@@ -665,7 +555,6 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (user?.role === 'admin') {
       fetchDashboardStats();
       fetchSubjects();
-      fetchLocations();
     }
   }, [user]);
 
@@ -695,14 +584,6 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     deleteSubject,
     toggleSubjectStatus,
     
-    // Location Management
-    locations,
-    fetchLocations,
-    createLocation,
-    updateLocation,
-    deleteLocation,
-    getAvailableParents,
-
     // Booking Management
     bookings,
     bookingLoading,

@@ -124,11 +124,12 @@ const tutorSchema = new mongoose.Schema({
       }],
     }],
   }],
-  locations: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Location',
+  availableLocations: {
+    type: String,
     required: true,
-  }],
+    trim: true,
+    default: ''
+  },
   documents: [{
     url: {
       type: String,
