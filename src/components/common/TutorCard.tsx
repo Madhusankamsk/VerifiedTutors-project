@@ -32,7 +32,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
   const isTutorFavorite = isFavorite(tutor.id);
   
   const handleFavoriteClick = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigating to tutor profile
+    e.preventDefault();
     
     if (!isAuthenticated) {
       toast.info('Please login as a student to add tutors to favorites');
@@ -52,10 +52,12 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
     }
   };
 
+  const hasAnyRate = tutor.hourlyRate.online > 0 || tutor.hourlyRate.homeVisit > 0 || tutor.hourlyRate.group > 0;
+
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group">
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group border border-gray-100">
       {/* Profile Image Section */}
-      <div className="relative h-40 bg-gradient-to-br from-blue-50 to-blue-100">
+      <div className="relative h-48 bg-gradient-to-br from-blue-50 to-blue-100">
         {tutor.profileImage ? (
           <img
             src={tutor.profileImage}
@@ -64,13 +66,15 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-5xl font-bold text-blue-200">
+            <span className="text-6xl font-bold text-blue-200">
               {tutor.name.charAt(0)}
             </span>
           </div>
         )}
+        
+        {/* Verified Badge */}
         {tutor.verified && (
-          <div className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-sm">
+          <div className="absolute top-3 right-3 bg-white rounded-full p-1.5 shadow-sm">
             <CheckCircle className="h-4 w-4 text-blue-600" />
           </div>
         )}
@@ -78,7 +82,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
         {/* Favorite Button */}
         <button 
           onClick={handleFavoriteClick}
-          className="absolute top-2 left-2 bg-white rounded-full p-1.5 shadow-sm hover:bg-gray-50 transition-colors"
+          className="absolute top-3 left-3 bg-white rounded-full p-1.5 shadow-sm hover:bg-gray-50 transition-colors"
           aria-label={isTutorFavorite ? "Remove from favorites" : "Add to favorites"}
         >
           <Heart 
@@ -91,69 +95,80 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
       <div className="p-4">
         {/* Name and Rating */}
         <div className="mb-3">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">{tutor.name}</h3>
-          <div className="flex items-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1 group-hover:text-primary-600 transition-colors">
+            {tutor.name}
+          </h3>
+          <div className="flex items-center justify-between">
             <div className="flex items-center">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-3.5 w-3.5 ${
-                    i < Math.floor(tutor.rating)
-                      ? 'text-yellow-400 fill-yellow-400'
-                      : 'text-gray-200'
-                  }`}
-                />
-              ))}
+              <div className="flex items-center">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${
+                      i < Math.floor(tutor.rating)
+                        ? 'text-yellow-400 fill-yellow-400'
+                        : 'text-gray-200'
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="text-sm text-gray-500 ml-2">
+                ({tutor.reviewCount})
+              </span>
             </div>
-            <span className="text-xs text-gray-500 ml-1.5">
-              ({tutor.reviewCount})
+            {tutor.verified && (
+              <span className="text-xs text-blue-600 font-medium">Verified</span>
+            )}
+          </div>
+        </div>
+
+        {/* Subjects */}
+        <div className="mb-4">
+          <div className="flex items-start text-gray-600">
+            <Book className="h-4 w-4 mr-2 text-gray-400 mt-0.5 flex-shrink-0" />
+            <span className="text-sm line-clamp-2 leading-relaxed">
+              {tutor.subjects.join(', ')}
             </span>
           </div>
         </div>
 
-        {/* Subjects only (removed location) */}
-        <div className="space-y-1.5 mb-3">
-          <div className="flex items-center text-gray-600">
-            <Book className="h-3.5 w-3.5 mr-1.5 text-gray-400" />
-            <span className="text-xs line-clamp-1">{tutor.subjects.join(', ')}</span>
+        {/* Pricing Section - Only show if there are rates */}
+        {hasAnyRate && (
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            {tutor.hourlyRate.online > 0 && (
+              <div className="bg-gray-50 rounded-lg p-2 text-center">
+                <div className="flex items-center justify-center mb-1">
+                  <Video className="h-4 w-4 text-blue-600" />
+                </div>
+                <p className="text-xs text-gray-500 mb-1">Online</p>
+                <p className="font-semibold text-sm text-gray-900">Rs. {tutor.hourlyRate.online}</p>
+              </div>
+            )}
+            {tutor.hourlyRate.homeVisit > 0 && (
+              <div className="bg-gray-50 rounded-lg p-2 text-center">
+                <div className="flex items-center justify-center mb-1">
+                  <Home className="h-4 w-4 text-blue-600" />
+                </div>
+                <p className="text-xs text-gray-500 mb-1">Home</p>
+                <p className="font-semibold text-sm text-gray-900">Rs. {tutor.hourlyRate.homeVisit}</p>
+              </div>
+            )}
+            {tutor.hourlyRate.group > 0 && (
+              <div className="bg-gray-50 rounded-lg p-2 text-center">
+                <div className="flex items-center justify-center mb-1">
+                  <Users className="h-4 w-4 text-blue-600" />
+                </div>
+                <p className="text-xs text-gray-500 mb-1">Group</p>
+                <p className="font-semibold text-sm text-gray-900">Rs. {tutor.hourlyRate.group}</p>
+              </div>
+            )}
           </div>
-        </div>
-
-        {/* Pricing Section - Only show teaching types with non-zero hourly rates */}
-        <div className="grid grid-cols-3 gap-1.5 mb-3">
-          {tutor.hourlyRate.online > 0 && (
-            <div className="bg-gray-50 rounded-lg p-1.5 text-center">
-              <div className="flex items-center justify-center mb-0.5">
-                <Video className="h-3.5 w-3.5 text-blue-600" />
-              </div>
-              <p className="text-[10px] text-gray-500">Online</p>
-              <p className="font-medium text-xs text-gray-900">Rs. {tutor.hourlyRate.online}/hr</p>
-            </div>
-          )}
-          {tutor.hourlyRate.homeVisit > 0 && (
-            <div className="bg-gray-50 rounded-lg p-1.5 text-center">
-              <div className="flex items-center justify-center mb-0.5">
-                <Home className="h-3.5 w-3.5 text-blue-600" />
-              </div>
-              <p className="text-[10px] text-gray-500">Home</p>
-              <p className="font-medium text-xs text-gray-900">Rs. {tutor.hourlyRate.homeVisit}/hr</p>
-            </div>
-          )}
-          {tutor.hourlyRate.group > 0 && (
-            <div className="bg-gray-50 rounded-lg p-1.5 text-center">
-              <div className="flex items-center justify-center mb-0.5">
-                <Users className="h-3.5 w-3.5 text-blue-600" />
-              </div>
-              <p className="text-[10px] text-gray-500">Group</p>
-              <p className="font-medium text-xs text-gray-900">Rs. {tutor.hourlyRate.group}/hr</p>
-            </div>
-          )}
-        </div>
+        )}
 
         {/* View Profile Button */}
         <Link
           to={`/tutors/${tutor.id}`}
-          className="block w-full py-2 text-center bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          className="block w-full py-3 text-center bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
         >
           View Profile
         </Link>
