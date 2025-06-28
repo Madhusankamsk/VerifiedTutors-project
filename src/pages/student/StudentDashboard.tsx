@@ -77,7 +77,7 @@ const StudentDashboard = () => {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
             Student Dashboard
           </h1>
-          <div className="flex items-center space-x-4">
+          {/* <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-500">Welcome back,</span>
             <div className="flex items-center space-x-3">
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center overflow-hidden shadow-md">
@@ -95,7 +95,7 @@ const StudentDashboard = () => {
               </div>
               <span className="font-medium text-gray-900">{user?.name}</span>
             </div>
-          </div>
+          </div> */}
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
