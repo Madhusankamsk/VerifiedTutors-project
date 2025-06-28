@@ -17,15 +17,15 @@ const TeachingModeFilter: React.FC<TeachingModeFilterProps> = ({
 }) => {
   return (
     <div className="space-y-1.5">
-      <div className="flex flex-col gap-1">
+      <div className="filter-container">
         {teachingModes.map((mode) => (
           <button
             key={mode.value}
             onClick={() => onSelect(mode.value)}
-            className={`px-2 py-1 rounded-md text-xs transition-all ${
+            className={`filter-btn ${
               selectedMode === mode.value
-                ? 'bg-primary-50 text-primary-700 border border-primary-100 shadow-sm'
-                : 'hover:bg-gray-50 border border-transparent'
+                ? 'filter-btn-selected'
+                : 'filter-btn-unselected'
             }`}
           >
             {mode.label}

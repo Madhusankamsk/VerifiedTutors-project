@@ -95,15 +95,15 @@ const EducationLevelFilter: React.FC<EducationLevelFilterProps> = ({
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-2 gap-1.5">
+      <div className="filter-container">
         {educationLevels.map((level) => (
           <button
             key={level.value}
             onClick={() => onSelect(level.value)}
-            className={`px-2 py-1.5 text-xs rounded-md transition-colors ${
+            className={`filter-btn ${
               selectedLevel === level.value
-                ? 'bg-primary-100 text-primary-700'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'filter-btn-selected'
+                : 'filter-btn-unselected'
             }`}
           >
             {level.label}

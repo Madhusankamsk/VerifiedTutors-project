@@ -148,6 +148,43 @@ body {
   .scroll-smooth {
     scroll-behavior: smooth;
   }
+  
+  /* Filter button styles */
+  .filter-btn {
+    @apply px-3 py-2 text-xs rounded-full transition-all whitespace-nowrap border font-medium;
+  }
+  
+  .filter-btn-selected {
+    @apply bg-primary-100 text-primary-700 border-primary-200 shadow-md hover:bg-primary-200;
+  }
+  
+  .filter-btn-unselected {
+    @apply bg-white text-gray-700 hover:bg-gray-50 border-gray-200 hover:border-gray-300 hover:shadow-sm;
+  }
+  
+  /* Compact filter container */
+  .filter-container {
+    @apply flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1.5;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+  
+  .filter-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .filter-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .filter-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+  
+  .filter-container::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
 }
 
 /* Responsive improvements */

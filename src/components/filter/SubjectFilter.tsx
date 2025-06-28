@@ -81,22 +81,20 @@ const SubjectFilter: React.FC<SubjectFilterProps> = ({
 
   return (
     <div className="space-y-1.5">
-      <div className="h-36 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-        <div className="flex flex-col gap-0.5 pr-1">
-          {subjects.map((subject) => (
-            <button
-              key={subject._id}
-              onClick={() => handleSubjectSelect(subject._id)}
-              className={`px-2 py-1 text-xs rounded-md transition-all ${
-                selectedSubjects.includes(subject._id)
-                  ? 'bg-primary-50 text-primary-700 border border-primary-100 shadow-sm'
-                  : 'hover:bg-gray-50 border border-transparent'
-              }`}
-            >
-              {subject.name}
-            </button>
-          ))}
-        </div>
+      <div className="filter-container">
+        {subjects.map((subject) => (
+          <button
+            key={subject._id}
+            onClick={() => handleSubjectSelect(subject._id)}
+            className={`filter-btn ${
+              selectedSubjects.includes(subject._id)
+                ? 'filter-btn-selected'
+                : 'filter-btn-unselected'
+            }`}
+          >
+            {subject.name}
+          </button>
+        ))}
       </div>
 
       {subjects.length === 0 && (

@@ -44,13 +44,6 @@ const LocationFilter: React.FC<LocationFilterProps> = ({ selectedLocation, onSel
         ?.children || []
     : [];
 
-  // Debug information
-  useEffect(() => {
-    console.log('Selected City:', selectedLocation.city);
-    console.log('Available Towns:', towns);
-    console.log('All Locations:', locations);
-  }, [selectedLocation.city, towns, locations]);
-
   const handleCitySelect = (cityId: string) => {
     onSelect({
       city: cityId,
@@ -89,22 +82,20 @@ const LocationFilter: React.FC<LocationFilterProps> = ({ selectedLocation, onSel
       case 'city':
         return (
           <div className="space-y-1.5">
-            <div className="max-h-28 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-              <div className="space-y-0.5">
-                {cities.map(city => (
-                  <button
-                    key={city._id}
-                    onClick={() => handleCitySelect(city._id)}
-                    className={`w-full text-left px-2 py-1 rounded-md text-xs transition-all ${
-                      selectedLocation.city === city._id
-                        ? 'bg-primary-50 text-primary-700 border border-primary-100 shadow-sm'
-                        : 'hover:bg-gray-50 border border-transparent'
-                    }`}
-                  >
-                    {city.name}
-                  </button>
-                ))}
-              </div>
+            <div className="filter-container">
+              {cities.map(city => (
+                <button
+                  key={city._id}
+                  onClick={() => handleCitySelect(city._id)}
+                  className={`filter-btn ${
+                    selectedLocation.city === city._id
+                      ? 'filter-btn-selected'
+                      : 'filter-btn-unselected'
+                  }`}
+                >
+                  {city.name}
+                </button>
+              ))}
             </div>
           </div>
         );
@@ -121,25 +112,23 @@ const LocationFilter: React.FC<LocationFilterProps> = ({ selectedLocation, onSel
                 Back
               </button>
             </div>
-            <div className="max-h-28 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+            <div className="filter-container">
               {towns.length > 0 ? (
-                <div className="space-y-0.5">
-                  {towns.map(town => (
-                    <button
-                      key={town._id}
-                      onClick={() => handleTownSelect(town._id)}
-                      className={`w-full text-left px-2 py-1 rounded-md text-xs transition-all ${
-                        selectedLocation.town === town._id
-                          ? 'bg-primary-50 text-primary-700 border border-primary-100 shadow-sm'
-                          : 'hover:bg-gray-50 border border-transparent'
-                      }`}
-                    >
-                      {town.name}
-                    </button>
-                  ))}
-                </div>
+                towns.map(town => (
+                  <button
+                    key={town._id}
+                    onClick={() => handleTownSelect(town._id)}
+                    className={`filter-btn ${
+                      selectedLocation.town === town._id
+                        ? 'filter-btn-selected'
+                        : 'filter-btn-unselected'
+                    }`}
+                  >
+                    {town.name}
+                  </button>
+                ))
               ) : (
-                <div className="text-center py-2 text-xs text-gray-500">
+                <div className="text-center py-2 text-xs text-gray-500 w-full">
                   No towns available for this city
                 </div>
               )}
@@ -159,25 +148,23 @@ const LocationFilter: React.FC<LocationFilterProps> = ({ selectedLocation, onSel
                 Back
               </button>
             </div>
-            <div className="max-h-28 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+            <div className="filter-container">
               {hometowns.length > 0 ? (
-                <div className="space-y-0.5">
-                  {hometowns.map(hometown => (
-                    <button
-                      key={hometown._id}
-                      onClick={() => handleHometownSelect(hometown._id)}
-                      className={`w-full text-left px-2 py-1 rounded-md text-xs transition-all ${
-                        selectedLocation.hometown === hometown._id
-                          ? 'bg-primary-50 text-primary-700 border border-primary-100 shadow-sm'
-                          : 'hover:bg-gray-50 border border-transparent'
-                      }`}
-                    >
-                      {hometown.name}
-                    </button>
-                  ))}
-                </div>
+                hometowns.map(hometown => (
+                  <button
+                    key={hometown._id}
+                    onClick={() => handleHometownSelect(hometown._id)}
+                    className={`filter-btn ${
+                      selectedLocation.hometown === hometown._id
+                        ? 'filter-btn-selected'
+                        : 'filter-btn-unselected'
+                    }`}
+                  >
+                    {hometown.name}
+                  </button>
+                ))
               ) : (
-                <div className="text-center py-2 text-xs text-gray-500">
+                <div className="text-center py-2 text-xs text-gray-500 w-full">
                   No hometowns available for this town
                 </div>
               )}
