@@ -11,6 +11,7 @@ import { StudentProvider } from './contexts/StudentContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import PublicRoute from './components/common/PublicRoute';
 import RoleRoute from './components/common/RoleRoute';
+import ScrollToTop from './components/common/ScrollToTop';
 import { Toaster } from 'react-hot-toast';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -55,6 +56,7 @@ import FavoriteTutors from './pages/student/FavoriteTutors';
 const App = () => {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <ScrollToTop />
       <AuthProvider>
         <LocationProvider>
           <SubjectProvider>
