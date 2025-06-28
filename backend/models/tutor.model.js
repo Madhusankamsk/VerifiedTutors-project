@@ -137,6 +137,7 @@ const tutorSchema = new mongoose.Schema({
   availableLocations: {
     type: String,
     trim: true,
+    maxlength: 100,
     default: ''
   },
   documents: [{
