@@ -224,8 +224,8 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
               </h4>
               <div className="flex flex-wrap gap-2">
                 {subject.topics.map((topic) => {
-                  const isSelected = tutorSubject.bestTopics.includes(topic);
-                  const canSelect = isSelected || tutorSubject.bestTopics.length < 5;
+                  const isSelected = (tutorSubject.bestTopics || []).includes(topic);
+                  const canSelect = isSelected || (tutorSubject.bestTopics || []).length < 5;
                   
                   return (
                     <button
@@ -247,7 +247,7 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
                 })}
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Selected: {tutorSubject.bestTopics.length}/5 topics
+                Selected: {(tutorSubject.bestTopics || []).length}/5 topics
               </p>
             </div>
 

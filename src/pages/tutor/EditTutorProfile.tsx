@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTutor, TutorProfile, TutorSubject } from '../../contexts/TutorContext';
 import { useSubjects } from '../../contexts/SubjectContext';
-import { Subject, EDUCATION_LEVELS } from '../../contexts/AdminContext';
+import { Subject } from '../../contexts/AdminContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import { X, Plus, Save, Trash2, MapPin, BookOpen, GraduationCap, Briefcase, User, Phone, Mail, Clock, Upload, Camera, Globe, Languages, FileText, Eye, Users, Video } from 'lucide-react';
@@ -41,7 +41,7 @@ interface FormData {
   subjects: Array<{
     _id: string;
     name: string;
-    category: string;
+    bestTopics: string[];
     rates: {
       individual: number;
       group: number;
@@ -136,7 +136,7 @@ const EditTutorProfile: React.FC = () => {
         subjects: profile.subjects.map(s => ({
           _id: s.subject._id,
           name: s.subject.name,
-          category: s.subject.category,
+          bestTopics: [],
           rates: s.rates || {
             individual: 0,
             group: 0,
@@ -256,13 +256,13 @@ const EditTutorProfile: React.FC = () => {
     setSelectedDocuments(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubjectSelect = (selectedSubjects: Array<{ _id: string; name: string; category: string }>) => {
+  const handleSubjectSelect = (selectedSubjects: Array<{ _id: string; name: string; bestTopics: string[] }>) => {
     setFormData(prev => ({
       ...prev,
       subjects: selectedSubjects.map(subject => ({
         _id: subject._id,
         name: subject.name,
-        category: subject.category,
+        bestTopics: subject.bestTopics || [],
         rates: {
           individual: 0,
           group: 0,
@@ -342,7 +342,7 @@ const EditTutorProfile: React.FC = () => {
     });
   };
 
-  const updateTimeSlot = (subjectId: string, day: string, slotIndex: number, field: 'start' | 'end', value: string) => {
+  const updateTimeSlot = (subjectId: string, day: string, slotIndex: number, start: string, end: string) => {
     setFormData(prev => {
       const newFormData = JSON.parse(JSON.stringify(prev));
       
@@ -353,7 +353,8 @@ const EditTutorProfile: React.FC = () => {
       const dayAvailability = subject.availability.find((a: { day: string }) => a.day === day);
       
       if (dayAvailability && dayAvailability.slots[slotIndex]) {
-        dayAvailability.slots[slotIndex][field] = value;
+        dayAvailability.slots[slotIndex].start = start;
+        dayAvailability.slots[slotIndex].end = end;
       }
       
       return newFormData;
