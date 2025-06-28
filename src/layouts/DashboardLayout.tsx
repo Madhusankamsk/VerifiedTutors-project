@@ -86,13 +86,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
       </div>
 
       {/* Main content area */}
-      <div className="lg:pl-64" style={{ paddingTop: '4rem', paddingBottom: '2.5rem' }}>
+      <div className="lg:pl-64" style={{ paddingTop: '4rem', paddingBottom: '3rem' }}>
         {/* Account for mobile title bar height */}
         <div className="block md:hidden" style={{ height: '3.5rem' }}></div>
         
         {/* Page content */}
         <main className="min-h-screen bg-gray-50">
-          <div className="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <div className="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8 pb-8">
             <Outlet />
           </div>
         </main>

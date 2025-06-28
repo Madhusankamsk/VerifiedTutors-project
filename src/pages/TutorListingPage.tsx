@@ -141,47 +141,82 @@ const TutorListingPage: React.FC = () => {
     console.log("Filter change with current filters:", filters);
     console.log("Current search query:", filters.search);
     
-    const updatedFilters = {
-      subject: newFilters.subjects[0] || '',
-      rating: newFilters.extraFilters.minRating,
-      price: {
-        min: newFilters.extraFilters.priceRange[0],
-        max: newFilters.extraFilters.priceRange[1]
-      },
-      location: JSON.stringify({
-        city: newFilters.location.city,
-        town: newFilters.location.town,
-        hometown: newFilters.location.hometown
-      }),
-      educationLevel: newFilters.educationLevel || '',
-      medium: newFilters.teachingMode || '',
-      page: 1,
-      limit: 20,
-      sortBy: filters.sortBy || 'rating',
-      sortOrder: filters.sortOrder || 'desc',
-      availability: 'all',
-      experience: 'all',
-      search: filters.search
-    };
+    // Check if this is a clear all operation (all filters are reset to initial state)
+    const isClearAll = !newFilters.educationLevel && 
+                      newFilters.subjects.length === 0 && 
+                      !newFilters.teachingMode && 
+                      !newFilters.location.city && 
+                      !newFilters.location.town && 
+                      !newFilters.location.hometown && 
+                      newFilters.extraFilters.minRating === 0 && 
+                      newFilters.extraFilters.priceRange[0] === 0 && 
+                      newFilters.extraFilters.priceRange[1] === 1000 && 
+                      !newFilters.extraFilters.femaleOnly;
+    
+    if (isClearAll) {
+      // Reset everything including search
+      const resetFilters = {
+        subject: '',
+        rating: 0,
+        price: { min: 0, max: 1000 },
+        location: '',
+        educationLevel: '',
+        medium: '',
+        page: 1,
+        limit: 20,
+        sortBy: 'rating',
+        sortOrder: 'desc',
+        availability: 'all',
+        experience: 'all',
+        search: ''
+      } as Filters;
+      
+      console.log("Clearing all filters and search:", resetFilters);
+      setFilters(resetFilters);
+      setSearchQuery('');
+      setActiveFilters([]);
+    } else {
+      // Normal filter update - preserve search
+      const updatedFilters = {
+        subject: newFilters.subjects[0] || '',
+        rating: newFilters.extraFilters.minRating,
+        price: {
+          min: newFilters.extraFilters.priceRange[0],
+          max: newFilters.extraFilters.priceRange[1]
+        },
+        location: JSON.stringify({
+          city: newFilters.location.city,
+          town: newFilters.location.town,
+          hometown: newFilters.location.hometown
+        }),
+        educationLevel: newFilters.educationLevel || '',
+        medium: newFilters.teachingMode || '',
+        page: 1,
+        limit: 20,
+        sortBy: filters.sortBy || 'rating',
+        sortOrder: filters.sortOrder || 'desc',
+        availability: 'all',
+        experience: 'all',
+        search: filters.search
+      };
 
-    console.log("Updated filters with preserved search:", updatedFilters);
-    setFilters(updatedFilters);
+      console.log("Updated filters with preserved search:", updatedFilters);
+      setFilters(updatedFilters);
 
-    const newActiveFilters: string[] = [];
-    if (newFilters.educationLevel) newActiveFilters.push('educationLevel');
-    if (newFilters.subjects.length > 0) newActiveFilters.push('subject');
-    if (newFilters.location.city || newFilters.location.town || newFilters.location.hometown) {
-      newActiveFilters.push('location');
+      const newActiveFilters: string[] = [];
+      if (newFilters.educationLevel) newActiveFilters.push('educationLevel');
+      if (newFilters.subjects.length > 0) newActiveFilters.push('subject');
+      if (newFilters.location.city || newFilters.location.town || newFilters.location.hometown) {
+        newActiveFilters.push('location');
+      }
+      if (newFilters.extraFilters.femaleOnly) newActiveFilters.push('gender');
+      if (newFilters.teachingMode) newActiveFilters.push('teachingMode');
+      setActiveFilters(newActiveFilters);
     }
-    if (newFilters.extraFilters.femaleOnly) newActiveFilters.push('gender');
-    if (newFilters.teachingMode) newActiveFilters.push('teachingMode');
-    setActiveFilters(newActiveFilters);
-
-    fetchTutors(false);
   };
 
   const resetFilters = () => {
-    setFilters({
+    const resetFilters = {
       subject: '',
       rating: 0,
       price: { min: 0, max: 1000 },
@@ -195,7 +230,9 @@ const TutorListingPage: React.FC = () => {
       availability: 'all',
       experience: 'all',
       search: ''
-    } as Filters);
+    } as Filters;
+    
+    setFilters(resetFilters);
     setSearchQuery('');
     setActiveFilters([]);
   };
@@ -223,14 +260,14 @@ const TutorListingPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100">
+    <div className="bg-gradient-to-b from-gray-50 via-white to-gray-100">
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none"></div>
+      <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none"></div>
       
       {/* Decorative Elements */}
-      <div className="absolute top-0 left-0 w-64 h-64 bg-primary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob pointer-events-none"></div>
-      <div className="absolute top-0 right-0 w-64 h-64 bg-secondary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-1/2 w-64 h-64 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 pointer-events-none"></div>
+      <div className="fixed top-0 left-0 w-64 h-64 bg-primary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob pointer-events-none"></div>
+      <div className="fixed top-0 right-0 w-64 h-64 bg-secondary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 pointer-events-none"></div>
+      <div className="fixed bottom-0 left-1/2 w-64 h-64 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 pointer-events-none"></div>
 
       {/* Breadcrumb navigation */}
       <div className="relative z-10">

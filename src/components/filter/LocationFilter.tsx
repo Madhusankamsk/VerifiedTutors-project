@@ -17,6 +17,17 @@ const LocationFilter: React.FC<LocationFilterProps> = ({ selectedLocation, onSel
     selectedLocation.city ? 'town' : 'city'
   );
 
+  // Reset activeStep when selectedLocation is cleared
+  useEffect(() => {
+    if (!selectedLocation.city && !selectedLocation.town && !selectedLocation.hometown) {
+      setActiveStep('city');
+    } else if (selectedLocation.city && !selectedLocation.town) {
+      setActiveStep('town');
+    } else if (selectedLocation.city && selectedLocation.town && !selectedLocation.hometown) {
+      setActiveStep('hometown');
+    }
+  }, [selectedLocation.city, selectedLocation.town, selectedLocation.hometown]);
+
   // Get cities (level 1 locations)
   const cities = locations.filter(loc => loc.level === 1);
 
@@ -78,10 +89,6 @@ const LocationFilter: React.FC<LocationFilterProps> = ({ selectedLocation, onSel
       case 'city':
         return (
           <div className="space-y-1.5">
-            <div className="flex items-center gap-1">
-              <h3 className="font-medium text-gray-700 text-xs">Select City</h3>
-              <span className="text-xs text-gray-400">(Step 1/3)</span>
-            </div>
             <div className="max-h-28 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
               <div className="space-y-0.5">
                 {cities.map(city => (
@@ -105,11 +112,7 @@ const LocationFilter: React.FC<LocationFilterProps> = ({ selectedLocation, onSel
       case 'town':
         return (
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <h3 className="font-medium text-gray-700 text-xs">Select Town</h3>
-                <span className="text-xs text-gray-400">(Step 2/3)</span>
-              </div>
+            <div className="flex items-center justify-end">
               <button
                 onClick={handleBack}
                 className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-0.5 px-1.5 py-0.5 rounded-md hover:bg-gray-50 transition-colors"
@@ -147,11 +150,7 @@ const LocationFilter: React.FC<LocationFilterProps> = ({ selectedLocation, onSel
       case 'hometown':
         return (
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <h3 className="font-medium text-gray-700 text-xs">Select Hometown</h3>
-                <span className="text-xs text-gray-400">(Step 3/3)</span>
-              </div>
+            <div className="flex items-center justify-end">
               <button
                 onClick={handleBack}
                 className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-0.5 px-1.5 py-0.5 rounded-md hover:bg-gray-50 transition-colors"

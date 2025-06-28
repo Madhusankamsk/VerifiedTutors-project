@@ -219,14 +219,14 @@ const TutorProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100">
+    <div className="bg-gradient-to-b from-gray-50 via-white to-gray-100">
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none"></div>
+      <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none"></div>
       
       {/* Decorative Elements */}
-      <div className="absolute top-0 left-0 w-64 h-64 bg-primary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob pointer-events-none"></div>
-      <div className="absolute top-0 right-0 w-64 h-64 bg-secondary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-1/2 w-64 h-64 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 pointer-events-none"></div>
+      <div className="fixed top-0 left-0 w-64 h-64 bg-primary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob pointer-events-none"></div>
+      <div className="fixed top-0 right-0 w-64 h-64 bg-secondary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 pointer-events-none"></div>
+      <div className="fixed bottom-0 left-1/2 w-64 h-64 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 pointer-events-none"></div>
 
       {/* Breadcrumb navigation */}
       <div className="relative z-10">
@@ -345,11 +345,11 @@ const TutorProfilePage: React.FC = () => {
         {/* Quick Actions */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
           <div className="p-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="flex items-center gap-2 overflow-x-auto py-2 no-scrollbar">
                 <button 
                   onClick={() => setActiveTab('about')}
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 whitespace-nowrap ${
                     activeTab === 'about' 
                       ? 'bg-primary-50 text-primary-600 shadow-sm' 
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -359,7 +359,7 @@ const TutorProfilePage: React.FC = () => {
                 </button>
                 <button 
                   onClick={() => setActiveTab('subjects')}
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 whitespace-nowrap ${
                     activeTab === 'subjects' 
                       ? 'bg-primary-50 text-primary-600 shadow-sm' 
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -369,7 +369,7 @@ const TutorProfilePage: React.FC = () => {
                 </button>
                 <button 
                   onClick={() => setActiveTab('education')}
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 whitespace-nowrap ${
                     activeTab === 'education' 
                       ? 'bg-primary-50 text-primary-600 shadow-sm' 
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -379,7 +379,7 @@ const TutorProfilePage: React.FC = () => {
                 </button>
                 <button 
                   onClick={() => setActiveTab('experience')}
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 whitespace-nowrap ${
                     activeTab === 'experience' 
                       ? 'bg-primary-50 text-primary-600 shadow-sm' 
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -389,7 +389,7 @@ const TutorProfilePage: React.FC = () => {
                 </button>
                 <button 
                   onClick={() => setActiveTab('reviews')}
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 whitespace-nowrap ${
                     activeTab === 'reviews' 
                       ? 'bg-primary-50 text-primary-600 shadow-sm' 
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -398,7 +398,7 @@ const TutorProfilePage: React.FC = () => {
                   Reviews
                 </button>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 <button 
                   onClick={handleBookSession}
                   className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-full hover:bg-primary-700 transition-all duration-200 shadow-sm"

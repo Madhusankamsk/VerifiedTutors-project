@@ -10,7 +10,7 @@ const AuthLayout: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       
-      <div className="flex-grow flex items-center justify-center pt-20 pb-12 sm:px-6 lg:px-8">
+      <div className="flex-grow flex items-center justify-center pt-20 pb-16 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="sm:mx-auto sm:w-full sm:max-w-md mb-8">
             <Link to="/" className="flex justify-center">

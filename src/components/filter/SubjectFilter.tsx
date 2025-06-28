@@ -81,11 +81,6 @@ const SubjectFilter: React.FC<SubjectFilterProps> = ({
 
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center gap-1">
-        <h3 className="font-medium text-gray-700 text-xs">Subjects</h3>
-        <span className="text-xs text-gray-400">(Select one)</span>
-      </div>
-
       <div className="h-36 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
         <div className="flex flex-col gap-0.5 pr-1">
           {subjects.map((subject) => (

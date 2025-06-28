@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface TeachingModeFilterProps {
-  selectedMode: string | null;
+  selectedMode: string;
   onSelect: (mode: string) => void;
 }
 
@@ -17,10 +17,6 @@ const TeachingModeFilter: React.FC<TeachingModeFilterProps> = ({
 }) => {
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center gap-1">
-        <h3 className="font-medium text-gray-700 text-xs">Teaching Mode</h3>
-        <span className="text-xs text-gray-400">(Select one)</span>
-      </div>
       <div className="flex flex-col gap-1">
         {teachingModes.map((mode) => (
           <button

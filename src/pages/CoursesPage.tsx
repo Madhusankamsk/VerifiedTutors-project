@@ -160,7 +160,7 @@ const CoursesPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 pb-8">
         {/* Filters */}
         <div className="flex flex-wrap gap-4 mb-8">
           <div className="flex items-center space-x-2 bg-white rounded-lg shadow-sm p-2">

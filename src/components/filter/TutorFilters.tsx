@@ -386,9 +386,9 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
           )}
 
           {/* Horizontal Filter Sections */}
-          <div className="grid grid-cols-5 divide-x divide-gray-100">
+          <div className="grid grid-cols-1 xl:grid-cols-5 lg:grid-cols-3 md:grid-cols-2 gap-4 lg:gap-0 lg:divide-x lg:divide-gray-100 overflow-x-auto no-scrollbar">
             {/* Education Level */}
-            <div className="p-4">
+            <div className="p-4 min-w-0">
               <EducationLevelFilter
                 selectedLevel={filters.educationLevel}
                 onSelect={handleEducationLevelSelect}
@@ -397,7 +397,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
             {/* Subject */}
             {filters.educationLevel && (
-              <div className="p-4">
+              <div className="p-4 min-w-0">
                 <SubjectFilter
                   selectedSubjects={filters.subjects}
                   educationLevel={filters.educationLevel}
@@ -408,7 +408,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
             {/* Teaching Mode */}
             {filters.subjects.length > 0 && (
-              <div className="p-4">
+              <div className="p-4 min-w-0">
                 <TeachingModeFilter
                   selectedMode={filters.teachingMode}
                   onSelect={handleTeachingModeSelect}
@@ -418,7 +418,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
             {/* Location */}
             {filters.teachingMode && filters.teachingMode !== 'ONLINE' && (
-              <div className="p-4">
+              <div className="p-4 min-w-0">
                 <LocationFilter
                   selectedLocation={filters.location}
                   onSelect={handleLocationSelect}
@@ -428,7 +428,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
             {/* Extra Filters */}
             {filters.teachingMode && (
-              <div className="p-4">
+              <div className="p-4 min-w-0">
                 <ExtraFilters
                   filters={filters.extraFilters}
                   onChange={handleExtraFiltersChange}
