@@ -5,8 +5,6 @@ import { getSubjects } from '../services/api';
 interface Subject {
   _id: string;
   name: string;
-  category: string;
-  educationLevel: string;
   topics: string[];
   description: string;
   isActive: boolean;
@@ -23,17 +21,17 @@ const SubjectContext = createContext<SubjectContextType | undefined>(undefined);
 
 export const SubjectProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSubjects = async (params = {}) => {
+  const fetchSubjects = async (params?: any) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getSubjects(params);
-      setSubjects(data);
-    } catch (err) {
-      setError('Failed to fetch subjects');
+      const response = await getSubjects(params);
+      setSubjects(response);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch subjects');
       console.error('Error fetching subjects:', err);
     } finally {
       setLoading(false);
@@ -45,13 +43,18 @@ export const SubjectProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, []);
 
   return (
-    <SubjectContext.Provider value={{ subjects, loading, error, fetchSubjects }}>
+    <SubjectContext.Provider value={{
+      subjects,
+      loading,
+      error,
+      fetchSubjects
+    }}>
       {children}
     </SubjectContext.Provider>
   );
 };
 
-export const useSubjects = (): SubjectContextType => {
+export const useSubjects = () => {
   const context = useContext(SubjectContext);
   if (context === undefined) {
     throw new Error('useSubjects must be used within a SubjectProvider');

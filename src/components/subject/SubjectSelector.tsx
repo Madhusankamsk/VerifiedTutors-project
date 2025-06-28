@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { useSubjects } from '../../contexts/SubjectContext';
-import { Video, Home, Users, Plus, Trash2, Save, X } from 'lucide-react';
+import { Video, Home, Users, Plus, Trash2, Save, X, Check, Edit2 } from 'lucide-react';
 
 // Define the Subject interface locally since it's not exported from the context
 interface Subject {
   _id: string;
   name: string;
-  category: string;
-  educationLevel: string;
   topics: string[];
   description: string;
   isActive: boolean;
@@ -16,7 +14,7 @@ interface Subject {
 interface TutorSubject {
   _id: string;
   name: string;
-  category: string;
+  bestTopics: string[];
   rates: {
     individual: number;
     group: number;
@@ -34,9 +32,9 @@ interface TutorSubject {
 interface SubjectSelectorProps {
   selectedSubjects: TutorSubject[];
   onSubjectsChange: (subjects: TutorSubject[]) => void;
-  onAddTimeSlot?: (subjectId: string, day: string) => void;
-  onRemoveTimeSlot?: (subjectId: string, day: string, slotIndex: number) => void;
-  onUpdateTimeSlot?: (subjectId: string, day: string, slotIndex: number, field: 'start' | 'end', value: string) => void;
+  onAddTimeSlot: (subjectId: string, day: string, start: string, end: string) => void;
+  onRemoveTimeSlot: (subjectId: string, day: string, slotIndex: number) => void;
+  onUpdateTimeSlot: (subjectId: string, day: string, slotIndex: number, start: string, end: string) => void;
 }
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -55,31 +53,14 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
   onUpdateTimeSlot
 }) => {
   const { subjects, loading, error } = useSubjects();
-  const [selectedEducationLevel, setSelectedEducationLevel] = useState<string>('');
   const [editingSlot, setEditingSlot] = useState<{ day: string; index: number } | null>(null);
   const [tempSlotValues, setTempSlotValues] = useState<{ start: string; end: string } | null>(null);
-
-  // Get unique education levels from subjects
-  const educationLevels = React.useMemo(() => {
-    if (!Array.isArray(subjects)) return [];
-    return [...new Set(subjects.map(subject => subject.educationLevel))];
-  }, [subjects]);
-
-  // Filter subjects based on selected education level
-  const filteredSubjects = React.useMemo(() => {
-    if (!Array.isArray(subjects)) return [];
-    
-    return subjects.filter(subject => {
-      const matchesEducationLevel = !selectedEducationLevel || subject.educationLevel === selectedEducationLevel;
-      return matchesEducationLevel;
-    });
-  }, [subjects, selectedEducationLevel]);
 
   const handleSubjectSelect = (subject: Subject) => {
     const tutorSubject: TutorSubject = {
       _id: subject._id,
       name: subject.name,
-      category: subject.category,
+      bestTopics: [],
       rates: {
         individual: 0,
         group: 0,
@@ -90,174 +71,81 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
     onSubjectsChange([tutorSubject]); // Only allow one subject
   };
 
-  const handleTeachingModeToggle = (mode: 'online' | 'individual' | 'group') => {
-    if (!selectedSubjects[0]) return;
-
-    // Deep clone the subject to avoid mutating nested objects
-    const updatedSubject = JSON.parse(JSON.stringify(selectedSubjects[0]));
-    const currentRate = updatedSubject.rates[mode];
-
-    // Toggle between 0 and a small positive number to control the checkbox state
-    // When toggled on, we use 0.01 which is effectively 0 but allows the checkbox to be checked
-    // This will be displayed as empty in the UI but keeps the checkbox checked
-    if (!currentRate || currentRate === 0) {
-      updatedSubject.rates[mode] = 0.01; // Tiny value to keep checkbox checked
-      console.log(`Enabling ${mode} teaching mode`);
-    } else {
-      // If rate exists, disable the mode and set rate to 0
-      updatedSubject.rates[mode] = 0;
-      console.log(`Disabling ${mode} teaching mode`);
-    }
-
-    onSubjectsChange([updatedSubject]);
-  };
-
-  const handleRateChange = (type: 'individual' | 'group' | 'online', value: string) => {
-    if (!selectedSubjects[0]) return;
-
-    // If value is empty string, use our special "enabled but empty" value of 0.01
-    // Otherwise use the parsed value or 0
-    const newRate = value === '' ? 0.01 : parseFloat(value) || 0;
-    
-    // Deep clone the subject to avoid mutating nested objects
-    const updatedSubject = JSON.parse(JSON.stringify(selectedSubjects[0]));
-    updatedSubject.rates[type] = newRate;
-    
-    // Automatically untick the teaching mode if rate is explicitly set to 0
-    if (newRate === 0) {
-      // The UI will update based on the rate being 0
-      console.log(`Auto-disabling ${type} teaching mode due to zero rate`);
-    }
-    
-    onSubjectsChange([updatedSubject]);
-  };
-
-  const handleAddTimeSlot = (day: string) => {
-    if (!selectedSubjects[0]) return;
-    
-    if (onAddTimeSlot) {
-      // Use parent component's function if provided
-      onAddTimeSlot(selectedSubjects[0]._id, day);
-      // Set the newly added slot as the editing slot
-      const dayAvailability = selectedSubjects[0].availability.find(a => a.day === day);
-      const slotIndex = dayAvailability ? dayAvailability.slots.length : 0;
-      setEditingSlot({ day, index: slotIndex });
-      setTempSlotValues({ start: '09:00', end: '10:00' });
-    } else {
-      const updatedSubject = { ...selectedSubjects[0] };
-      const dayAvailability = updatedSubject.availability.find(a => a.day === day);
-
-      if (dayAvailability) {
-        dayAvailability.slots.push({ start: '09:00', end: '10:00' });
-      } else {
-        updatedSubject.availability.push({
-          day,
-          slots: [{ start: '09:00', end: '10:00' }]
-        });
-      }
-
-      // Set the newly added slot as the editing slot
-      const slotIndex = dayAvailability ? dayAvailability.slots.length - 1 : 0;
-      setEditingSlot({ day, index: slotIndex });
-      setTempSlotValues({ start: '09:00', end: '10:00' });
-      
-      onSubjectsChange([updatedSubject]);
-    }
-  };
-
-  const handleTimeSlotChange = (day: string, slotIndex: number, field: 'start' | 'end', value: string) => {
-    if (!tempSlotValues) return;
-    
-    setTempSlotValues({
-      ...tempSlotValues,
-      [field]: value
-    });
-  };
-
-  const handleRemoveTimeSlot = (day: string, slotIndex: number) => {
-    if (!selectedSubjects[0]) return;
-
-    if (onRemoveTimeSlot) {
-      // Use parent component's function if provided
-      onRemoveTimeSlot(selectedSubjects[0]._id, day, slotIndex);
-      
-      // Reset editing state if the removed slot was being edited
-      if (editingSlot && editingSlot.day === day && editingSlot.index === slotIndex) {
-        setEditingSlot(null);
-        setTempSlotValues(null);
-      }
-    } else {
-      const updatedSubject = { ...selectedSubjects[0] };
-      const dayAvailability = updatedSubject.availability.find(a => a.day === day);
-
-      if (dayAvailability) {
-        dayAvailability.slots.splice(slotIndex, 1);
-        if (dayAvailability.slots.length === 0) {
-          updatedSubject.availability = updatedSubject.availability.filter(a => a.day !== day);
-        }
-        onSubjectsChange([updatedSubject]);
+  const handleBestTopicToggle = (subjectId: string, topic: string) => {
+    const updatedSubjects = selectedSubjects.map(subject => {
+      if (subject._id === subjectId) {
+        const currentTopics = subject.bestTopics || [];
+        const newTopics = currentTopics.includes(topic)
+          ? currentTopics.filter(t => t !== topic)
+          : currentTopics.length < 5
+            ? [...currentTopics, topic]
+            : currentTopics;
         
-        // Reset editing state if the removed slot was being edited
-        if (editingSlot && editingSlot.day === day && editingSlot.index === slotIndex) {
-          setEditingSlot(null);
-          setTempSlotValues(null);
-        }
+        return {
+          ...subject,
+          bestTopics: newTopics
+        };
       }
+      return subject;
+    });
+    onSubjectsChange(updatedSubjects);
+  };
+
+  const handleRateChange = (subjectId: string, mode: keyof TutorSubject['rates'], value: number) => {
+    const updatedSubjects = selectedSubjects.map(subject => {
+      if (subject._id === subjectId) {
+        return {
+          ...subject,
+          rates: {
+            ...subject.rates,
+            [mode]: value
+          }
+        };
+      }
+      return subject;
+    });
+    onSubjectsChange(updatedSubjects);
+  };
+
+  const handleRemoveSubject = (subjectId: string) => {
+    const updatedSubjects = selectedSubjects.filter(subject => subject._id !== subjectId);
+    onSubjectsChange(updatedSubjects);
+  };
+
+  const handleAddTimeSlot = (subjectId: string, day: string) => {
+    const start = '09:00';
+    const end = '10:00';
+    onAddTimeSlot(subjectId, day, start, end);
+  };
+
+  const handleEditSlot = (day: string, index: number, start: string, end: string) => {
+    setEditingSlot({ day, index });
+    setTempSlotValues({ start, end });
+  };
+
+  const handleSaveSlot = (subjectId: string) => {
+    if (editingSlot && tempSlotValues) {
+      onUpdateTimeSlot(subjectId, editingSlot.day, editingSlot.index, tempSlotValues.start, tempSlotValues.end);
+      setEditingSlot(null);
+      setTempSlotValues(null);
     }
   };
-  
-  const startEditingSlot = (day: string, slotIndex: number, slot: { start: string; end: string }) => {
-    setEditingSlot({ day, index: slotIndex });
-    setTempSlotValues({ ...slot });
-  };
-  
-  const saveTimeSlot = () => {
-    if (!selectedSubjects[0] || !editingSlot || !tempSlotValues) return;
-    
-    if (onUpdateTimeSlot) {
-      // Use parent component's function if provided
-      onUpdateTimeSlot(
-        selectedSubjects[0]._id,
-        editingSlot.day,
-        editingSlot.index,
-        'start',
-        tempSlotValues.start
-      );
-      
-      onUpdateTimeSlot(
-        selectedSubjects[0]._id,
-        editingSlot.day,
-        editingSlot.index,
-        'end',
-        tempSlotValues.end
-      );
-    } else {
-      const updatedSubject = { ...selectedSubjects[0] };
-      const dayAvailability = updatedSubject.availability.find(a => a.day === editingSlot.day);
-      
-      if (dayAvailability) {
-        dayAvailability.slots[editingSlot.index] = { ...tempSlotValues };
-        onSubjectsChange([updatedSubject]);
-      }
-    }
-    
-    // Reset editing state
-    setEditingSlot(null);
-    setTempSlotValues(null);
-  };
-  
-  const cancelEditTimeSlot = () => {
+
+  const handleCancelEdit = () => {
     setEditingSlot(null);
     setTempSlotValues(null);
   };
 
   if (loading) {
     return (
-      <div className="animate-pulse">
-        <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-        <div className="space-y-3">
-          <div className="h-10 bg-gray-200 rounded"></div>
-          <div className="h-10 bg-gray-200 rounded"></div>
+      <div className="p-4">
+        <div className="animate-pulse space-y-3">
+          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+          <div className="flex flex-wrap gap-2">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="h-8 bg-gray-200 rounded-full w-20"></div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -265,239 +153,212 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
 
   if (error) {
     return (
-      <div className="text-red-600">
-        <p>Error loading subjects: {error}</p>
+      <div className="p-4 text-red-500 text-sm">
+        {error}
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {/* Education Level Filter */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Education Level
-        </label>
-        <select
-          value={selectedEducationLevel}
-          onChange={(e) => setSelectedEducationLevel(e.target.value)}
-          className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-        >
-          <option value="">All Levels</option>
-          {educationLevels.map((level) => (
-            <option key={level} value={level}>
-              {level.replace('_', ' ')}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Subject Dropdown */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Select Subject
-        </label>
-        <select
-          value={selectedSubjects[0]?._id || ''}
-          onChange={(e) => {
-            const selectedSubject = filteredSubjects.find(subject => subject._id === e.target.value);
-            if (selectedSubject) {
-              handleSubjectSelect(selectedSubject);
-            }
-          }}
-          className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-        >
-          <option value="">Select a subject</option>
-          {filteredSubjects.map((subject) => (
-            <option key={subject._id} value={subject._id}>
-              {subject.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Selected Subject Display with Rates and Availability */}
-      {selectedSubjects[0] && (
-        <div className="mt-4 space-y-6">
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Selected Subject</h3>
-            <div className="flex items-center gap-1 px-3 py-2 bg-primary-100 text-primary-800 rounded-md text-sm">
-              <span>{selectedSubjects[0].name}</span>
-            </div>
+    <div className="space-y-6">
+      {/* Subject Selection */}
+      {selectedSubjects.length === 0 && (
+        <div>
+          <h3 className="text-lg font-medium text-gray-900 mb-3">Select Your Subject</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {subjects.filter(subject => subject.isActive).map((subject) => (
+              <button
+                key={subject._id}
+                onClick={() => handleSubjectSelect(subject)}
+                className="p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors text-left"
+              >
+                <h4 className="font-medium text-gray-900">{subject.name}</h4>
+                {subject.description && (
+                  <p className="text-sm text-gray-600 mt-1">{subject.description}</p>
+                )}
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {subject.topics.slice(0, 3).map((topic, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                    >
+                      {topic}
+                    </span>
+                  ))}
+                  {subject.topics.length > 3 && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                      +{subject.topics.length - 3} more
+                    </span>
+                  )}
+                </div>
+              </button>
+            ))}
           </div>
+        </div>
+      )}
 
-          {/* Teaching Modes & Rates */}
-          <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-            <h3 className="text-sm font-medium text-gray-700 mb-4">Teaching Modes & Rates</h3>
-            <div className="space-y-4">
-              {TEACHING_MODES.map((mode) => {
-                const Icon = mode.icon;
-                const isEnabled = selectedSubjects[0].rates[mode.id] > 0;
-                
-                return (
-                  <div 
-                    key={mode.id}
-                    className={`p-3 rounded-lg border transition-all duration-200 ${
-                      isEnabled 
-                        ? 'border-primary-200 bg-primary-50' 
-                        : 'border-gray-100 bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 mb-2">
-                      <button
-                        type="button"
-                        onClick={() => handleTeachingModeToggle(mode.id)}
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${
-                          isEnabled 
-                            ? 'border-primary-500 bg-primary-500' 
-                            : 'border-gray-300 hover:border-primary-300'
-                        }`}
-                      >
-                        {isEnabled && (
-                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </button>
-                      <div className="flex items-center gap-2">
-                        <Icon className={`w-4 h-4 ${isEnabled ? 'text-primary-600' : 'text-gray-400'}`} />
-                        <span className={`font-medium ${isEnabled ? 'text-gray-900' : 'text-gray-500'}`}>
-                          {mode.label}
-                        </span>
-                      </div>
-                    </div>
-                    <div className={`relative ${!isEnabled && 'opacity-50'}`}>
-                      <input
-                        type="number"
-                        min="0"
-                        value={selectedSubjects[0].rates[mode.id] < 0.1 ? '' : selectedSubjects[0].rates[mode.id]}
-                        onChange={(e) => handleRateChange(mode.id, e.target.value)}
-                        disabled={!isEnabled}
-                        onBlur={(e) => {
-                          // When input loses focus, ensure zero values are properly handled
-                          if (!e.target.value || parseFloat(e.target.value) === 0) {
-                            handleRateChange(mode.id, '0');
-                          }
-                        }}
-                        className={`w-full px-3 py-2 rounded-lg border ${
-                          isEnabled 
-                            ? 'border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500' 
-                            : 'border-gray-100 bg-gray-50'
-                        } transition-all duration-200`}
-                        placeholder="Rate in LKR"
-                      />
-                    </div>
+      {/* Selected Subject Configuration */}
+      {selectedSubjects.map((tutorSubject) => {
+        const subject = subjects.find(s => s._id === tutorSubject._id);
+        if (!subject) return null;
+
+        return (
+          <div key={tutorSubject._id} className="border border-gray-200 rounded-lg p-4">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">{subject.name}</h3>
+                <p className="text-sm text-gray-600">Configure your expertise and availability</p>
+              </div>
+              <button
+                onClick={() => handleRemoveSubject(tutorSubject._id)}
+                className="text-red-600 hover:text-red-800 p-1"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Best Topics Selection */}
+            <div className="mb-6">
+              <h4 className="text-sm font-medium text-gray-900 mb-2">
+                Select Your Best Topics (Max 5)
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {subject.topics.map((topic) => {
+                  const isSelected = tutorSubject.bestTopics.includes(topic);
+                  const canSelect = isSelected || tutorSubject.bestTopics.length < 5;
+                  
+                  return (
+                    <button
+                      key={topic}
+                      onClick={() => handleBestTopicToggle(tutorSubject._id, topic)}
+                      disabled={!canSelect}
+                      className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                        isSelected
+                          ? 'bg-primary-100 text-primary-700 border-2 border-primary-300'
+                          : canSelect
+                            ? 'bg-gray-100 text-gray-700 border-2 border-transparent hover:bg-gray-200 hover:border-gray-300'
+                            : 'bg-gray-50 text-gray-400 border-2 border-transparent cursor-not-allowed'
+                      }`}
+                    >
+                      {topic}
+                      {isSelected && <Check className="h-3 w-3" />}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Selected: {tutorSubject.bestTopics.length}/5 topics
+              </p>
+            </div>
+
+            {/* Rates Configuration */}
+            <div className="mb-6">
+              <h4 className="text-sm font-medium text-gray-900 mb-3">Set Your Rates (per hour)</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {TEACHING_MODES.map((mode) => (
+                  <div key={mode.id} className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                      <mode.icon className="h-4 w-4" />
+                      {mode.label}
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={tutorSubject.rates[mode.id]}
+                      onChange={(e) => handleRateChange(tutorSubject._id, mode.id, Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      placeholder="0"
+                    />
                   </div>
-                );
-              })}
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Availability Section */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Availability</h3>
-            <div className="space-y-3">
-              {DAYS_OF_WEEK.map((day) => {
-                const dayAvailability = selectedSubjects[0].availability.find(a => a.day === day);
-                return (
-                  <div key={day} className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-                    <div className="flex justify-between items-center mb-3">
-                      <h5 className="font-medium text-gray-700">{day}</h5>
-                      <button
-                        type="button"
-                        onClick={() => handleAddTimeSlot(day)}
-                        className="inline-flex items-center px-3 py-1.5 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-all duration-200"
-                      >
-                        <Plus className="w-4 h-4 mr-1" />
-                        Add Time Slot
-                      </button>
-                    </div>
-                    {dayAvailability?.slots.map((slot, slotIndex) => {
-                      const isEditing = editingSlot && 
-                                       editingSlot.day === day && 
-                                       editingSlot.index === slotIndex;
+            {/* Availability Configuration */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 mb-3">Set Your Availability</h4>
+              <div className="space-y-3">
+                {DAYS_OF_WEEK.map((day) => {
+                  const daySlots = tutorSubject.availability.find(a => a.day === day)?.slots || [];
+                  
+                  return (
+                    <div key={day} className="border border-gray-200 rounded-lg p-3">
+                      <div className="flex justify-between items-center mb-2">
+                        <h5 className="text-sm font-medium text-gray-700">{day}</h5>
+                        <button
+                          onClick={() => handleAddTimeSlot(tutorSubject._id, day)}
+                          className="text-primary-600 hover:text-primary-800 text-sm flex items-center gap-1"
+                        >
+                          <Plus className="h-3 w-3" />
+                          Add Slot
+                        </button>
+                      </div>
                       
-                      return (
-                        <div key={slotIndex} className="border border-gray-100 rounded-lg p-3 mb-2">
-                          <div className="flex items-center space-x-3">
-                            {isEditing ? (
-                              <>
-                                <input
-                                  type="time"
-                                  value={tempSlotValues?.start || slot.start}
-                                  onChange={(e) => handleTimeSlotChange(day, slotIndex, 'start', e.target.value)}
-                                  className="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                                />
-                                <span className="text-gray-500">to</span>
-                                <input
-                                  type="time"
-                                  value={tempSlotValues?.end || slot.end}
-                                  onChange={(e) => handleTimeSlotChange(day, slotIndex, 'end', e.target.value)}
-                                  className="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                                />
-                              </>
-                            ) : (
-                              <>
-                                <div className="px-4 py-2 bg-gray-50 rounded-xl text-gray-700">{slot.start}</div>
-                                <span className="text-gray-500">to</span>
-                                <div className="px-4 py-2 bg-gray-50 rounded-xl text-gray-700">{slot.end}</div>
-                              </>
-                            )}
-                            
-                            <div className="flex items-center ml-auto">
-                              {isEditing ? (
+                      {daySlots.length === 0 ? (
+                        <p className="text-xs text-gray-500">No time slots added</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {daySlots.map((slot, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                              {editingSlot?.day === day && editingSlot?.index === index ? (
                                 <>
+                                  <input
+                                    type="time"
+                                    value={tempSlotValues?.start || ''}
+                                    onChange={(e) => setTempSlotValues(prev => ({ ...prev!, start: e.target.value }))}
+                                    className="px-2 py-1 border border-gray-300 rounded text-sm"
+                                  />
+                                  <span className="text-gray-500">to</span>
+                                  <input
+                                    type="time"
+                                    value={tempSlotValues?.end || ''}
+                                    onChange={(e) => setTempSlotValues(prev => ({ ...prev!, end: e.target.value }))}
+                                    className="px-2 py-1 border border-gray-300 rounded text-sm"
+                                  />
                                   <button
-                                    type="button"
-                                    onClick={saveTimeSlot}
-                                    className="p-1.5 text-green-600 hover:text-green-700 transition-colors duration-200 mr-1"
-                                    title="Save"
+                                    onClick={() => handleSaveSlot(tutorSubject._id)}
+                                    className="text-green-600 hover:text-green-800"
                                   >
-                                    <Save className="w-4 h-4" />
+                                    <Save className="h-3 w-3" />
                                   </button>
                                   <button
-                                    type="button"
-                                    onClick={cancelEditTimeSlot}
-                                    className="p-1.5 text-gray-600 hover:text-gray-700 transition-colors duration-200"
-                                    title="Cancel"
+                                    onClick={handleCancelEdit}
+                                    className="text-gray-600 hover:text-gray-800"
                                   >
-                                    <X className="w-4 h-4" />
+                                    <X className="h-3 w-3" />
                                   </button>
                                 </>
                               ) : (
                                 <>
+                                  <span className="text-sm text-gray-700">
+                                    {slot.start} - {slot.end}
+                                  </span>
                                   <button
-                                    type="button"
-                                    onClick={() => startEditingSlot(day, slotIndex, slot)}
-                                    className="p-1.5 text-blue-600 hover:text-blue-700 transition-colors duration-200 mr-1"
-                                    title="Edit"
+                                    onClick={() => handleEditSlot(day, index, slot.start, slot.end)}
+                                    className="text-blue-600 hover:text-blue-800"
                                   >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                    </svg>
+                                    <Edit2 className="h-3 w-3" />
                                   </button>
                                   <button
-                                    type="button"
-                                    onClick={() => handleRemoveTimeSlot(day, slotIndex)}
-                                    className="p-1.5 text-red-600 hover:text-red-700 transition-colors duration-200"
-                                    title="Delete"
+                                    onClick={() => onRemoveTimeSlot(tutorSubject._id, day, index)}
+                                    className="text-red-600 hover:text-red-800"
                                   >
-                                    <Trash2 className="w-4 h-4" />
+                                    <Trash2 className="h-3 w-3" />
                                   </button>
                                 </>
                               )}
                             </div>
-                          </div>
+                          ))}
                         </div>
-                      );
-                    })}
-                  </div>
-                );
-              })}
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 };

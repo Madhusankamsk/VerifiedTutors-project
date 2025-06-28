@@ -18,7 +18,6 @@ const AdminLayout: React.FC = () => {
     { path: '/admin/dashboard', name: 'Dashboard', icon: <LayoutDashboard className="h-6 w-6" /> },
     { path: '/admin/tutors', name: 'Manage Tutors', icon: <Users className="h-6 w-6" /> },
     { path: '/admin/subjects', name: 'Manage Subjects', icon: <BookOpen className="h-6 w-6" /> },
-    { path: '/admin/locations', name: 'Manage Locations', icon: <MapPin className="h-6 w-6" /> },
     { path: '/admin/bookings', name: 'Manage Bookings', icon: <Calendar className="h-6 w-6" /> },
     { 
       path: '#', 

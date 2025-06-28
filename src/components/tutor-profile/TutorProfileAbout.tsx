@@ -46,14 +46,13 @@ const TutorProfileAbout: React.FC<TutorProfileAboutProps> = ({ profile }) => {
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <h2 className="text-xl font-semibold mb-4 text-gray-900">Teaching Locations</h2>
         <div className="flex flex-wrap gap-2">
-          {profile.locations.map((location, index) => (
-            <span
-              key={index}
-              className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm border border-gray-200"
-            >
-              {location.name}
+          {profile.availableLocations ? (
+            <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm border border-gray-200">
+              {profile.availableLocations}
             </span>
-          ))}
+          ) : (
+            <span className="text-gray-500 text-sm">No locations specified</span>
+          )}
         </div>
       </div>
 

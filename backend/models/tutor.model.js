@@ -89,6 +89,16 @@ const tutorSchema = new mongoose.Schema({
       ref: 'Subject',
       required: true,
     },
+    bestTopics: [{
+      type: String,
+      required: true,
+      validate: {
+        validator: function(topics) {
+          return topics.length <= 5;
+        },
+        message: 'A tutor can have at most 5 best topics per subject'
+      }
+    }],
     rates: {
       individual: {
         type: Number,
@@ -124,11 +134,11 @@ const tutorSchema = new mongoose.Schema({
       }],
     }],
   }],
-  locations: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Location',
-    required: true,
-  }],
+  availableLocations: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   documents: [{
     url: {
       type: String,

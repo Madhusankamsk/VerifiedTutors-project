@@ -91,18 +91,14 @@ export const validateTutorProfile = (req, res, next) => {
             'string.empty': 'Subject name is required',
             'any.required': 'Subject name is required'
           }),
-          category: Joi.string().required().messages({
-            'string.empty': 'Subject category is required',
-            'any.required': 'Subject category is required'
-          }),
-          educationLevel: Joi.string().required().messages({
-            'string.empty': 'Education level is required',
-            'any.required': 'Education level is required'
-          }),
           topics: Joi.array().items(Joi.string()).default([]).messages({
             'array.base': 'Topics must be an array of strings'
           })
         }).required(),
+        bestTopics: Joi.array().items(Joi.string()).max(5).required().messages({
+          'array.max': 'A tutor can have at most 5 best topics per subject',
+          'any.required': 'Best topics are required'
+        }),
         hourlyRate: Joi.number().min(0).required().messages({
           'number.min': 'Hourly rate must be a positive number',
           'any.required': 'Hourly rate is required'
@@ -145,20 +141,9 @@ export const validateTutorProfile = (req, res, next) => {
       'array.min': 'At least one subject is required',
       'any.required': 'Subjects are required'
     }),
-    locations: Joi.array().items(
-      Joi.object({
-        _id: Joi.string().required().messages({
-          'string.empty': 'Location ID is required',
-          'any.required': 'Location ID is required'
-        }),
-        name: Joi.string().required().messages({
-          'string.empty': 'Location name is required',
-          'any.required': 'Location name is required'
-        })
-      })
-    ).min(1).required().messages({
-      'array.min': 'At least one location is required',
-      'any.required': 'Locations are required'
+    availableLocations: Joi.string().required().trim().messages({
+      'string.empty': 'Available locations are required',
+      'any.required': 'Available locations are required'
     }),
     documents: Joi.array().items(
       Joi.object({
@@ -377,18 +362,14 @@ export const validateSubjects = (req, res, next) => {
             'string.empty': 'Subject name is required',
             'any.required': 'Subject name is required'
           }),
-          category: Joi.string().required().messages({
-            'string.empty': 'Subject category is required',
-            'any.required': 'Subject category is required'
-          }),
-          educationLevel: Joi.string().required().messages({
-            'string.empty': 'Education level is required',
-            'any.required': 'Education level is required'
-          }),
           topics: Joi.array().items(Joi.string()).default([]).messages({
             'array.base': 'Topics must be an array of strings'
           })
         }).required(),
+        bestTopics: Joi.array().items(Joi.string()).max(5).required().messages({
+          'array.max': 'A tutor can have at most 5 best topics per subject',
+          'any.required': 'Best topics are required'
+        }),
         hourlyRate: Joi.number().min(0).required().messages({
           'number.min': 'Hourly rate must be a positive number',
           'any.required': 'Hourly rate is required'

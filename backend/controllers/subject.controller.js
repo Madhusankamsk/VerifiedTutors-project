@@ -1,21 +1,12 @@
 import Subject from '../models/subject.model.js';
-import { SUBJECT_CATEGORIES } from '../config/constants.js';
 
 // @desc    Get all subjects
 // @route   GET /api/subjects
 // @access  Public
 export const getSubjects = async (req, res) => {
   try {
-    const { category, educationLevel, search } = req.query;
-    let query = {};
-
-    if (category) {
-      query.category = category;
-    }
-
-    if (educationLevel) {
-      query.educationLevel = educationLevel;
-    }
+    const { search } = req.query;
+    let query = { isActive: true };
 
     if (search) {
       query.name = { $regex: search, $options: 'i' };
@@ -59,39 +50,18 @@ export const getSubject = async (req, res) => {
 // @access  Private/Admin
 export const createSubject = async (req, res) => {
   try {
-    const { name, category, educationLevel, description, topics } = req.body;
+    const { name, description, topics } = req.body;
 
-    // Validate education level
-    if (!educationLevel || !['PRIMARY', 'JUNIOR_SECONDARY', 'SENIOR_SECONDARY', 'ADVANCED_LEVEL', 'HIGHER_EDUCATION'].includes(educationLevel)) {
-      return res.status(400).json({ message: 'Invalid education level' });
-    }
-
-    // Validate category based on education level
-    let validCategories = [];
-    if (educationLevel === 'ADVANCED_LEVEL') {
-      validCategories = [
-        ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.ARTS,
-        ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.COMMERCE,
-        ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.SCIENCE
-      ];
-    } else if (educationLevel === 'HIGHER_EDUCATION') {
-      validCategories = ['Computer Science', 'Engineering', 'Business', 'Medicine', 'Law', 'Arts & Humanities'];
-    } else {
-      validCategories = SUBJECT_CATEGORIES[educationLevel];
-    }
-
-    if (!validCategories.includes(category)) {
+    if (!name || !topics || !Array.isArray(topics) || topics.length === 0) {
       return res.status(400).json({ 
-        message: `Invalid category for ${educationLevel}. Valid categories are: ${validCategories.join(', ')}` 
+        message: 'Subject name and at least one topic are required' 
       });
     }
 
     const subject = await Subject.create({
       name,
-      category,
-      educationLevel,
-      description,
-      topics: topics || []
+      description: description || '',
+      topics
     });
 
     res.status(201).json(subject);
@@ -105,64 +75,26 @@ export const createSubject = async (req, res) => {
 // @access  Private/Admin
 export const updateSubject = async (req, res) => {
   try {
-    const { category, educationLevel, topics, isActive } = req.body;
+    const { name, description, topics, isActive } = req.body;
 
-    // If updating category or education level, validate them
-    if (category || educationLevel) {
-      const currentSubject = await Subject.findById(req.params.id);
-      if (!currentSubject) {
-        return res.status(404).json({ message: 'Subject not found' });
-      }
-
-      const levelToValidate = educationLevel || currentSubject.educationLevel;
-      const categoryToValidate = category || currentSubject.category;
-
-      // Validate education level
-      if (levelToValidate && !['PRIMARY', 'JUNIOR_SECONDARY', 'SENIOR_SECONDARY', 'ADVANCED_LEVEL', 'HIGHER_EDUCATION'].includes(levelToValidate)) {
-        return res.status(400).json({ message: 'Invalid education level' });
-      }
-
-      // Validate category based on education level
-      let validCategories = [];
-      if (levelToValidate === 'ADVANCED_LEVEL') {
-        validCategories = [
-          ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.ARTS,
-          ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.COMMERCE,
-          ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.SCIENCE
-        ];
-      } else if (levelToValidate === 'HIGHER_EDUCATION') {
-        validCategories = ['Computer Science', 'Engineering', 'Business', 'Medicine', 'Law', 'Arts & Humanities'];
-      } else {
-        validCategories = SUBJECT_CATEGORIES[levelToValidate];
-      }
-
-      if (!validCategories.includes(categoryToValidate)) {
-        return res.status(400).json({ 
-          message: `Invalid category for ${levelToValidate}. Valid categories are: ${validCategories.join(', ')}` 
-        });
-      }
-    }
-
-    // If only updating isActive status, preserve existing topics
-    if (Object.keys(req.body).length === 1 && 'isActive' in req.body) {
-      const currentSubject = await Subject.findById(req.params.id);
-      if (!currentSubject) {
-        return res.status(404).json({ message: 'Subject not found' });
-      }
-      req.body.topics = currentSubject.topics;
-    }
-
-    const subject = await Subject.findByIdAndUpdate(
-      req.params.id,
-      { ...req.body, topics: topics || req.body.topics || [] },
-      { new: true, runValidators: true }
-    );
-
+    const subject = await Subject.findById(req.params.id);
     if (!subject) {
       return res.status(404).json({ message: 'Subject not found' });
     }
 
-    res.json(subject);
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (topics !== undefined) updateData.topics = topics;
+    if (isActive !== undefined) updateData.isActive = isActive;
+
+    const updatedSubject = await Subject.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    res.json(updatedSubject);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -179,8 +111,29 @@ export const deleteSubject = async (req, res) => {
       return res.status(404).json({ message: 'Subject not found' });
     }
 
-    await subject.deleteOne();
-    res.json({ message: 'Subject removed' });
+    await Subject.findByIdAndDelete(req.params.id);
+
+    res.json({ message: 'Subject deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Toggle subject status
+// @route   PATCH /api/subjects/:id/toggle
+// @access  Private/Admin
+export const toggleSubjectStatus = async (req, res) => {
+  try {
+    const subject = await Subject.findById(req.params.id);
+
+    if (!subject) {
+      return res.status(404).json({ message: 'Subject not found' });
+    }
+
+    subject.isActive = !subject.isActive;
+    await subject.save();
+
+    res.json(subject);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTutor, TutorProfile } from '../contexts/TutorContext';
 import { useSubjects } from '../contexts/SubjectContext';
-import { useLocations } from '../contexts/LocationContext';
 import TutorFilters, { FilterState } from '../components/filter/TutorFilters';
 import { useScrollToTop } from '../hooks/useScrollToTop';
 import {
@@ -15,12 +14,12 @@ import {
 } from '../components/tutor-listing';
 
 interface Filters {
-  subject: string;
+  selectedSubject: string | null;
+  selectedTopic: string | null;
   rating: number;
   price: { min: number; max: number };
   location: string;
-  educationLevel: string;
-  medium: string;
+  teachingMode: string;
   page: number;
   limit: number;
   sortBy: string;
@@ -48,15 +47,14 @@ interface TransformedTutor {
 
 const TutorListingPage: React.FC = () => {
   const { searchTutors } = useTutor();
-  const { locations } = useLocations();
   const { subjects } = useSubjects();
   const [filters, setFilters] = useState<Filters>({
-    subject: '',
+    selectedSubject: null,
+    selectedTopic: null,
     rating: 0,
     price: { min: 0, max: 10000 },
     location: '',
-    educationLevel: '',
-    medium: '',
+    teachingMode: '',
     page: 1,
     limit: 20,
     sortBy: 'rating',
@@ -76,8 +74,8 @@ const TutorListingPage: React.FC = () => {
   const observerTarget = useRef<HTMLDivElement>(null);
 
   // Scroll to top when filters change (but not for load more)
-  useScrollToTop([filters.subject, filters.rating, filters.price, filters.location, 
-                  filters.educationLevel, filters.medium, filters.sortBy, filters.sortOrder, 
+  useScrollToTop([filters.selectedSubject, filters.selectedTopic, filters.rating, filters.price, filters.location, 
+                  filters.teachingMode, filters.sortBy, filters.sortOrder, 
                   filters.availability, filters.experience, filters.search]);
 
   const fetchTutors = useCallback(async (isLoadMore = false) => {
@@ -93,9 +91,29 @@ const TutorListingPage: React.FC = () => {
       console.log('Current filters:', filters);
       console.log('Search parameter:', filters.search);
       
-      const response = await searchTutors({
+      // Build search parameters for the new filtering system
+      const searchParams: any = {
         ...filters
-      });
+      };
+
+      // Convert subject and topic filters to the format expected by the API
+      if (filters.selectedSubject) {
+        const subject = subjects.find(s => s._id === filters.selectedSubject);
+        if (subject) {
+          searchParams.subject = subject.name;
+        }
+      }
+
+      if (filters.selectedTopic) {
+        searchParams.topic = filters.selectedTopic;
+      }
+
+      // Convert teaching mode to the format expected by the API
+      if (filters.teachingMode) {
+        searchParams.teachingMode = filters.teachingMode;
+      }
+      
+      const response = await searchTutors(searchParams);
       
       console.log(`Received ${response.tutors.length} tutors from API`);
       
@@ -117,13 +135,13 @@ const TutorListingPage: React.FC = () => {
         setLoading(false);
       }
     }
-  }, [filters, searchTutors]);
+  }, [filters, searchTutors, subjects]);
 
   useEffect(() => {
     console.log('Non-search filters changed, fetching tutors with filters:', filters);
     fetchTutors(false);
-  }, [filters.subject, filters.rating, filters.price, filters.location, 
-      filters.educationLevel, filters.medium, filters.sortBy, filters.sortOrder, 
+  }, [filters.selectedSubject, filters.selectedTopic, filters.rating, filters.price, filters.location, 
+      filters.teachingMode, filters.sortBy, filters.sortOrder, 
       filters.availability, filters.experience, filters.search]);
 
   useEffect(() => {
@@ -153,12 +171,10 @@ const TutorListingPage: React.FC = () => {
     console.log("Current search query:", filters.search);
     
     // Check if this is a clear all operation (all filters are reset to initial state)
-    const isClearAll = !newFilters.educationLevel && 
-                      newFilters.subjects.length === 0 && 
+    const isClearAll = !newFilters.selectedSubject && 
+                      !newFilters.selectedTopic && 
                       !newFilters.teachingMode && 
-                      !newFilters.location.city && 
-                      !newFilters.location.town && 
-                      !newFilters.location.hometown && 
+                      !newFilters.location && 
                       newFilters.extraFilters.minRating === 0 && 
                       newFilters.extraFilters.priceRange[0] === 0 && 
                       newFilters.extraFilters.priceRange[1] === 1000 && 
@@ -167,12 +183,12 @@ const TutorListingPage: React.FC = () => {
     if (isClearAll) {
       // Reset everything including search
       const resetFilters = {
-        subject: '',
+        selectedSubject: null,
+        selectedTopic: null,
         rating: 0,
         price: { min: 0, max: 1000 },
         location: '',
-        educationLevel: '',
-        medium: '',
+        teachingMode: '',
         page: 1,
         limit: 20,
         sortBy: 'rating',
@@ -189,19 +205,15 @@ const TutorListingPage: React.FC = () => {
     } else {
       // Normal filter update - preserve search
       const updatedFilters = {
-        subject: newFilters.subjects[0] || '',
+        selectedSubject: newFilters.selectedSubject,
+        selectedTopic: newFilters.selectedTopic,
         rating: newFilters.extraFilters.minRating,
         price: {
           min: newFilters.extraFilters.priceRange[0],
           max: newFilters.extraFilters.priceRange[1]
         },
-        location: JSON.stringify({
-          city: newFilters.location.city,
-          town: newFilters.location.town,
-          hometown: newFilters.location.hometown
-        }),
-        educationLevel: newFilters.educationLevel || '',
-        medium: newFilters.teachingMode || '',
+        location: newFilters.location,
+        teachingMode: newFilters.teachingMode || '',
         page: 1,
         limit: 20,
         sortBy: filters.sortBy || 'rating',
@@ -215,9 +227,9 @@ const TutorListingPage: React.FC = () => {
       setFilters(updatedFilters);
 
       const newActiveFilters: string[] = [];
-      if (newFilters.educationLevel) newActiveFilters.push('educationLevel');
-      if (newFilters.subjects.length > 0) newActiveFilters.push('subject');
-      if (newFilters.location.city || newFilters.location.town || newFilters.location.hometown) {
+      if (newFilters.selectedSubject) newActiveFilters.push('subject');
+      if (newFilters.selectedTopic) newActiveFilters.push('topic');
+      if (newFilters.location) {
         newActiveFilters.push('location');
       }
       if (newFilters.extraFilters.femaleOnly) newActiveFilters.push('gender');
@@ -228,12 +240,12 @@ const TutorListingPage: React.FC = () => {
 
   const resetFilters = () => {
     const resetFilters = {
-      subject: '',
+      selectedSubject: null,
+      selectedTopic: null,
       rating: 0,
       price: { min: 0, max: 1000 },
       location: '',
-      educationLevel: '',
-      medium: '',
+      teachingMode: '',
       page: 1,
       limit: 20,
       sortBy: 'rating',
@@ -273,7 +285,7 @@ const TutorListingPage: React.FC = () => {
       name: tutor.user?.name || 'Unknown Tutor',
       profileImage: tutor.user?.profileImage,
       subjects: tutor.subjects?.map(s => s.subject?.name).filter(Boolean) || [],
-      location: tutor.locations?.[0]?.name || 'Not specified',
+      location: tutor.availableLocations || 'Not specified',
       rating: tutor.rating || 0,
       reviewCount: tutor.totalReviews || 0,
       verified: tutor.isVerified || false,

@@ -4,7 +4,6 @@ import Blog from '../models/blog.model.js';
 import Subject from '../models/subject.model.js';
 import Rating from '../models/rating.model.js';
 import Session from '../models/session.model.js';
-import Location from '../models/location.model.js';
 import Booking from '../models/booking.model.js';
 
 // @desc    Get all tutors
@@ -13,8 +12,8 @@ import Booking from '../models/booking.model.js';
 export const getTutors = async (req, res) => {
   try {
     const {
-      educationLevel,
-      subjects,
+      subject,
+      topic,
       teachingMode,
       location,
       minRating,
@@ -32,141 +31,56 @@ export const getTutors = async (req, res) => {
 
     let query = {};
     const sortOptions = {};
-    
-    // Handle search parameter for tutor name, subject, or location
-    if (search && search.trim() !== '') {
-      const searchTerm = search.trim();
-      console.log('Search term:', searchTerm);
-      
-      // Find users whose names match the search term
-      const matchingUsers = await User.find({
-        name: { $regex: new RegExp(searchTerm, 'i') }
-      }).select('_id name');
-      
-      console.log(`Found ${matchingUsers.length} matching users for "${searchTerm}"`);
-      matchingUsers.forEach(user => console.log(`User: ${user.name}, ID: ${user._id}`));
-      
-      // Find subjects that match the search term
-      const matchingSubjects = await Subject.find({
-        name: { $regex: new RegExp(searchTerm, 'i') }
-      }).select('_id name');
-      
-      console.log(`Found ${matchingSubjects.length} matching subjects for "${searchTerm}"`);
-      matchingSubjects.forEach(subject => console.log(`Subject: ${subject.name}, ID: ${subject._id}`));
-      
-      // Find locations that match the search term
-      // Use text search across all location fields
-      const matchingLocations = await Location.find({
-        $or: [
-          { city: { $regex: new RegExp(searchTerm, 'i') } },
-          { town: { $regex: new RegExp(searchTerm, 'i') } },
-          { hometown: { $regex: new RegExp(searchTerm, 'i') } }
-        ]
-      }).select('_id');
-      
-      console.log(`Found ${matchingLocations.length} matching locations for "${searchTerm}"`);
-      matchingLocations.forEach(loc => console.log(`Location ID: ${loc._id}`));
-      
-      // Combine the search conditions
-      const searchConditions = [];
-      
-      if (matchingUsers.length > 0) {
-        searchConditions.push({ user: { $in: matchingUsers.map(user => user._id) } });
-      }
-      
-      if (matchingSubjects.length > 0) {
-        searchConditions.push({ 'subjects.subject': { $in: matchingSubjects.map(subject => subject._id) } });
-      }
-      
-      if (matchingLocations.length > 0) {
-        searchConditions.push({ locations: { $in: matchingLocations.map(location => location._id) } });
-      }
-      
-      // Direct search on tutor bio
-      searchConditions.push({ bio: { $regex: new RegExp(searchTerm, 'i') } });
-      
-      // If we have any matching conditions, add them to the query
-      if (searchConditions.length > 0) {
-        console.log('Adding search conditions to query:', JSON.stringify(searchConditions));
-        query.$or = searchConditions;
-      } else {
-        // If no matches found in our initial search, try a more generic approach with bio text
-        query.$or = [
-          { bio: { $regex: new RegExp(searchTerm, 'i') } }
-        ];
-        
-        // Also search in education and experience fields
-        const educationSearch = {
-          education: {
-            $elemMatch: {
-              $or: [
-                { degree: { $regex: new RegExp(searchTerm, 'i') } },
-                { institution: { $regex: new RegExp(searchTerm, 'i') } }
-              ]
-            }
-          }
-        };
-        
-        const experienceSearch = {
-          experience: {
-            $elemMatch: {
-              $or: [
-                { title: { $regex: new RegExp(searchTerm, 'i') } },
-                { company: { $regex: new RegExp(searchTerm, 'i') } },
-                { description: { $regex: new RegExp(searchTerm, 'i') } }
-              ]
-            }
-          }
-        };
-        
-        query.$or.push(educationSearch, experienceSearch);
-      }
-    } else {
-      // If no search term is provided, ensure we return all tutors
-      // by not adding any search-specific filters to the query
-      console.log('No search term provided, showing all tutors');
-    }
 
-    // Filter by education level
-    if (educationLevel) {
-      // First find subjects with matching education level
-      const subjectsWithLevel = await Subject.find({
-        educationLevel: { $regex: new RegExp(educationLevel, 'i') }
-      }).select('_id');
-
-      if (subjectsWithLevel.length > 0) {
-        query['subjects.subject'] = { 
-          $in: subjectsWithLevel.map(subject => subject._id)
-        };
-      }
-    }
-
-    // Filter by subjects
-    if (subjects) {
+    // Search functionality
+    if (search) {
       try {
-        const subjectArray = Array.isArray(subjects) ? subjects : [subjects];
-        // Find subject IDs by name
-        const subjectDocs = await Subject.find({
-          name: { $in: subjectArray.map(s => new RegExp(s, 'i')) }
+        // First, find users with matching name or email
+        const users = await User.find({
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } }
+          ]
         }).select('_id');
         
-        if (subjectDocs.length > 0) {
-          // If we already have a subject filter, use $and to combine them
-          if (query['subjects.subject']) {
-            query.$and = query.$and || [];
-            query.$and.push({
-              'subjects.subject': { 
-                $in: subjectDocs.map(doc => doc._id)
-              }
-            });
-          } else {
-            query['subjects.subject'] = { 
-              $in: subjectDocs.map(doc => doc._id)
-            };
-          }
+        // Then, filter tutors by these user IDs
+        if (users.length > 0) {
+          const userIds = users.map(user => user._id);
+          query.user = { $in: userIds };
+        } else {
+          // If no matching users, return empty result
+          query.user = { $in: [] };
+        }
+        console.log('Search filter applied:', search);
+      } catch (err) {
+        console.error('Error in search filtering:', err);
+      }
+    }
+
+    // Filter by subject
+    if (subject) {
+      try {
+        // Find subject by name
+        const subjectDoc = await Subject.findOne({
+          name: { $regex: new RegExp(subject, 'i') }
+        }).select('_id');
+        
+        if (subjectDoc) {
+          query['subjects.subject'] = subjectDoc._id;
+          console.log('Subject filter applied:', subject);
         }
       } catch (err) {
-        console.error('Error finding subjects:', err);
+        console.error('Error finding subject:', err);
+      }
+    }
+
+    // Filter by topic (within best topics)
+    if (topic) {
+      try {
+        query['subjects.bestTopics'] = { $regex: new RegExp(topic, 'i') };
+        console.log('Topic filter applied:', topic);
+      } catch (err) {
+        console.error('Error in topic filtering:', err);
       }
     }
 
@@ -188,90 +102,58 @@ export const getTutors = async (req, res) => {
       }
     }
 
-    // Filter by price range
-    if (priceRange) {
-      try {
-        const [min, max] = JSON.parse(priceRange);
-        const priceConditions = [];
-
-        // Only include price conditions for the selected teaching mode
-        if (teachingMode === 'ONLINE') {
-          priceConditions.push({
-            'subjects.rates.online': { $gte: min || 0, $lte: max || Number.MAX_SAFE_INTEGER }
-          });
-        } else if (teachingMode === 'INDIVIDUAL') {
-          priceConditions.push({
-            'subjects.rates.individual': { $gte: min || 0, $lte: max || Number.MAX_SAFE_INTEGER }
-          });
-        } else if (teachingMode === 'GROUP') {
-          priceConditions.push({
-            'subjects.rates.group': { $gte: min || 0, $lte: max || Number.MAX_SAFE_INTEGER }
-          });
-        } else {
-          // If no teaching mode specified, check all rates
-          priceConditions.push(
-            { 'subjects.rates.online': { $gte: min || 0, $lte: max || Number.MAX_SAFE_INTEGER } },
-            { 'subjects.rates.individual': { $gte: min || 0, $lte: max || Number.MAX_SAFE_INTEGER } },
-            { 'subjects.rates.group': { $gte: min || 0, $lte: max || Number.MAX_SAFE_INTEGER } }
-          );
-        }
-
-        if (priceConditions.length > 0) {
-          query.$or = query.$or || [];
-          query.$or.push(...priceConditions);
-        }
-      } catch (err) {
-        console.error('Error parsing price range:', err);
+    // Combine teaching mode conditions with existing query
+    if (teachingModeConditions.length > 0) {
+      if (Object.keys(query).length > 0) {
+        query.$and = query.$and || [];
+        query.$and.push({ $or: teachingModeConditions });
+      } else {
+        query.$or = teachingModeConditions;
       }
     }
 
-    // Combine teaching mode conditions with other filters
-    if (teachingModeConditions.length > 0) {
-      query.$and = query.$and || [];
-      query.$and.push({ $or: teachingModeConditions });
+    // Filter by price range
+    if (priceRange) {
+      try {
+        const [minPrice, maxPrice] = JSON.parse(priceRange);
+        const priceConditions = [];
+        
+        if (minPrice > 0) {
+          priceConditions.push(
+            { 'subjects.rates.online': { $gte: minPrice } },
+            { 'subjects.rates.individual': { $gte: minPrice } },
+            { 'subjects.rates.group': { $gte: minPrice } }
+          );
+        }
+        
+        if (maxPrice < 10000) {
+          priceConditions.push(
+            { 'subjects.rates.online': { $lte: maxPrice } },
+            { 'subjects.rates.individual': { $lte: maxPrice } },
+            { 'subjects.rates.group': { $lte: maxPrice } }
+          );
+        }
+        
+        if (priceConditions.length > 0) {
+          if (Object.keys(query).length > 0) {
+            query.$and = query.$and || [];
+            query.$and.push({ $or: priceConditions });
+          } else {
+            query.$or = priceConditions;
+          }
+        }
+        console.log('Price range filter applied:', priceRange);
+      } catch (err) {
+        console.error('Error in price range filtering:', err);
+      }
     }
 
     // Filter by location
     if (location) {
       try {
-        const locationObj = JSON.parse(location);
-        console.log('Location filter object:', locationObj);
-        
-        // Build location query based on the hierarchical structure
-        const locationQuery = {};
-        
-        // If hometown is provided, search for exact match
-        if (locationObj.hometown) {
-          locationQuery._id = locationObj.hometown;
-        }
-        // If town is provided, search for town and its hometowns
-        else if (locationObj.town) {
-          locationQuery.$or = [
-            { _id: locationObj.town },
-            { parent: locationObj.town }
-          ];
-        }
-        // If city is provided, search for city and all its descendants
-        else if (locationObj.city) {
-          locationQuery.$or = [
-            { _id: locationObj.city },
-            { parent: locationObj.city },
-            { 'parent.parent': locationObj.city }
-          ];
-        }
-        
-        console.log('Location query:', locationQuery);
-        
-        const matchingLocations = await Location.find(locationQuery).select('_id');
-        console.log('Matching locations:', matchingLocations);
-        
-        if (matchingLocations.length > 0) {
-          const locationIds = matchingLocations.map(loc => loc._id);
-          console.log('Location IDs to search for:', locationIds);
-          query.locations = { $in: locationIds };
-        } else {
-          console.log('No matching locations found');
-        }
+        // Search in availableLocations field for the location string
+        query.availableLocations = { $regex: new RegExp(location, 'i') };
+        console.log('Location filter applied:', location);
       } catch (err) {
         console.error('Error in location filtering:', err);
       }
@@ -300,8 +182,7 @@ export const getTutors = async (req, res) => {
     // Execute query with pagination and sorting
     const tutors = await Tutor.find(query)
       .populate('user', 'name email profileImage')
-      .populate('subjects.subject', 'name category educationLevel')
-      .populate('locations', 'city town hometown')
+      .populate('subjects.subject', 'name topics')
       .sort(sortOptions)
       .skip(skip)
       .limit(Number(limit));
@@ -315,10 +196,11 @@ export const getTutors = async (req, res) => {
       returnedTutors: tutors.length,
       firstTutor: tutors[0] ? {
         id: tutors[0]._id,
-        locations: tutors[0].locations,
+        availableLocations: tutors[0].availableLocations,
         subjects: tutors[0].subjects.map(s => ({
           name: s.subject?.name,
-          educationLevel: s.subject?.educationLevel,
+          topics: s.subject?.topics,
+          bestTopics: s.bestTopics,
           rates: s.rates
         }))
       } : null
@@ -337,7 +219,8 @@ export const getTutors = async (req, res) => {
     console.error('Error in getTutors:', error);
     res.status(500).json({ 
       message: 'Error fetching tutors',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
@@ -349,8 +232,7 @@ export const getTutor = async (req, res) => {
   try {
     const tutor = await Tutor.findById(req.params.id)
       .populate('user', 'name email profileImage')
-      .populate('subjects.subject', 'name category educationLevel')
-      .populate('locations', 'name');
+      .populate('subjects.subject', 'name category educationLevel');
 
     if (!tutor) {
       return res.status(404).json({ message: 'Tutor not found' });
@@ -547,33 +429,26 @@ export const updateTutorProfile = async (req, res) => {
     }
 
     // Update the tutor profile
-    const updatedTutor = await Tutor.findByIdAndUpdate(
-      tutor._id,
-      {
-        $set: {
-          phone: req.body.phone,
-          mobileNumber: req.body.phone,
-          bio: req.body.bio,
-          gender: req.body.gender,
-          socialMedia: req.body.socialMedia,
-          teachingMediums: req.body.teachingMediums,
-          education: req.body.education,
-          experience: req.body.experience,
-          subjects: req.body.subjects,
-          locations: req.body.locations,
-          documents: req.body.documents,
-          updatedAt: new Date()
-        }
-      },
-      { 
-        new: true, 
-        runValidators: true,
-        context: 'query'
-      }
+    const updatedTutor = await Tutor.findOneAndUpdate(
+      { user: req.user.id },
+      { $set: {
+        phone: req.body.phone,
+        mobileNumber: req.body.phone,
+        bio: req.body.bio,
+        gender: req.body.gender,
+        socialMedia: req.body.socialMedia,
+        teachingMediums: req.body.teachingMediums,
+        education: req.body.education,
+        experience: req.body.experience,
+        subjects: req.body.subjects,
+        locations: req.body.locations,
+        documents: req.body.documents,
+        updatedAt: new Date()
+      } },
+      { new: true, runValidators: true }
     )
     .populate('user', 'name email profileImage')
-    .populate('subjects.subject', 'name category educationLevel')
-    .populate('locations', 'name');
+    .populate('subjects.subject', 'name category educationLevel');
 
     if (!updatedTutor) {
       return res.status(404).json({ message: 'Failed to update tutor profile' });
@@ -822,8 +697,7 @@ export const getTutorByUserId = async (req, res) => {
 
     const tutor = await Tutor.findOne({ user: req.user.id })
       .populate('user', 'name email profileImage')
-      .populate('subjects.subject', 'name category educationLevel')
-      .populate('locations', 'name');
+      .populate('subjects.subject', 'name category educationLevel');
 
     if (!tutor) {
       // If user is a tutor but profile doesn't exist, create one
@@ -835,8 +709,7 @@ export const getTutorByUserId = async (req, res) => {
         
         const populatedTutor = await Tutor.findById(newTutor._id)
           .populate('user', 'name email profileImage')
-          .populate('subjects.subject', 'name category educationLevel')
-          .populate('locations', 'name');
+          .populate('subjects.subject', 'name category educationLevel');
           
         return res.json(populatedTutor);
       }

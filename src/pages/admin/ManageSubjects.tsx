@@ -1,23 +1,18 @@
 import React, { useState } from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
-import { SUBJECT_CATEGORIES, EDUCATION_LEVELS } from '../../contexts/AdminContext';
 import { Plus, Edit2, Trash2, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 interface SubjectFormData {
   name: string;
-  category: string;
   description: string;
   topics: string[];
-  educationLevel: keyof typeof EDUCATION_LEVELS;
 }
 
 const initialFormData: SubjectFormData = {
   name: '',
-  category: SUBJECT_CATEGORIES.PRIMARY[0],
   description: '',
-  topics: [],
-  educationLevel: 'PRIMARY'
+  topics: []
 };
 
 const ManageSubjects = () => {
@@ -25,7 +20,6 @@ const ManageSubjects = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<string | null>(null);
   const [formData, setFormData] = useState<SubjectFormData>(initialFormData);
-  const [selectedEducationLevel, setSelectedEducationLevel] = useState<keyof typeof EDUCATION_LEVELS>('PRIMARY');
   const [newTopic, setNewTopic] = useState('');
 
   const handleOpenModal = (subjectId?: string) => {
@@ -34,17 +28,13 @@ const ManageSubjects = () => {
       if (subject) {
         setFormData({
           name: subject.name,
-          category: subject.category,
           description: subject.description,
-          topics: subject.topics || [],
-          educationLevel: subject.educationLevel
+          topics: subject.topics || []
         });
-        setSelectedEducationLevel(subject.educationLevel);
         setEditingSubject(subjectId);
       }
     } else {
       setFormData(initialFormData);
-      setSelectedEducationLevel('PRIMARY');
       setEditingSubject(null);
     }
     setIsModalOpen(true);
@@ -54,21 +44,7 @@ const ManageSubjects = () => {
     setIsModalOpen(false);
     setEditingSubject(null);
     setFormData(initialFormData);
-    setSelectedEducationLevel('PRIMARY');
     setNewTopic('');
-  };
-
-  const handleEducationLevelChange = (level: keyof typeof EDUCATION_LEVELS) => {
-    setSelectedEducationLevel(level);
-    setFormData(prev => ({
-      ...prev,
-      educationLevel: level,
-      category: level === 'ADVANCED_LEVEL' 
-        ? SUBJECT_CATEGORIES.ADVANCED_LEVEL.ARTS[0] 
-        : level === 'HIGHER_EDUCATION'
-          ? 'Computer Science' // Default category for higher education
-          : (SUBJECT_CATEGORIES[level as keyof typeof SUBJECT_CATEGORIES] as string[])[0]
-    }));
   };
 
   const handleAddTopic = () => {
@@ -117,33 +93,11 @@ const ManageSubjects = () => {
 
   const handleToggleStatus = async (subjectId: string) => {
     try {
-      const subject = subjects.find(s => s._id === subjectId);
-      if (!subject) {
-        toast.error('Subject not found');
-        return;
-      }
-
-      await updateSubject(subjectId, {
-        isActive: !subject.isActive,
-        topics: subject.topics // Preserve existing topics
-      });
-      toast.success('Subject status updated');
+      await toggleSubjectStatus(subjectId);
+      toast.success('Subject status updated successfully');
     } catch (error) {
       toast.error('Failed to update subject status');
     }
-  };
-
-  const getAvailableCategories = () => {
-    if (selectedEducationLevel === 'ADVANCED_LEVEL') {
-      return [
-        ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.ARTS,
-        ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.COMMERCE,
-        ...SUBJECT_CATEGORIES.ADVANCED_LEVEL.SCIENCE
-      ];
-    } else if (selectedEducationLevel === 'HIGHER_EDUCATION') {
-      return ['Computer Science', 'Engineering', 'Business', 'Medicine', 'Law', 'Arts & Humanities'];
-    }
-    return SUBJECT_CATEGORIES[selectedEducationLevel] as string[];
   };
 
   if (loading) {
@@ -184,8 +138,6 @@ const ManageSubjects = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Education Level</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Topics</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -194,15 +146,20 @@ const ManageSubjects = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {subjects.map((subject) => (
                 <tr key={subject._id}>
-                  <td className="px-6 py-4 whitespace-nowrap">{subject.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{subject.category}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{subject.educationLevel}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{subject.name}</div>
+                      {subject.description && (
+                        <div className="text-sm text-gray-500">{subject.description}</div>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-1">
-                      {subject.topics?.map((topic, index) => (
+                      {subject.topics.map((topic, index) => (
                         <span
                           key={index}
-                          className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-100 text-primary-800"
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                         >
                           {topic}
                         </span>
@@ -210,39 +167,42 @@ const ManageSubjects = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    <button
+                      onClick={() => handleToggleStatus(subject._id)}
+                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         subject.isActive
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                       }`}
                     >
-                      {subject.isActive ? 'Active' : 'Inactive'}
-                    </span>
+                      {subject.isActive ? (
+                        <>
+                          <CheckCircle2 className="h-3 w-3" />
+                          Active
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="h-3 w-3" />
+                          Inactive
+                        </>
+                      )}
+                    </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleOpenModal(subject._id)}
-                        className="text-primary-600 hover:text-primary-900"
+                        className="text-indigo-600 hover:text-indigo-900 flex items-center gap-1"
                       >
-                        <Edit2 size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleToggleStatus(subject._id)}
-                        className={`${
-                          subject.isActive
-                            ? 'text-red-600 hover:text-red-900'
-                            : 'text-green-600 hover:text-green-900'
-                        }`}
-                      >
-                        {subject.isActive ? <XCircle size={18} /> : <CheckCircle2 size={18} />}
+                        <Edit2 className="h-4 w-4" />
+                        Edit
                       </button>
                       <button
                         onClick={() => handleDelete(subject._id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-600 hover:text-red-900 flex items-center gap-1"
                       >
-                        <Trash2 size={18} />
+                        <Trash2 className="h-4 w-4" />
+                        Delete
                       </button>
                     </div>
                   </td>
@@ -253,107 +213,90 @@ const ManageSubjects = () => {
         </div>
       </div>
 
+      {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
-            <h2 className="text-xl font-semibold mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h2 className="text-lg font-semibold mb-4">
               {editingSubject ? 'Edit Subject' : 'Add New Subject'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Subject Name
+                </label>
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                   required
                 />
               </div>
+              
               <div>
-                <label className="block text-sm font-medium text-gray-700">Education Level</label>
-                <select
-                  value={selectedEducationLevel}
-                  onChange={(e) => handleEducationLevelChange(e.target.value as keyof typeof EDUCATION_LEVELS)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                >
-                  {Object.entries(EDUCATION_LEVELS).map(([key, value]) => (
-                    <option key={key} value={key}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  rows={3}
+                />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700">Category</label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                >
-                  {getAvailableCategories().map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Topics</label>
-                <div className="mt-1 flex gap-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Topics
+                </label>
+                <div className="flex gap-2 mb-2">
                   <input
                     type="text"
                     value={newTopic}
                     onChange={(e) => setNewTopic(e.target.value)}
                     placeholder="Add a topic"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTopic())}
                   />
                   <button
                     type="button"
                     onClick={handleAddTopic}
-                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
                   >
                     Add
                   </button>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1">
                   {formData.topics.map((topic, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800"
+                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                     >
                       {topic}
                       <button
                         type="button"
                         onClick={() => handleRemoveTopic(topic)}
-                        className="ml-1 inline-flex items-center p-0.5 rounded-full text-primary-400 hover:bg-primary-200 hover:text-primary-500 focus:outline-none"
+                        className="hover:bg-blue-200 rounded-full p-0.5"
                       >
-                        <XCircle size={14} />
+                        ×
                       </button>
                     </span>
                   ))}
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                />
-              </div>
-              <div className="flex justify-end gap-2">
+
+              <div className="flex justify-end gap-2 pt-4">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
                 >
                   {editingSubject ? 'Update' : 'Create'}
                 </button>

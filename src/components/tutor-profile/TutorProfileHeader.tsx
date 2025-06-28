@@ -61,7 +61,7 @@ const TutorProfileHeader: React.FC<TutorProfileHeaderProps> = ({ profile }) => {
               </div>
               <div className="flex items-center text-base">
                 <MapPin className="h-5 w-5 text-gray-500 mr-1.5" />
-                <span>{profile.locations.map(loc => loc.name).join(', ')}</span>
+                <span>{profile.availableLocations || 'Not specified'}</span>
               </div>
             </div>
             

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useTutor, TutorProfile, TutorSubject } from '../../contexts/TutorContext';
-import { useLocations, Location } from '../../contexts/LocationContext';
 import { useSubjects } from '../../contexts/SubjectContext';
 import { Subject, EDUCATION_LEVELS } from '../../contexts/AdminContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -56,11 +55,7 @@ interface FormData {
       }>;
     }>;
   }>;
-  locations: Array<{
-    _id: string;
-    name: string;
-    province: string;
-  }>;
+  availableLocations: string;
   documents: Array<{
     id: string;
     url: string;
@@ -81,7 +76,6 @@ const LANGUAGE_MEDIUMS = [
 
 const EditTutorProfile: React.FC = () => {
   const { profile, loading, error, updateProfile, uploadDocument, deleteDocument } = useTutor();
-  const { locations } = useLocations();
   const { subjects } = useSubjects();
   const { user, uploadProfilePhoto } = useAuth();
   const navigate = useNavigate();
@@ -99,7 +93,7 @@ const EditTutorProfile: React.FC = () => {
     education: [],
     experience: [],
     subjects: [],
-    locations: [],
+    availableLocations: '',
     documents: []
   });
   const [initialFormData, setInitialFormData] = useState<FormData | null>(null);
@@ -150,13 +144,7 @@ const EditTutorProfile: React.FC = () => {
           },
           availability: s.availability || []
         })) || [],
-        locations: profile.locations.map(l => ({
-          _id: l._id,
-          name: l.name,
-          province: l.level === 1 ? l.name : 
-                    l.level === 2 ? (locations.find(p => p._id === l.parent) as Location)?.name || '' :
-                    (locations.find(p => p._id === (locations.find(p2 => p2._id === l.parent) as Location)?.parent) as Location)?.name || ''
-        })) || [],
+        availableLocations: profile.availableLocations || '',
         documents: profile.documents.map(d => ({
           id: d.id,
           url: d.url
@@ -171,7 +159,7 @@ const EditTutorProfile: React.FC = () => {
         setProfileImage(profile.user.profileImage);
       }
     }
-  }, [profile, locations, user, navigate]);
+  }, [profile, user, navigate]);
 
   // Add effect to track form changes
   useEffect(() => {
@@ -215,128 +203,52 @@ const EditTutorProfile: React.FC = () => {
             availability: s.availability
           };
         }),
-        locations: formData.locations.map(l => l._id) as unknown as Location[],
+        availableLocations: formData.availableLocations,
         documents: formData.documents
       };
+
       await updateProfile(apiData);
-      toast.success('Profile updated successfully');
-      navigate('/tutor/dashboard');
+      toast.success('Profile updated successfully!');
+      setHasChanges(false);
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to update profile';
-      toast.error(errorMessage);
+      console.error('Error updating profile:', error);
+      toast.error(error.response?.data?.message || 'Failed to update profile');
     }
   };
 
   const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    
-    // Check if adding new files would exceed the 5 document limit
-    if (selectedDocuments.length + files.length > 5) {
-      toast.error('You can only upload up to 5 documents');
-      return;
-    }
-
-    // Validate file sizes and types
-    const validFiles = files.filter(file => {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error(`${file.name} is larger than 5MB`);
-        return false;
-      }
-      if (!['image/jpeg', 'image/png'].includes(file.type)) {
-        toast.error(`${file.name} is not a supported file type. Please upload JPG or PNG files only.`);
-        return false;
-      }
-      return true;
-    });
-
-    setSelectedDocuments(prev => [...prev, ...validFiles]);
+    setSelectedDocuments(prev => [...prev, ...files]);
   };
 
   const handleDocumentUpload = async () => {
     if (selectedDocuments.length === 0) {
-      toast.error('Please select at least one document to upload');
+      toast.error('Please select at least one document');
       return;
     }
 
+    setUploading(true);
     try {
-      setUploading(true);
-      const formData = new FormData();
-      
-      // Append each file to FormData
-      selectedDocuments.forEach((file) => {
-        formData.append('documents', file);
-      });
-
-      console.log('Uploading documents:', selectedDocuments.map(f => f.name));
-
-      // Upload documents
-      const response = await fetch(`${API_URL}/api/upload/verification-docs`, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
-      // Get the raw response text first
-      const responseText = await response.text();
-      console.log('Raw response:', responseText);
-
-      if (!response.ok) {
-        throw new Error(responseText || 'Failed to upload documents');
+      for (const file of selectedDocuments) {
+        await uploadDocument(file, 'other');
       }
-
-      // Try to parse the response text as JSON
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (e) {
-        console.error('Failed to parse response as JSON:', e);
-        throw new Error('Invalid server response format');
-      }
-      
-      if (!data.success || !data.data) {
-        throw new Error(data.message || 'Failed to upload documents');
-      }
-      
-      // Update formData with new documents
-      setFormData(prev => ({
-        ...prev,
-        documents: [
-          ...(prev.documents || []),
-          ...data.data.map((doc: any) => ({
-            id: doc.id,
-            url: doc.url
-          }))
-        ]
-      }));
-
-      toast.success('Documents uploaded successfully');
       setSelectedDocuments([]);
+      toast.success('Documents uploaded successfully!');
     } catch (error: any) {
-      console.error('Document upload error:', error);
-      toast.error(error.message || 'Failed to upload documents');
+      console.error('Error uploading documents:', error);
+      toast.error(error.response?.data?.message || 'Failed to upload documents');
     } finally {
       setUploading(false);
     }
   };
 
   const handleDeleteDocument = async (documentId: string) => {
-    if (!window.confirm('Are you sure you want to delete this document?' + documentId)) {
-      return;
-    }
-
     try {
-      setUploading(true);
       await deleteDocument(documentId);
-      toast.success('Document deleted successfully');
+      toast.success('Document deleted successfully!');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to delete document');
-    } finally {
-      setUploading(false);
+      console.error('Error deleting document:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete document');
     }
   };
 
@@ -347,28 +259,24 @@ const EditTutorProfile: React.FC = () => {
   const handleSubjectSelect = (selectedSubjects: Array<{ _id: string; name: string; category: string }>) => {
     setFormData(prev => ({
       ...prev,
-      subjects: selectedSubjects.map(s => {
-        const existingSubject = prev.subjects.find(p => p._id === s._id);
-        return {
-          ...s,
-          rates: existingSubject?.rates || {
-            individual: 0,
-            group: 0,
-            online: 0
-          },
-          availability: existingSubject?.availability || []
-        };
-      })
+      subjects: selectedSubjects.map(subject => ({
+        _id: subject._id,
+        name: subject.name,
+        category: subject.category,
+        rates: {
+          individual: 0,
+          group: 0,
+          online: 0
+        },
+        availability: []
+      }))
     }));
   };
 
-  const handleLocationSelect = (selectedLocations: Array<{ _id: string; name: string }>) => {
+  const handleLocationChange = (availableLocations: string) => {
     setFormData(prev => ({
       ...prev,
-      locations: selectedLocations.map(loc => ({
-        ...loc,
-        province: locations.find(l => l._id === loc._id)?.name || ''
-      }))
+      availableLocations
     }));
   };
 
@@ -390,7 +298,6 @@ const EditTutorProfile: React.FC = () => {
 
   const addTimeSlot = (subjectId: string, day: string) => {
     setFormData(prev => {
-      // Create a deep copy of the previous state to ensure proper change detection
       const newFormData = JSON.parse(JSON.stringify(prev));
       
       const subjectIndex = newFormData.subjects.findIndex((s: { _id: string }) => s._id === subjectId);
@@ -414,7 +321,6 @@ const EditTutorProfile: React.FC = () => {
 
   const removeTimeSlot = (subjectId: string, day: string, slotIndex: number) => {
     setFormData(prev => {
-      // Create a deep copy of the previous state to ensure proper change detection
       const newFormData = JSON.parse(JSON.stringify(prev));
       
       const subjectIndex = newFormData.subjects.findIndex((s: { _id: string }) => s._id === subjectId);
@@ -438,7 +344,6 @@ const EditTutorProfile: React.FC = () => {
 
   const updateTimeSlot = (subjectId: string, day: string, slotIndex: number, field: 'start' | 'end', value: string) => {
     setFormData(prev => {
-      // Create a deep copy of the previous state to ensure proper change detection
       const newFormData = JSON.parse(JSON.stringify(prev));
       
       const subjectIndex = newFormData.subjects.findIndex((s: { _id: string }) => s._id === subjectId);
@@ -1032,8 +937,8 @@ const EditTutorProfile: React.FC = () => {
                 Teaching Locations
               </h2>
               <LocationSelector
-                selectedLocations={formData.locations}
-                onLocationsChange={handleLocationSelect}
+                availableLocations={formData.availableLocations}
+                onLocationsChange={handleLocationChange}
               />
             </div>
 
