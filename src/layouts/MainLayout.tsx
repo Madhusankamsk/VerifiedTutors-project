@@ -8,7 +8,7 @@ const MainLayout: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className={`container mx-auto flex-grow pb-8 sm:pb-12 md:pb-16 pt-20`}>
+      <main className={`container mx-auto flex-grow pb-8 sm:pb-12 md:pb-16 pt-16`}>
         <Outlet />
       </main>
       <Footer />

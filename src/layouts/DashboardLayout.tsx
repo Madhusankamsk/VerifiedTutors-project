@@ -37,7 +37,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
               <img 
                 src={logo} 
                 alt="VerifiedTutors Logo" 
-                className="h-32 w-auto"
+                className="h-12 w-auto"
               />
             </Link>
             <button
@@ -93,7 +93,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
 
       {/* Main content */}
       <div className="lg:pl-64 flex flex-col min-h-screen">
-        <header className="bg-white shadow fixed top-0 right-0 left-0 lg:left-64 z-10">
+        <header className="bg-white shadow fixed top-16 right-0 left-0 lg:left-64 z-10">
           <div className="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
@@ -108,7 +108,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
           </div>
         </header>
 
-        <main className="flex-1 pt-20">
+        <main className="flex-1 pt-32">
           <div className="py-6">
             <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
               <Outlet />
