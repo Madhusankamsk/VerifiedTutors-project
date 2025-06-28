@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { X } from 'lucide-react';
 import Header from '../components/common/Header';
-import Footer from '../components/common/Footer';
+import DashboardFooter from '../components/common/DashboardFooter';
 
 interface SidebarItem {
   name: string;
@@ -47,6 +47,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
         } transition-transform duration-300 ease-in-out lg:translate-x-0`}
         style={{ 
           top: '4rem', /* 64px - main header height */
+          bottom: '2.5rem', /* Account for fixed footer height */
         }}
       >
         {/* Account for mobile title bar height */}
@@ -85,7 +86,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
       </div>
 
       {/* Main content area */}
-      <div className="lg:pl-64" style={{ paddingTop: '4rem' }}>
+      <div className="lg:pl-64" style={{ paddingTop: '4rem', paddingBottom: '2.5rem' }}>
         {/* Account for mobile title bar height */}
         <div className="block md:hidden" style={{ height: '3.5rem' }}></div>
         
@@ -95,9 +96,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
             <Outlet />
           </div>
         </main>
-        
-        <Footer />
       </div>
+
+      {/* Fixed Dashboard Footer */}
+      <DashboardFooter />
     </div>
   );
 };
