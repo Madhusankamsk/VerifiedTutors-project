@@ -7,6 +7,7 @@ import { User, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { ReviewList } from '../components/ReviewList';
 import BookingModal from '../components/booking/BookingModal';
+import { useScrollToTop } from '../hooks/useScrollToTop';
 
 // Import the new components
 import {
@@ -40,6 +41,9 @@ const TutorProfilePage: React.FC = () => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [activeTab, setActiveTab] = useState('about');
   const [selectedSubjectForBooking, setSelectedSubjectForBooking] = useState<string>('');
+
+  // Scroll to top when tutor ID changes
+  useScrollToTop([id]);
 
   useEffect(() => {
     const loadTutorProfile = async () => {

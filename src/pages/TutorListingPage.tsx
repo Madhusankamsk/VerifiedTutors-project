@@ -3,6 +3,7 @@ import { useTutor, TutorProfile } from '../contexts/TutorContext';
 import { useSubjects } from '../contexts/SubjectContext';
 import { useLocations } from '../contexts/LocationContext';
 import TutorFilters, { FilterState } from '../components/filter/TutorFilters';
+import { useScrollToTop } from '../hooks/useScrollToTop';
 import {
   BreadcrumbNav,
   PageHeader,
@@ -73,6 +74,11 @@ const TutorListingPage: React.FC = () => {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const observerTarget = useRef<HTMLDivElement>(null);
+
+  // Scroll to top when filters change (but not for load more)
+  useScrollToTop([filters.subject, filters.rating, filters.price, filters.location, 
+                  filters.educationLevel, filters.medium, filters.sortBy, filters.sortOrder, 
+                  filters.availability, filters.experience, filters.search]);
 
   const fetchTutors = useCallback(async (isLoadMore = false) => {
     try {

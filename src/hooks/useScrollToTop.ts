@@ -1,11 +1,7 @@
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 
-const ScrollToTop = () => {
-  const { pathname } = useLocation();
-
+export const useScrollToTop = (dependencies: any[] = []) => {
   useEffect(() => {
-    // Use smooth scrolling for better UX
     const scrollToTop = () => {
       window.scrollTo({
         top: 0,
@@ -14,13 +10,9 @@ const ScrollToTop = () => {
       });
     };
 
-    // Small delay to ensure the page has rendered
+    // Small delay to ensure the component has rendered
     const timeoutId = setTimeout(scrollToTop, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [pathname]);
-
-  return null;
-};
-
-export default ScrollToTop; 
+  }, dependencies);
+}; 
