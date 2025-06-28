@@ -145,9 +145,10 @@ export const validateTutorProfile = (req, res, next) => {
       'array.min': 'At least one subject is required',
       'any.required': 'Subjects are required'
     }),
-    availableLocations: Joi.string().required().trim().messages({
+    availableLocations: Joi.string().required().trim().max(100).messages({
       'string.empty': 'Available locations are required',
-      'any.required': 'Available locations are required'
+      'any.required': 'Available locations are required',
+      'string.max': 'Available locations cannot exceed 100 characters'
     }),
     documents: Joi.array().items(
       Joi.object({
