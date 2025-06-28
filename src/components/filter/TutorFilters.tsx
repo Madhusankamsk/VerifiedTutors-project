@@ -7,6 +7,8 @@ import ExtraFilters from './ExtraFilters';
 import { X, Filter, SlidersHorizontal } from 'lucide-react';
 import { useSubjects } from '../../contexts/SubjectContext';
 import { useLocations } from '../../contexts/LocationContext';
+import TownsFilter from './TownsFilter';
+import HometownsFilter from './HometownsFilter';
 
 export interface FilterState {
   educationLevel: string;
@@ -80,9 +82,7 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
   const handleLocationSelect = (location: FilterState['location']) => {
     setFilters(prev => ({ ...prev, location }));
-    setActiveLayer(5);
     onFilterChange({ ...filters, location });
-    setVisibleSections([5]);
   };
 
   const handleExtraFiltersChange = (extraFilters: FilterState['extraFilters']) => {
@@ -316,14 +316,50 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
           </div>
         )}
 
-        {/* Location Section */}
-        {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && (
+        {/* Location Section - Show Cities only when no city is selected */}
+        {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && !filters.location.city && (
           <div className="px-4">
-            {renderSectionHeader('Location', !!(filters.location.city || filters.location.town || filters.location.hometown))}
+            {renderSectionHeader('Location', !!filters.location.city)}
             <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
               <LocationFilter
                 selectedLocation={filters.location}
                 onSelect={handleLocationSelect}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Towns Section - Show Towns only when city is selected but no town */}
+        {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && filters.location.city && !filters.location.town && (
+          <div className="px-4">
+            {renderSectionHeader('Towns', !!filters.location.town)}
+            <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+              <TownsFilter
+                selectedTown={filters.location.town}
+                selectedCity={filters.location.city}
+                onSelect={(townId: string) => handleLocationSelect({
+                  ...filters.location,
+                  town: townId,
+                  hometown: ''
+                })}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Hometowns Section - Show Hometowns only when town is selected but no hometown */}
+        {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && filters.location.city && filters.location.town && !filters.location.hometown && (
+          <div className="px-4">
+            {renderSectionHeader('Hometowns', !!filters.location.hometown)}
+            <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+              <HometownsFilter
+                selectedHometown={filters.location.hometown}
+                selectedTown={filters.location.town}
+                selectedCity={filters.location.city}
+                onSelect={(hometownId: string) => handleLocationSelect({
+                  ...filters.location,
+                  hometown: hometownId
+                })}
               />
             </div>
           </div>
@@ -441,13 +477,49 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
             )}
 
             {/* Location */}
-            {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && (
+            {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && !filters.location.city && (
               <div>
-                {renderSectionHeader('Location', !!(filters.location.city || filters.location.town || filters.location.hometown))}
+                {renderSectionHeader('Location', !!filters.location.city)}
                 <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
                   <LocationFilter
                     selectedLocation={filters.location}
                     onSelect={handleLocationSelect}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Towns */}
+            {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && filters.location.city && !filters.location.town && (
+              <div>
+                {renderSectionHeader('Towns', !!filters.location.town)}
+                <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <TownsFilter
+                    selectedTown={filters.location.town}
+                    selectedCity={filters.location.city}
+                    onSelect={(townId: string) => handleLocationSelect({
+                      ...filters.location,
+                      town: townId,
+                      hometown: ''
+                    })}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Hometowns */}
+            {visibleSections.includes(4) && activeLayer >= 4 && filters.teachingMode && filters.teachingMode !== 'ONLINE' && filters.location.city && filters.location.town && !filters.location.hometown && (
+              <div>
+                {renderSectionHeader('Hometowns', !!filters.location.hometown)}
+                <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <HometownsFilter
+                    selectedHometown={filters.location.hometown}
+                    selectedTown={filters.location.town}
+                    selectedCity={filters.location.city}
+                    onSelect={(hometownId: string) => handleLocationSelect({
+                      ...filters.location,
+                      hometown: hometownId
+                    })}
                   />
                 </div>
               </div>
