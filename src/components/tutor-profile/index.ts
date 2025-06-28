@@ -1,0 +1,10 @@
+export { default as TutorProfileBackground } from './TutorProfileBackground';
+export { default as TutorProfileBreadcrumb } from './TutorProfileBreadcrumb';
+export { default as TutorProfileHeader } from './TutorProfileHeader';
+export { default as TutorProfileTabs } from './TutorProfileTabs';
+export { default as TutorProfileAbout } from './TutorProfileAbout';
+export { default as TutorProfileSubjects } from './TutorProfileSubjects';
+export { default as TutorProfileEducation } from './TutorProfileEducation';
+export { default as TutorProfileExperience } from './TutorProfileExperience';
+export { default as TutorProfileSidebar } from './TutorProfileSidebar';
+export { default as TutorReviewForm } from './TutorReviewForm'; 
