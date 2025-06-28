@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, Heart } from 'lucide-react';
 import logo from '../../assets/logo.png';
 
 const Footer: React.FC = () => {
@@ -34,156 +34,155 @@ const Footer: React.FC = () => {
     { name: 'LinkedIn', icon: Linkedin, href: '#' },
   ];
 
-  const contactInfo = [
-    { icon: Mail, text: 'support@verifiedtutors.com' },
-    { icon: Phone, text: '+1 (555) 123-4567' },
-    { icon: MapPin, text: '123 Education St, Learning City, ED 12345' },
-  ];
-
   return (
-    <footer className="bg-gradient-to-b from-gray-900 to-gray-950 text-white relative overflow-hidden mt-auto">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
+    <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white relative overflow-hidden">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.1)_1px,transparent_0)] bg-[length:20px_20px] opacity-20"></div>
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
         {/* Main Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand Section */}
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-1">
             <Link to="/" className="inline-block">
               <img 
                 src={logo} 
                 alt="VerifiedTutors Logo" 
-                className="h-64 w-auto filter brightness-0 invert opacity-90"
+                className="h-12 w-auto filter brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-200"
               />
             </Link>
-            <p className="mt-6 text-gray-300 leading-relaxed max-w-md">
-              Connecting students with verified tutors for personalized learning experiences. 
-              Join our community of learners and educators today.
+            <p className="mt-4 text-gray-300 text-sm leading-relaxed">
+              Connecting students with verified tutors for personalized learning experiences.
             </p>
             
-            {/* Contact Info */}
-            <div className="mt-8 space-y-4">
-              {contactInfo.map((item, index) => (
-                <div key={index} className="flex items-center space-x-3 text-gray-300">
-                  <item.icon className="h-5 w-5 text-primary-400" />
-                  <span className="text-sm">{item.text}</span>
-                </div>
-              ))}
+            {/* Contact Info - Compact */}
+            <div className="mt-6 space-y-2">
+              <div className="flex items-center space-x-2 text-gray-300 text-sm">
+                <Mail className="h-4 w-4 text-primary-400 flex-shrink-0" />
+                <span className="truncate">support@verifiedtutors.com</span>
+              </div>
+              <div className="flex items-center space-x-2 text-gray-300 text-sm">
+                <Phone className="h-4 w-4 text-primary-400 flex-shrink-0" />
+                <span>+1 (555) 123-4567</span>
+              </div>
             </div>
 
             {/* Social Links */}
-            <div className="mt-8 flex space-x-4">
+            <div className="mt-6 flex space-x-3">
               {socialLinks.map((item) => (
                 <a
                   key={item.name}
                   href={item.href}
-                  className="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-primary-600 transition-all duration-300 transform hover:-translate-y-1"
+                  className="h-8 w-8 rounded-lg bg-gray-800/50 flex items-center justify-center text-gray-400 hover:text-white hover:bg-primary-600 transition-all duration-200 transform hover:scale-110"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label={item.name}
                 >
-                  <span className="sr-only">{item.name}</span>
-                  <item.icon className="h-5 w-5" />
+                  <item.icon className="h-4 w-4" />
                 </a>
               ))}
             </div>
           </div>
 
-          {/* Links Sections */}
-          <div className="lg:col-span-2">
-            <h3 className="text-sm font-semibold text-primary-400 uppercase tracking-wider">
-              Company
-            </h3>
-            <ul className="mt-6 space-y-4">
-              {footerLinks.company.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    to={item.href}
-                    className="text-gray-300 hover:text-primary-400 transition-colors duration-200 inline-block transform hover:-translate-x-1"
-                  >
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          {/* Links Sections - More compact */}
+          <div className="space-y-6 sm:col-span-1 lg:col-span-1">
+            <div>
+              <h3 className="text-sm font-semibold text-primary-400 uppercase tracking-wider mb-4">
+                Company
+              </h3>
+              <ul className="space-y-2">
+                {footerLinks.company.map((item) => (
+                  <li key={item.name}>
+                    <Link
+                      to={item.href}
+                      className="text-gray-300 hover:text-primary-400 transition-colors duration-200 text-sm inline-block transform hover:-translate-x-1"
+                    >
+                      {item.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          <div className="lg:col-span-2">
-            <h3 className="text-sm font-semibold text-primary-400 uppercase tracking-wider">
-              Resources
-            </h3>
-            <ul className="mt-6 space-y-4">
-              {footerLinks.resources.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    to={item.href}
-                    className="text-gray-300 hover:text-primary-400 transition-colors duration-200 inline-block transform hover:-translate-x-1"
-                  >
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          <div className="space-y-6 sm:col-span-1 lg:col-span-1">
+            <div>
+              <h3 className="text-sm font-semibold text-primary-400 uppercase tracking-wider mb-4">
+                Resources
+              </h3>
+              <ul className="space-y-2">
+                {footerLinks.resources.map((item) => (
+                  <li key={item.name}>
+                    <Link
+                      to={item.href}
+                      className="text-gray-300 hover:text-primary-400 transition-colors duration-200 text-sm inline-block transform hover:-translate-x-1"
+                    >
+                      {item.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          <div className="lg:col-span-2">
-            <h3 className="text-sm font-semibold text-primary-400 uppercase tracking-wider">
-              Support
-            </h3>
-            <ul className="mt-6 space-y-4">
-              {footerLinks.support.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    to={item.href}
-                    className="text-gray-300 hover:text-primary-400 transition-colors duration-200 inline-block transform hover:-translate-x-1"
-                  >
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <div className="space-y-6 sm:col-span-2 lg:col-span-1">
+            <div>
+              <h3 className="text-sm font-semibold text-primary-400 uppercase tracking-wider mb-4">
+                Support
+              </h3>
+              <ul className="space-y-2">
+                {footerLinks.support.map((item) => (
+                  <li key={item.name}>
+                    <Link
+                      to={item.href}
+                      className="text-gray-300 hover:text-primary-400 transition-colors duration-200 text-sm inline-block transform hover:-translate-x-1"
+                    >
+                      {item.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          {/* Newsletter Section */}
-          <div className="lg:col-span-2">
-            <h3 className="text-sm font-semibold text-primary-400 uppercase tracking-wider">
-              Stay Updated
-            </h3>
-            <p className="mt-6 text-gray-300 text-sm">
-              Subscribe to our newsletter for the latest updates and offers.
-            </p>
-            <form className="mt-4">
-              <div className="flex flex-col space-y-3">
+            {/* Newsletter Section - Compact */}
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-primary-400 uppercase tracking-wider mb-3">
+                Stay Updated
+              </h3>
+              <p className="text-gray-300 text-xs mb-3">
+                Get latest updates and offers.
+              </p>
+              <form className="space-y-2">
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-white placeholder-gray-400"
+                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-white placeholder-gray-400"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all duration-200 transform hover:-translate-y-0.5 text-sm font-medium"
+                  className="w-full px-3 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-all duration-200 text-sm font-medium transform hover:scale-105"
                 >
                   Subscribe
                 </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className="mt-16 pt-8 border-t border-gray-800">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-sm text-gray-400">
-              © {currentYear} VerifiedTutors. All rights reserved.
+        {/* Bottom Section - More compact */}
+        <div className="mt-12 pt-6 border-t border-gray-800/50">
+          <div className="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+            <p className="text-xs text-gray-400 text-center sm:text-left">
+              © {currentYear} VerifiedTutors. Made with <Heart className="inline h-3 w-3 text-red-500" /> for education.
             </p>
-            <div className="flex space-x-6">
-              <Link to="/privacy" className="text-sm text-gray-400 hover:text-primary-400 transition-colors duration-200">
+            <div className="flex flex-wrap justify-center sm:justify-end gap-4 sm:gap-6">
+              <Link to="/privacy" className="text-xs text-gray-400 hover:text-primary-400 transition-colors duration-200">
                 Privacy Policy
               </Link>
-              <Link to="/terms" className="text-sm text-gray-400 hover:text-primary-400 transition-colors duration-200">
+              <Link to="/terms" className="text-xs text-gray-400 hover:text-primary-400 transition-colors duration-200">
                 Terms of Service
               </Link>
-              <Link to="/cookies" className="text-sm text-gray-400 hover:text-primary-400 transition-colors duration-200">
+              <Link to="/cookies" className="text-xs text-gray-400 hover:text-primary-400 transition-colors duration-200">
                 Cookie Policy
               </Link>
             </div>
