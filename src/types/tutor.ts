@@ -1,4 +1,4 @@
-import { Subject } from '../contexts/AdminContext';
+import { Subject, Topic } from '../contexts/AdminContext';
 
 // Basic tutor profile interfaces
 export interface TutorProfile {
@@ -59,6 +59,8 @@ export interface Document {
 // Tutor subject interface
 export interface TutorSubject {
   subject: Subject;
+  bestTopics?: string[]; // Legacy string topics
+  topicObjects?: Topic[]; // New Topic objects
   rates: {
     individual: number;
     group: number;
@@ -93,7 +95,8 @@ export interface EditTutorFormData {
   subjects: Array<{
     _id: string;
     name: string;
-    bestTopics: string[];
+    bestTopics: string[]; // Legacy string topics
+    topicObjects?: Topic[]; // New Topic objects
     rates: {
       individual: number;
       group: number;

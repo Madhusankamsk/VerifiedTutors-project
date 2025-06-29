@@ -96,11 +96,21 @@ export interface Booking {
   createdAt: string;
 }
 
+export interface Topic {
+  _id: string;
+  name: string;
+  description: string;
+  subject: string | Subject;
+  isActive: boolean;
+  createdAt: string;
+}
+
 export interface Subject {
   _id: string;
   name: string;
   description: string;
-  topics: string[];
+  topics: string[]; // Legacy string topics
+  topicObjects?: Topic[]; // New Topic objects
   isActive: boolean;
   createdAt: string;
 }

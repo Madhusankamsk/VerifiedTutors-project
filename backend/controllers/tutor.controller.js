@@ -75,13 +75,31 @@ export const getTutors = async (req, res) => {
       }
     }
 
-    // Filter by topic (within best topics)
+    // Filter by topic (both legacy string topics and new Topic objects)
     if (topic) {
       try {
-        query['subjects.bestTopics'] = { $regex: new RegExp(topic, 'i') };
+        // First try to find Topic object by name
+        const Topic = (await import('../models/topic.model.js')).default;
+        const topicDoc = await Topic.findOne({
+          name: { $regex: new RegExp(topic, 'i') },
+          isActive: true
+        });
+
+        if (topicDoc) {
+          // Use Topic object ID for filtering
+          query.$or = [
+            { 'subjects.topicObjects': topicDoc._id },
+            { 'subjects.bestTopics': { $regex: new RegExp(topic, 'i') } }
+          ];
+        } else {
+          // Fallback to string-based filtering for legacy topics
+          query['subjects.bestTopics'] = { $regex: new RegExp(topic, 'i') };
+        }
         console.log('Topic filter applied:', topic);
       } catch (err) {
         console.error('Error in topic filtering:', err);
+        // Fallback to legacy filtering
+        query['subjects.bestTopics'] = { $regex: new RegExp(topic, 'i') };
       }
     }
 
@@ -184,6 +202,7 @@ export const getTutors = async (req, res) => {
     const tutors = await Tutor.find(query)
       .populate('user', 'name email profileImage')
       .populate('subjects.subject', 'name topics')
+      .populate('subjects.topicObjects', 'name description')
       .sort(sortOptions)
       .skip(skip)
       .limit(Number(limit));

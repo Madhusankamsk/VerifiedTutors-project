@@ -89,9 +89,20 @@ const tutorSchema = new mongoose.Schema({
       ref: 'Subject',
       required: true,
     },
+    // Legacy string topics for backward compatibility
     bestTopics: [{
       type: String,
-      required: true,
+      validate: {
+        validator: function(topics) {
+          return topics.length <= 5;
+        },
+        message: 'A tutor can have at most 5 best topics per subject'
+      }
+    }],
+    // New topic objects
+    topicObjects: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Topic',
       validate: {
         validator: function(topics) {
           return topics.length <= 5;
@@ -224,6 +235,8 @@ tutorSchema.index({ verificationStatus: 1 });
 tutorSchema.index({ rating: -1 });
 tutorSchema.index({ 'user.name': 1 });
 tutorSchema.index({ 'user.email': 1 });
+tutorSchema.index({ 'subjects.subject': 1 });
+tutorSchema.index({ 'subjects.topicObjects': 1 });
 
 const Tutor = mongoose.model('Tutor', tutorSchema);
 

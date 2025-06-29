@@ -7,10 +7,10 @@ const subjectSchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
+  // Legacy topics array for backward compatibility
   topics: [{
     type: String,
-    trim: true,
-    required: true
+    trim: true
   }],
   description: {
     type: String,
@@ -30,6 +30,13 @@ const subjectSchema = new mongoose.Schema({
 
 // Add text index for search
 subjectSchema.index({ name: 'text', description: 'text' });
+
+// Virtual to populate topics as objects
+subjectSchema.virtual('topicObjects', {
+  ref: 'Topic',
+  localField: '_id',
+  foreignField: 'subject'
+});
 
 const Subject = mongoose.model('Subject', subjectSchema);
 
