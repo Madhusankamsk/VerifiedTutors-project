@@ -27,23 +27,23 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   };
 
   return (
-    <div className="mb-6">
+    <div className="mb-5">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         {/* Left side - Title and description */}
         <div className="flex-1">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1.5">
             {title}
           </h1>
-          <p className="text-gray-600 text-sm sm:text-base">
+          <p className="text-gray-600 text-sm">
             {description}
           </p>
         </div>
         
         {/* Right side - Search Bar */}
-        <div className="lg:w-96">
-          <div className="relative flex">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400" />
+        <div className="lg:w-80">
+          <div className="relative flex shadow-sm">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+              <Search className="h-3.5 w-3.5 text-gray-400" />
             </div>
             <div className="relative flex-grow">
               <input
@@ -52,23 +52,23 @@ const PageHeader: React.FC<PageHeaderProps> = ({
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full pl-9 pr-8 py-3 text-sm border border-gray-200 rounded-l-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className="search-input"
               />
               {searchQuery && (
                 <button 
                   onClick={onSearchClear}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="search-clear-button"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3 w-3" />
                 </button>
               )}
             </div>
             <button
               onClick={onSearchSubmit}
-              className="px-4 bg-primary-600 hover:bg-primary-700 text-white rounded-r-lg transition-colors flex items-center justify-center"
+              className="search-button"
             >
-              <Search className="h-4 w-4" />
-              <span className="ml-1 hidden sm:inline">Search</span>
+              <Search className="h-3.5 w-3.5" />
+              <span className="ml-1.5 hidden sm:inline">Search</span>
             </button>
           </div>
         </div>

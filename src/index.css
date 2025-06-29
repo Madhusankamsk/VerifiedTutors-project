@@ -185,6 +185,19 @@ body {
   .filter-container::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
   }
+  
+  /* Search bar styles */
+  .search-input {
+    @apply w-full pl-8 pr-7 py-2 text-xs border border-gray-200 rounded-l-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-300 bg-white;
+  }
+  
+  .search-button {
+    @apply px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-r-lg transition-all duration-200 flex items-center justify-center text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 shadow-sm;
+  }
+  
+  .search-clear-button {
+    @apply absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-0.5 rounded-full hover:bg-gray-100;
+  }
 }
 
 /* Responsive improvements */

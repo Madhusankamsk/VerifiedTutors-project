@@ -250,35 +250,40 @@ const ManageTutors = () => {
       </div>
 
       {/* Search Bar */}
-      <div className="mb-6">
-        <div className="relative flex">
-          <input
-            type="text"
-            placeholder="Search tutors by name or email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleSearch();
-              }
-            }}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+      <div className="mb-5">
+        <div className="relative flex shadow-sm">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+            <Search className="h-3.5 w-3.5 text-gray-400" />
+          </div>
+          <div className="relative flex-grow">
+            <input
+              type="text"
+              placeholder="Search tutors by name or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSearch();
+                }
+              }}
+              className="w-full pl-8 pr-7 py-2 text-xs border border-gray-200 rounded-l-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-300 bg-white"
+            />
+            {searchTerm && (
+              <button
+                onClick={handleClearSearch}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-0.5 rounded-full hover:bg-gray-100"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
           <button
             onClick={handleSearch}
-            className="bg-blue-600 text-white px-4 py-2 hover:bg-blue-700 transition-colors"
+            className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-r-lg transition-all duration-200 flex items-center justify-center text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 shadow-sm"
           >
-            Search
+            <Search className="h-3.5 w-3.5" />
+            <span className="ml-1.5 hidden sm:inline">Search</span>
           </button>
-          {searchTerm && (
-            <button
-              onClick={handleClearSearch}
-              className="bg-gray-200 text-gray-700 px-4 py-2 rounded-r-md hover:bg-gray-300 transition-colors"
-            >
-              Clear
-            </button>
-          )}
         </div>
       </div>
 
