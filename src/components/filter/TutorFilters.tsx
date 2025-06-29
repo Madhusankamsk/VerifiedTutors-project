@@ -130,27 +130,27 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
       <div className="hidden lg:block">
         {/* Active Filter Tags */}
         {hasActiveFilters && (
-          <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-gray-900">Active Filters</h3>
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <div className="flex items-center justify-between mb-2.5">
+              <h3 className="text-xs font-medium text-gray-700">Active Filters</h3>
               <button
                 onClick={handleClearAll}
-                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
               >
                 Clear all
               </button>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {renderFilterTags().map((tag) => (
                 <div
                   key={tag.key}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-white text-gray-700 rounded-full text-sm font-medium border border-gray-200 shadow-sm"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white text-gray-700 rounded-full text-xs font-medium border border-gray-200 shadow-sm"
                 >
                   <span>{tag.label}</span>
                   {tag.canRemove && (
                     <button
                       onClick={tag.onRemove}
-                      className="hover:bg-gray-100 rounded-full p-0.5 transition-colors"
+                      className="hover:bg-gray-100 rounded-full p-0.5 transition-colors -mr-0.5"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -162,16 +162,16 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
         )}
 
         {/* Compact Filter Options - Left Side */}
-        <div className="flex flex-wrap gap-3 mb-6">
+        <div className="flex flex-wrap gap-2 mb-5">
           {/* Teaching Mode Options */}
           {teachingModes.map((mode) => (
             <button
               key={mode.value}
               onClick={() => handleTeachingModeSelect(mode.value)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 ${
                 filters.teachingMode === mode.value
-                  ? 'bg-primary-100 text-primary-700 border-2 border-primary-300 shadow-sm'
-                  : 'bg-gray-100 text-gray-700 border-2 border-transparent hover:bg-gray-200 hover:border-gray-300'
+                  ? 'bg-primary-50 text-primary-700 border border-primary-200 shadow-sm'
+                  : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 hover:border-gray-300 hover:text-gray-700'
               }`}
             >
               {mode.label}
@@ -181,10 +181,10 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
           {/* Female Tutors Only */}
           <button
             onClick={() => handleFemaleOnlyChange(!filters.extraFilters.femaleOnly)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 ${
               filters.extraFilters.femaleOnly
-                ? 'bg-primary-100 text-primary-700 border-2 border-primary-300 shadow-sm'
-                : 'bg-gray-100 text-gray-700 border-2 border-transparent hover:bg-gray-200 hover:border-gray-300'
+                ? 'bg-primary-50 text-primary-700 border border-primary-200 shadow-sm'
+                : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 hover:border-gray-300 hover:text-gray-700'
             }`}
           >
             Female Tutors
@@ -193,9 +193,9 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
         {/* Location - Show only when not online */}
         {filters.teachingMode && filters.teachingMode !== 'ONLINE' && (
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-900 mb-3">Location</h3>
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="mb-5">
+            <h3 className="text-xs font-medium text-gray-700 mb-2.5">Location</h3>
+            <div className="bg-white rounded-lg border border-gray-200 p-3">
               <LocationFilter
                 selectedLocation={filters.location}
                 onSelect={handleLocationSelect}
@@ -233,30 +233,30 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
               </button>
             </div>
             
-            <div className="p-4 space-y-6">
+            <div className="p-4 space-y-5">
               {/* Active Filter Tags */}
               {hasActiveFilters && (
-                <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-medium text-gray-900">Active Filters</h3>
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <h3 className="text-xs font-medium text-gray-700">Active Filters</h3>
                     <button
                       onClick={handleClearAll}
-                      className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                      className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
                     >
                       Clear all
                     </button>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {renderFilterTags().map((tag) => (
                       <div
                         key={tag.key}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-white text-gray-700 rounded-full text-sm font-medium border border-gray-200 shadow-sm"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white text-gray-700 rounded-full text-xs font-medium border border-gray-200 shadow-sm"
                       >
                         <span>{tag.label}</span>
                         {tag.canRemove && (
                           <button
                             onClick={tag.onRemove}
-                            className="hover:bg-gray-100 rounded-full p-0.5 transition-colors"
+                            className="hover:bg-gray-100 rounded-full p-0.5 transition-colors -mr-0.5"
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -269,17 +269,17 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
 
               {/* Compact Filter Options */}
               <div>
-                <h3 className="text-sm font-medium text-gray-900 mb-3">Quick Filters</h3>
-                <div className="flex flex-wrap gap-3">
+                <h3 className="text-xs font-medium text-gray-700 mb-2.5">Quick Filters</h3>
+                <div className="flex flex-wrap gap-2">
                   {/* Teaching Mode Options */}
                   {teachingModes.map((mode) => (
                     <button
                       key={mode.value}
                       onClick={() => handleTeachingModeSelect(mode.value)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 ${
                         filters.teachingMode === mode.value
-                          ? 'bg-primary-100 text-primary-700 border-2 border-primary-300 shadow-sm'
-                          : 'bg-gray-100 text-gray-700 border-2 border-transparent hover:bg-gray-200 hover:border-gray-300'
+                          ? 'bg-primary-50 text-primary-700 border border-primary-200 shadow-sm'
+                          : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 hover:border-gray-300 hover:text-gray-700'
                       }`}
                     >
                       {mode.label}
@@ -289,10 +289,10 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
                   {/* Female Tutors Only */}
                   <button
                     onClick={() => handleFemaleOnlyChange(!filters.extraFilters.femaleOnly)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 ${
                       filters.extraFilters.femaleOnly
-                        ? 'bg-primary-100 text-primary-700 border-2 border-primary-300 shadow-sm'
-                        : 'bg-gray-100 text-gray-700 border-2 border-transparent hover:bg-gray-200 hover:border-gray-300'
+                        ? 'bg-primary-50 text-primary-700 border border-primary-200 shadow-sm'
+                        : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 hover:border-gray-300 hover:text-gray-700'
                     }`}
                   >
                     Female Tutors
@@ -303,8 +303,8 @@ const TutorFilters: React.FC<TutorFiltersProps> = ({ onFilterChange }) => {
               {/* Location */}
               {filters.teachingMode && filters.teachingMode !== 'ONLINE' && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Location</h3>
-                  <div className="bg-white rounded-lg border border-gray-200 p-4">
+                  <h3 className="text-xs font-medium text-gray-700 mb-2.5">Location</h3>
+                  <div className="bg-white rounded-lg border border-gray-200 p-3">
                     <LocationFilter
                       selectedLocation={filters.location}
                       onSelect={handleLocationSelect}

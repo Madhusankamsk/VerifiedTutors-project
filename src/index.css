@@ -151,20 +151,20 @@ body {
   
   /* Filter button styles */
   .filter-btn {
-    @apply px-3 py-2 text-xs rounded-full transition-all whitespace-nowrap border font-medium;
+    @apply px-2.5 py-1 text-xs rounded-lg transition-all whitespace-nowrap border font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1;
   }
   
   .filter-btn-selected {
-    @apply bg-primary-100 text-primary-700 border-primary-200 shadow-md hover:bg-primary-200;
+    @apply bg-primary-50 text-primary-700 border-primary-200 shadow-sm hover:bg-primary-100;
   }
   
   .filter-btn-unselected {
-    @apply bg-white text-gray-700 hover:bg-gray-50 border-gray-200 hover:border-gray-300 hover:shadow-sm;
+    @apply bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100 hover:border-gray-300 hover:text-gray-700 hover:shadow-sm;
   }
   
   /* Compact filter container */
   .filter-container {
-    @apply flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1.5;
+    @apply flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1;
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
   }
