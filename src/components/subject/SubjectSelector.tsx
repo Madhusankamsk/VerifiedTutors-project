@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { useSubjects } from '../../contexts/SubjectContext';
 import { Video, Home, Users, Plus, Trash2, Save, X, Check, Edit2 } from 'lucide-react';
 
@@ -37,6 +37,11 @@ interface SubjectSelectorProps {
   onUpdateTimeSlot: (subjectId: string, day: string, slotIndex: number, start: string, end: string) => void;
 }
 
+export interface SubjectSelectorRef {
+  getCurrentRates: () => { [subjectId: string]: { individual: number; group: number; online: number } };
+  resetRates: () => void;
+}
+
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const TEACHING_MODES = [
@@ -45,16 +50,54 @@ const TEACHING_MODES = [
   { id: 'group', label: 'Group', icon: Users }
 ] as const;
 
-const SubjectSelector: React.FC<SubjectSelectorProps> = ({ 
+// Helper to get all days of week with empty slots
+type Availability = {
+  day: string;
+  slots: { start: string; end: string }[];
+};
+
+const getFullWeekAvailability = (existingAvailability: Availability[] = []): Availability[] => {
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  return days.map(day => {
+    const found = existingAvailability.find(a => a.day === day);
+    return found ? found : { day, slots: [] };
+  });
+};
+
+const SubjectSelector = forwardRef<SubjectSelectorRef, SubjectSelectorProps>(({ 
   selectedSubjects, 
   onSubjectsChange,
   onAddTimeSlot,
   onRemoveTimeSlot,
   onUpdateTimeSlot
-}) => {
+}, ref) => {
   const { subjects, loading, error } = useSubjects();
   const [editingSlot, setEditingSlot] = useState<{ day: string; index: number } | null>(null);
   const [tempSlotValues, setTempSlotValues] = useState<{ start: string; end: string } | null>(null);
+  
+  // Local state to track rate changes without triggering parent updates
+  const [localRates, setLocalRates] = useState<{ [subjectId: string]: { individual: number; group: number; online: number } }>({});
+
+  // Expose current rates to parent component
+  useImperativeHandle(ref, () => ({
+    getCurrentRates: () => localRates,
+    resetRates: () => {
+      const initialRates: { [subjectId: string]: { individual: number; group: number; online: number } } = {};
+      selectedSubjects.forEach(subject => {
+        initialRates[subject._id] = { ...subject.rates };
+      });
+      setLocalRates(initialRates);
+    }
+  }));
+
+  // Initialize local rates when selectedSubjects change
+  useEffect(() => {
+    const initialRates: { [subjectId: string]: { individual: number; group: number; online: number } } = {};
+    selectedSubjects.forEach(subject => {
+      initialRates[subject._id] = { ...subject.rates };
+    });
+    setLocalRates(initialRates);
+  }, [selectedSubjects]);
 
   const handleSubjectSelect = (subject: Subject) => {
     const tutorSubject: TutorSubject = {
@@ -66,7 +109,7 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
         group: 0,
         online: 0
       },
-      availability: []
+      availability: getFullWeekAvailability([])
     };
     onSubjectsChange([tutorSubject]); // Only allow one subject
   };
@@ -92,19 +135,14 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
   };
 
   const handleRateChange = (subjectId: string, mode: keyof TutorSubject['rates'], value: number) => {
-    const updatedSubjects = selectedSubjects.map(subject => {
-      if (subject._id === subjectId) {
-        return {
-          ...subject,
-          rates: {
-            ...subject.rates,
-            [mode]: value
-          }
-        };
+    // Update local rates without triggering parent update
+    setLocalRates(prev => ({
+      ...prev,
+      [subjectId]: {
+        ...prev[subjectId],
+        [mode]: value
       }
-      return subject;
-    });
-    onSubjectsChange(updatedSubjects);
+    }));
   };
 
   const handleRemoveSubject = (subjectId: string) => {
@@ -202,6 +240,9 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
         const subject = subjects.find(s => s._id === tutorSubject._id);
         if (!subject) return null;
 
+        // Use local rates if available, otherwise fall back to subject rates
+        const currentRates = localRates[tutorSubject._id] || tutorSubject.rates;
+
         return (
           <div key={tutorSubject._id} className="border border-gray-200 rounded-lg p-4">
             <div className="flex justify-between items-start mb-4">
@@ -264,7 +305,7 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
                     <input
                       type="number"
                       min="0"
-                      value={tutorSubject.rates[mode.id]}
+                      value={currentRates[mode.id]}
                       onChange={(e) => handleRateChange(tutorSubject._id, mode.id, Number(e.target.value))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                       placeholder="0"
@@ -278,8 +319,9 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
             <div>
               <h4 className="text-sm font-medium text-gray-900 mb-3">Set Your Availability</h4>
               <div className="space-y-3">
-                {DAYS_OF_WEEK.map((day) => {
-                  const daySlots = tutorSubject.availability.find(a => a.day === day)?.slots || [];
+                {getFullWeekAvailability(tutorSubject.availability).map((a) => {
+                  const day = a.day;
+                  const daySlots = a.slots;
                   
                   return (
                     <div key={day} className="border border-gray-200 rounded-lg p-3">
@@ -361,6 +403,8 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
       })}
     </div>
   );
-};
+});
+
+SubjectSelector.displayName = 'SubjectSelector';
 
 export default SubjectSelector; 

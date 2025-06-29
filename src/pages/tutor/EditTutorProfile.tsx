@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTutor } from '../../contexts/TutorContext';
 import { useSubjects } from '../../contexts/SubjectContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import { MapPin } from 'lucide-react';
 import LocationSelector from '../../components/location/LocationSelector';
-import SubjectSelector from '../../components/subject/SubjectSelector';
+import SubjectSelector, { SubjectSelectorRef } from '../../components/subject/SubjectSelector';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../../config/constants';
@@ -27,11 +27,26 @@ const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => {
   return `${hour}:00`;
 });
 
+// Helper to get all days of week with empty slots
+type Availability = {
+  day: string;
+  slots: { start: string; end: string }[];
+};
+
+const getFullWeekAvailability = (existingAvailability: Availability[] = []): Availability[] => {
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  return days.map(day => {
+    const found = existingAvailability.find(a => a.day === day);
+    return found ? found : { day, slots: [] };
+  });
+};
+
 const EditTutorProfile: React.FC = () => {
   const { profile, loading, error, updateProfile, uploadDocument, deleteDocument } = useTutor();
   const { subjects } = useSubjects();
   const { user, uploadProfilePhoto } = useAuth();
   const navigate = useNavigate();
+  const subjectSelectorRef = useRef<SubjectSelectorRef>(null);
   
   // State management
   const [formData, setFormData] = useState<EditTutorFormData>({
@@ -97,7 +112,7 @@ const EditTutorProfile: React.FC = () => {
             group: 0,
             online: 0
           },
-          availability: s.availability || [],
+          availability: getFullWeekAvailability(s.availability),
           createdAt: new Date().toISOString()
         })) || [],
         availableLocations: profile.availableLocations || '',
@@ -119,7 +134,19 @@ const EditTutorProfile: React.FC = () => {
   // Add effect to track form changes
   useEffect(() => {
     if (initialFormData) {
-      const hasFormChanges = JSON.stringify(formData) !== JSON.stringify(initialFormData);
+      // Get current rates from SubjectSelector
+      const currentRates = subjectSelectorRef.current?.getCurrentRates() || {};
+      
+      // Create a version of formData with current rates for comparison
+      const formDataWithCurrentRates = {
+        ...formData,
+        subjects: formData.subjects.map(subject => ({
+          ...subject,
+          rates: currentRates[subject._id] || subject.rates
+        }))
+      };
+      
+      const hasFormChanges = JSON.stringify(formDataWithCurrentRates) !== JSON.stringify(initialFormData);
       setHasChanges(hasFormChanges);
     }
   }, [formData, initialFormData]);
@@ -133,6 +160,8 @@ const EditTutorProfile: React.FC = () => {
       setFormData(initialFormData);
       setHasChanges(false);
       setShowDiscardConfirm(false);
+      // Reset local rates in SubjectSelector
+      subjectSelectorRef.current?.resetRates();
     }
   };
 
@@ -141,15 +170,27 @@ const EditTutorProfile: React.FC = () => {
     setIsSubmitting(true);
     
     try {
+      // Get current rates from SubjectSelector
+      const currentRates = subjectSelectorRef.current?.getCurrentRates() || {};
+      
+      // Update form data with current rates before submission
+      const updatedFormData = {
+        ...formData,
+        subjects: formData.subjects.map(subject => ({
+          ...subject,
+          rates: currentRates[subject._id] || subject.rates
+        }))
+      };
+
       const apiData: Partial<TutorProfile> = {
-        phone: formData.phone,
-        bio: formData.bio,
-        gender: formData.gender,
-        socialMedia: formData.socialMedia,
-        teachingMediums: formData.teachingMediums,
-        education: formData.education,
-        experience: formData.experience,
-        subjects: formData.subjects.map(s => {
+        phone: updatedFormData.phone,
+        bio: updatedFormData.bio,
+        gender: updatedFormData.gender,
+        socialMedia: updatedFormData.socialMedia,
+        teachingMediums: updatedFormData.teachingMediums,
+        education: updatedFormData.education,
+        experience: updatedFormData.experience,
+        subjects: updatedFormData.subjects.map(s => {
           const subject = subjects.find(sub => sub._id === s._id);
           if (!subject) {
             throw new Error(`Subject with id ${s._id} not found`);
@@ -167,13 +208,14 @@ const EditTutorProfile: React.FC = () => {
             availability: s.availability
           };
         }),
-        availableLocations: formData.availableLocations
+        availableLocations: updatedFormData.availableLocations
       };
 
       await updateProfile(apiData);
       toast.success('Profile updated successfully!');
       setHasChanges(false);
-      setInitialFormData(formData);
+      setInitialFormData(updatedFormData);
+      setFormData(updatedFormData);
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error('Failed to update profile. Please try again.');
@@ -457,6 +499,7 @@ const EditTutorProfile: React.FC = () => {
                     onAddTimeSlot={addTimeSlot}
                     onRemoveTimeSlot={removeTimeSlot}
                     onUpdateTimeSlot={updateTimeSlot}
+                    ref={subjectSelectorRef}
                   />
                 </div>
               </div>
