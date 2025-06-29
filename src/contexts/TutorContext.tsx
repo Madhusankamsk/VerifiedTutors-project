@@ -51,7 +51,7 @@ export interface TutorProfile {
   }[];
   availableLocations: string;
   documents: {
-    id: string;
+    id?: string;
     url: string;
   }[];
   rating: number;
@@ -703,8 +703,11 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           'Content-Type': 'multipart/form-data'
         }
       });
-      setProfile(prev => prev ? { ...prev, documents: [...prev.documents, response.data] } : null);
-      return response.data;
+      
+      // Handle the new response format
+      const documentData = response.data.data || response.data;
+      setProfile(prev => prev ? { ...prev, documents: [...prev.documents, documentData] } : null);
+      return documentData;
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Failed to upload document';
       setError(errorMessage);

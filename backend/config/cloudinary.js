@@ -14,7 +14,7 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'verified-tutors',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
     transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
   }
 });
@@ -23,14 +23,14 @@ const storage = new CloudinaryStorage({
 const upload = multer({ 
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 2 * 1024 * 1024 // 2MB limit
   },
   fileFilter: (req, file, cb) => {
-    // Allow only images and PDFs
-    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
+    // Allow only images
+    if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error('Only images and PDF files are allowed!'), false);
+      cb(new Error('Only image files (JPG, PNG) are allowed!'), false);
     }
   }
 });

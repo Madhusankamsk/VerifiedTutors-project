@@ -15,10 +15,13 @@ import {
   getTutorStats,
   getTutorBlogById,
   getTutorBookings,
-  updateBookingStatus
+  updateBookingStatus,
+  uploadDocument,
+  deleteDocument
 } from '../controllers/tutor.controller.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 import { validateTutorProfile } from '../middleware/validation.middleware.js';
+import { upload } from '../config/cloudinary.js';
 
 const router = express.Router();
 
@@ -29,6 +32,10 @@ router.get('/', getTutors);
 router.get('/profile', protect, getTutorByUserId);
 router.put('/profile', protect, authorize('tutor'), updateTutorProfile);
 router.delete('/profile', protect, authorize('tutor'), deleteTutorProfile);
+
+// Document routes
+router.post('/documents', protect, authorize('tutor'), upload.single('document'), uploadDocument);
+router.delete('/documents/:id', protect, authorize('tutor'), deleteDocument);
 
 // Booking routes
 router.get('/bookings', protect, authorize('tutor'), getTutorBookings);

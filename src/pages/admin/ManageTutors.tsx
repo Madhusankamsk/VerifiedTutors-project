@@ -715,36 +715,36 @@ const ManageTutors = () => {
                 {/* Documents Section */}
                 <div className="border rounded-lg overflow-hidden">
                   <div className="bg-gray-100 px-3 py-2 flex justify-between items-center">
-                    <h3 className="font-medium text-sm md:text-base text-gray-900">Documents</h3>
+                    <h3 className="font-medium text-sm md:text-base text-gray-900">Verification Images</h3>
                     {selectedTutor?.documents && selectedTutor.documents.length > 0 ? (
                       <span className="text-green-600 text-xs md:text-sm flex items-center">
                         <Check size={16} className="mr-1 flex-shrink-0" />
-                        {selectedTutor.documents.length} Documents
+                        {selectedTutor.documents.length} Images
                       </span>
                     ) : (
                       <span className="text-red-600 text-xs md:text-sm flex items-center">
                         <AlertTriangle size={16} className="mr-1 flex-shrink-0" />
-                        No Documents
+                        No Images
                       </span>
                     )}
                   </div>
                   <div className="p-3 md:p-4">
                     {selectedTutor?.documents && selectedTutor.documents.length > 0 ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                        {selectedTutor.documents.map((doc: string, index: number) => (
+                        {selectedTutor.documents.map((doc: { id?: string; url: string }, index: number) => (
                           <a
-                            key={index}
-                            href={doc}
+                            key={doc.id || index}
+                            href={doc.url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-800 text-xs md:text-sm flex items-center"
                           >
-                            Document {index + 1}
+                            Verification Image {index + 1}
                           </a>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs md:text-sm text-red-500">No documents provided</p>
+                      <p className="text-xs md:text-sm text-red-500">No verification images provided</p>
                     )}
                   </div>
                 </div>

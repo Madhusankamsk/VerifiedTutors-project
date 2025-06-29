@@ -52,7 +52,10 @@ export interface Tutor {
   rating?: number;
   totalRatings?: number;
   isVerified: boolean;
-  documents?: string[];
+  documents?: Array<{
+    id?: string;
+    url: string;
+  }>;
   createdAt: string;
   verificationStatus?: 'pending' | 'approved' | 'rejected';
   verificationDate?: string | Date;

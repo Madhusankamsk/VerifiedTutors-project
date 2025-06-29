@@ -1,66 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useTutor, TutorProfile, TutorSubject } from '../../contexts/TutorContext';
+import { useTutor } from '../../contexts/TutorContext';
 import { useSubjects } from '../../contexts/SubjectContext';
-import { Subject } from '../../contexts/AdminContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
-import { X, Plus, Save, Trash2, MapPin, BookOpen, GraduationCap, Briefcase, User, Phone, Mail, Clock, Upload, Camera, Globe, Languages, FileText, Eye, Users, Video } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import LocationSelector from '../../components/location/LocationSelector';
 import SubjectSelector from '../../components/subject/SubjectSelector';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../../config/constants';
 
-interface Document {
-  id: string;
-  url: string;
-}
+// Import new components
+import EditTutorProfileHeader from '../../components/tutor-profile/EditTutorProfileHeader';
+import EditTutorProfileBasicInfo from '../../components/tutor-profile/EditTutorProfileBasicInfo';
+import EditTutorProfileEducation, { Education } from '../../components/tutor-profile/EditTutorProfileEducation';
+import EditTutorProfileExperience, { Experience } from '../../components/tutor-profile/EditTutorProfileExperience';
+import EditTutorProfileDocuments, { Document } from '../../components/tutor-profile/EditTutorProfileDocuments';
+import EditTutorProfileDiscardDialog from '../../components/tutor-profile/EditTutorProfileDiscardDialog';
 
-interface FormData {
-  phone: string;
-  bio: string;
-  gender: 'Male' | 'Female' | 'Other';
-  socialMedia: {
-    instagram: string;
-    youtube: string;
-    facebook: string;
-    linkedin: string;
-  };
-  teachingMediums: string[];
-  education: Array<{
-    degree: string;
-    institution: string;
-    year: number;
-  }>;
-  experience: Array<{
-    title: string;
-    company: string;
-    duration: string;
-    description: string;
-  }>;
-  subjects: Array<{
-    _id: string;
-    name: string;
-    bestTopics: string[];
-    rates: {
-      individual: number;
-      group: number;
-      online: number;
-    };
-    availability: Array<{
-      day: string;
-      slots: Array<{
-        start: string;
-        end: string;
-      }>;
-    }>;
-  }>;
-  availableLocations: string;
-  documents: Array<{
-    id: string;
-    url: string;
-  }>;
-}
+// Import types
+import { EditTutorFormData, BasicInfoData, TutorProfile } from '../../types/tutor';
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => {
@@ -68,18 +27,14 @@ const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => {
   return `${hour}:00`;
 });
 
-const LANGUAGE_MEDIUMS = [
-  { id: 'english', name: 'English', flag: '🇬🇧' },
-  { id: 'sinhala', name: 'Sinhala', flag: '🇱🇰' },
-  { id: 'tamil', name: 'Tamil', flag: '🇱🇰' },
-];
-
 const EditTutorProfile: React.FC = () => {
   const { profile, loading, error, updateProfile, uploadDocument, deleteDocument } = useTutor();
   const { subjects } = useSubjects();
   const { user, uploadProfilePhoto } = useAuth();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<FormData>({
+  
+  // State management
+  const [formData, setFormData] = useState<EditTutorFormData>({
     phone: '',
     bio: '',
     gender: 'Male',
@@ -96,14 +51,14 @@ const EditTutorProfile: React.FC = () => {
     availableLocations: '',
     documents: []
   });
-  const [initialFormData, setInitialFormData] = useState<FormData | null>(null);
+  const [initialFormData, setInitialFormData] = useState<EditTutorFormData | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [selectedMediums, setSelectedMediums] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     // Check if user is authenticated and is a tutor
@@ -120,7 +75,7 @@ const EditTutorProfile: React.FC = () => {
     }
 
     if (profile) {
-      const newFormData = {
+      const newFormData: EditTutorFormData = {
         phone: profile.phone || '',
         bio: profile.bio || '',
         gender: profile.gender || 'Male',
@@ -142,16 +97,16 @@ const EditTutorProfile: React.FC = () => {
             group: 0,
             online: 0
           },
-          availability: s.availability || []
+          availability: s.availability || [],
+          createdAt: new Date().toISOString()
         })) || [],
         availableLocations: profile.availableLocations || '',
         documents: profile.documents.map(d => ({
-          id: d.id,
+          id: d.id || d.url,
           url: d.url
         })) || []
       };
       setFormData(newFormData);
-      console.log("newFormData", newFormData);
       setInitialFormData(newFormData);
       
       // Set the profile image if it exists
@@ -183,6 +138,8 @@ const EditTutorProfile: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    
     try {
       const apiData: Partial<TutorProfile> = {
         phone: formData.phone,
@@ -198,35 +155,71 @@ const EditTutorProfile: React.FC = () => {
             throw new Error(`Subject with id ${s._id} not found`);
           }
           return {
-            subject: subject as Subject,
+            subject: {
+              _id: subject._id,
+              name: subject.name,
+              description: subject.description,
+              topics: subject.topics,
+              isActive: subject.isActive,
+              createdAt: new Date().toISOString()
+            },
             rates: s.rates,
             availability: s.availability
           };
         }),
-        availableLocations: formData.availableLocations,
-        documents: formData.documents
+        availableLocations: formData.availableLocations
       };
 
       await updateProfile(apiData);
       toast.success('Profile updated successfully!');
       setHasChanges(false);
-    } catch (error: any) {
+      setInitialFormData(formData);
+    } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error(error.response?.data?.message || 'Failed to update profile');
+      toast.error('Failed to update profile. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setSelectedDocuments(prev => [...prev, ...files]);
-  };
-
-  const handleDocumentUpload = async () => {
-    if (selectedDocuments.length === 0) {
-      toast.error('Please select at least one document');
+    
+    // Check if adding these files would exceed the limit
+    if (files.length + selectedDocuments.length > 5) {
+      toast.error('Maximum 5 images allowed');
       return;
     }
 
+    // Validate each file
+    const validFiles: File[] = [];
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+
+    for (const file of files) {
+      // Check file size
+      if (file.size > maxSize) {
+        toast.error(`${file.name} is too large. Maximum file size is 2MB.`);
+        continue;
+      }
+
+      // Check file type
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(`${file.name} is not a supported file type. Please upload JPG or PNG images only.`);
+        continue;
+      }
+
+      validFiles.push(file);
+    }
+
+    if (validFiles.length > 0) {
+      setSelectedDocuments(prev => [...prev, ...validFiles]);
+    }
+  };
+
+  const handleDocumentUpload = async () => {
+    if (selectedDocuments.length === 0) return;
+    
     setUploading(true);
     try {
       for (const file of selectedDocuments) {
@@ -234,21 +227,30 @@ const EditTutorProfile: React.FC = () => {
       }
       setSelectedDocuments([]);
       toast.success('Documents uploaded successfully!');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error uploading documents:', error);
-      toast.error(error.response?.data?.message || 'Failed to upload documents');
+      toast.error('Failed to upload documents. Please try again.');
     } finally {
       setUploading(false);
     }
   };
 
   const handleDeleteDocument = async (documentId: string) => {
+    if (!documentId) {
+      toast.error('Invalid document ID');
+      return;
+    }
+    
     try {
       await deleteDocument(documentId);
-      toast.success('Document deleted successfully!');
-    } catch (error: any) {
+      setFormData(prev => ({
+        ...prev,
+        documents: prev.documents.filter(doc => doc.id !== documentId)
+      }));
+      toast.success('Image deleted successfully!');
+    } catch (error) {
       console.error('Error deleting document:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete document');
+      toast.error('Failed to delete image. Please try again.');
     }
   };
 
@@ -259,152 +261,127 @@ const EditTutorProfile: React.FC = () => {
   const handleSubjectSelect = (selectedSubjects: Array<{ _id: string; name: string; bestTopics: string[] }>) => {
     setFormData(prev => ({
       ...prev,
-      subjects: selectedSubjects.map(subject => ({
-        _id: subject._id,
-        name: subject.name,
-        bestTopics: subject.bestTopics || [],
-        rates: {
+      subjects: selectedSubjects.map(s => ({
+        ...s,
+        rates: prev.subjects.find(p => p._id === s._id)?.rates || {
           individual: 0,
           group: 0,
           online: 0
         },
-        availability: []
+        availability: prev.subjects.find(p => p._id === s._id)?.availability || []
       }))
     }));
   };
 
   const handleLocationChange = (availableLocations: string) => {
-    setFormData(prev => ({
-      ...prev,
-      availableLocations
-    }));
+    setFormData(prev => ({ ...prev, availableLocations }));
   };
 
   const handleRateChange = (subjectId: string, rateType: 'individual' | 'group' | 'online', value: string) => {
-    const rate = value === '' ? 0 : Math.max(0, Number(value));
     setFormData(prev => ({
       ...prev,
-      subjects: prev.subjects.map(s => 
-        s._id === subjectId ? {
-          ...s,
-          rates: {
-            ...s.rates,
-            [rateType]: rate
-          }
-        } : s
+      subjects: prev.subjects.map(s =>
+        s._id === subjectId
+          ? { ...s, rates: { ...s.rates, [rateType]: parseFloat(value) || 0 } }
+          : s
       )
     }));
   };
 
   const addTimeSlot = (subjectId: string, day: string) => {
-    setFormData(prev => {
-      const newFormData = JSON.parse(JSON.stringify(prev));
-      
-      const subjectIndex = newFormData.subjects.findIndex((s: { _id: string }) => s._id === subjectId);
-      if (subjectIndex === -1) return prev;
-      
-      const subject = newFormData.subjects[subjectIndex];
-      const dayAvailability = subject.availability.find((a: { day: string }) => a.day === day);
-      
-      if (dayAvailability) {
-        dayAvailability.slots.push({ start: '09:00', end: '10:00' });
-      } else {
-        subject.availability.push({
-          day,
-          slots: [{ start: '09:00', end: '10:00' }]
-        });
-      }
-      
-      return newFormData;
-    });
+    setFormData(prev => ({
+      ...prev,
+      subjects: prev.subjects.map(s =>
+        s._id === subjectId
+          ? {
+              ...s,
+              availability: s.availability.map(a =>
+                a.day === day
+                  ? { ...a, slots: [...a.slots, { start: '09:00', end: '10:00' }] }
+                  : a
+              )
+            }
+          : s
+      )
+    }));
   };
 
   const removeTimeSlot = (subjectId: string, day: string, slotIndex: number) => {
-    setFormData(prev => {
-      const newFormData = JSON.parse(JSON.stringify(prev));
-      
-      const subjectIndex = newFormData.subjects.findIndex((s: { _id: string }) => s._id === subjectId);
-      if (subjectIndex === -1) return prev;
-      
-      const subject = newFormData.subjects[subjectIndex];
-      const dayAvailabilityIndex = subject.availability.findIndex((a: { day: string }) => a.day === day);
-      
-      if (dayAvailabilityIndex !== -1) {
-        const dayAvailability = subject.availability[dayAvailabilityIndex];
-        dayAvailability.slots.splice(slotIndex, 1);
-        
-        if (dayAvailability.slots.length === 0) {
-          subject.availability.splice(dayAvailabilityIndex, 1);
-        }
-      }
-      
-      return newFormData;
-    });
+    setFormData(prev => ({
+      ...prev,
+      subjects: prev.subjects.map(s =>
+        s._id === subjectId
+          ? {
+              ...s,
+              availability: s.availability.map(a =>
+                a.day === day
+                  ? { ...a, slots: a.slots.filter((_, i) => i !== slotIndex) }
+                  : a
+              )
+            }
+          : s
+      )
+    }));
   };
 
   const updateTimeSlot = (subjectId: string, day: string, slotIndex: number, start: string, end: string) => {
-    setFormData(prev => {
-      const newFormData = JSON.parse(JSON.stringify(prev));
-      
-      const subjectIndex = newFormData.subjects.findIndex((s: { _id: string }) => s._id === subjectId);
-      if (subjectIndex === -1) return prev;
-      
-      const subject = newFormData.subjects[subjectIndex];
-      const dayAvailability = subject.availability.find((a: { day: string }) => a.day === day);
-      
-      if (dayAvailability && dayAvailability.slots[slotIndex]) {
-        dayAvailability.slots[slotIndex].start = start;
-        dayAvailability.slots[slotIndex].end = end;
-      }
-      
-      return newFormData;
-    });
+    setFormData(prev => ({
+      ...prev,
+      subjects: prev.subjects.map(s =>
+        s._id === subjectId
+          ? {
+              ...s,
+              availability: s.availability.map(a =>
+                a.day === day
+                  ? {
+                      ...a,
+                      slots: a.slots.map((slot, i) =>
+                        i === slotIndex ? { start, end } : slot
+                      )
+                    }
+                  : a
+              )
+            }
+          : s
+      )
+    }));
   };
 
   const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('File size must be less than 2MB');
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size should be less than 5MB');
-      return;
-    }
-
+    setIsUploading(true);
     try {
-      setIsUploading(true);
-      console.log('Starting profile photo upload...');
-      
       const imageUrl = await uploadProfilePhoto(file);
-      console.log('Profile photo uploaded successfully:', imageUrl);
-      
       setProfileImage(imageUrl);
-      toast.success('Profile picture updated successfully');
-    } catch (error: any) {
-      console.error('Profile photo upload error:', error);
-      toast.error(error.message || 'Failed to upload profile picture');
+      toast.success('Profile image updated successfully!');
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      toast.error('Failed to upload profile image. Please try again.');
     } finally {
       setIsUploading(false);
     }
   };
 
-  const handleMediumToggle = (mediumId: string) => {
-    setFormData(prev => {
-      const newTeachingMediums = prev.teachingMediums.includes(mediumId)
-        ? prev.teachingMediums.filter(id => id !== mediumId)
-        : [...prev.teachingMediums, mediumId];
-      
-      return {
-        ...prev,
-        teachingMediums: newTeachingMediums
-      };
-    });
+  // Handler for basic info changes
+  const handleBasicInfoChange = (data: Partial<BasicInfoData>) => {
+    setFormData(prev => ({ ...prev, ...data }));
+  };
+
+  // Handler for education changes
+  const handleEducationChange = (education: Education[]) => {
+    setFormData(prev => ({ ...prev, education }));
+  };
+
+  // Handler for experience changes
+  const handleExperienceChange = (experience: Experience[]) => {
+    setFormData(prev => ({ ...prev, experience }));
   };
 
   if (loading) {
@@ -424,505 +401,59 @@ const EditTutorProfile: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12 pb-32">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
-          {/* Floating Action Bar */}
-          {hasChanges && (
-            <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200 shadow-lg z-50">
-              <div className="container mx-auto px-4 py-4">
-                <div className="max-w-4xl mx-auto flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-                    <span className="text-gray-600 font-medium">You have unsaved changes</span>
-                  </div>
-                  <div className="flex gap-4">
-                    <button
-                      type="button"
-                      onClick={handleDiscard}
-                      className="inline-flex items-center px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                    >
-                      <X className="w-5 h-5 mr-2" />
-                      Discard Changes
-                    </button>
-                    <button
-                      type="submit"
-                      form="profile-form"
-                      className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                    >
-                      <Save className="w-5 h-5 mr-2" />
-                      Save Changes
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          <EditTutorProfileHeader
+            hasChanges={hasChanges}
+            onDiscard={handleDiscard}
+            onSave={() => {}}
+            isSubmitting={isSubmitting}
+          />
 
-          {/* Discard Confirmation Dialog */}
-          {showDiscardConfirm && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-              <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Discard Changes?</h3>
-                <p className="text-gray-600 mb-6">
-                  Are you sure you want to discard all changes? This action cannot be undone.
-                </p>
-                <div className="flex justify-end gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowDiscardConfirm(false)}
-                    className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={confirmDiscard}
-                    className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors duration-200"
-                  >
-                    Discard Changes
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-              Edit Profile
-            </h1>
-          </div>
+          <EditTutorProfileDiscardDialog
+            isOpen={showDiscardConfirm}
+            onCancel={() => setShowDiscardConfirm(false)}
+            onConfirm={confirmDiscard}
+          />
 
           <form id="profile-form" onSubmit={handleSubmit} className="space-y-8">
-            {/* Profile Picture & Basic Info */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 p-8">
-              <div className="flex flex-col md:flex-row gap-8">
-                {/* Profile Picture */}
-                <div className="flex-shrink-0">
-                  <div className="relative group w-40 h-40">
-                    <div className="w-full h-full rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center overflow-hidden">
-                      {profileImage ? (
-                        <img src={profileImage} alt="Profile" className="w-full h-full object-cover rounded-2xl" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <User className="w-10 h-10 text-white" />
-                        </div>
-                      )}
-                    </div>
-                    <label
-                      htmlFor="profile-image"
-                      className={`absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-b from-black/60 to-black/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-2xl cursor-pointer ${
-                        isUploading ? 'cursor-not-allowed opacity-50' : ''
-                      }`}
-                    >
-                      <div className="flex flex-col items-center transform group-hover:scale-105 transition-transform duration-300">
-                        <div className="bg-white/10 p-3 rounded-full mb-2">
-                          <Camera className="w-6 h-6 text-white" />
-                        </div>
-                        <span className="text-white text-sm font-medium tracking-wide">Change Photo</span>
-                      </div>
-                    </label>
-                    <input
-                      id="profile-image"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleProfileImageUpload}
-                      disabled={isUploading}
-                    />
-                    {isUploading && (
-                      <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-black/30 backdrop-blur-sm rounded-2xl">
-                        <div className="flex flex-col items-center">
-                          <div className="animate-spin rounded-full h-10 w-10 border-4 border-white border-t-transparent mb-2"></div>
-                          <span className="text-white text-sm font-medium">Uploading...</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-500 mt-3 text-center font-medium">
-                    Max file size: 5MB • JPG, PNG, GIF
-                  </p>
-                </div>
-
-                {/* Basic Information */}
-                <div className="flex-1 space-y-6">
-                  <h2 className="text-xl font-semibold flex items-center text-gray-900">
-                    <User className="w-5 h-5 mr-2 text-primary-600" />
-                    Basic Information
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                        Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        id="phone"
-                        value={formData.phone}
-                        onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                        className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
-                        Gender
-                      </label>
-                      <select
-                        id="gender"
-                        value={formData.gender}
-                        onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value as 'Male' | 'Female' | 'Other' }))}
-                        className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                      >
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Social Media Links */}
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Social Media Links</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="instagram" className="block text-sm font-medium text-gray-700 mb-1">
-                          Instagram
-                        </label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-gray-500">@</span>
-                          </div>
-                          <input
-                            type="text"
-                            id="instagram"
-                            value={formData.socialMedia.instagram}
-                            onChange={(e) => setFormData(prev => ({
-                              ...prev,
-                              socialMedia: { ...prev.socialMedia, instagram: e.target.value }
-                            }))}
-                            className="pl-8 w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                            placeholder="username"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label htmlFor="youtube" className="block text-sm font-medium text-gray-700 mb-1">
-                          YouTube
-                        </label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-gray-500">@</span>
-                          </div>
-                          <input
-                            type="text"
-                            id="youtube"
-                            value={formData.socialMedia.youtube}
-                            onChange={(e) => setFormData(prev => ({
-                              ...prev,
-                              socialMedia: { ...prev.socialMedia, youtube: e.target.value }
-                            }))}
-                            className="pl-8 w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                            placeholder="channel"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label htmlFor="facebook" className="block text-sm font-medium text-gray-700 mb-1">
-                          Facebook
-                        </label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-gray-500">@</span>
-                          </div>
-                          <input
-                            type="text"
-                            id="facebook"
-                            value={formData.socialMedia.facebook}
-                            onChange={(e) => setFormData(prev => ({
-                              ...prev,
-                              socialMedia: { ...prev.socialMedia, facebook: e.target.value }
-                            }))}
-                            className="pl-8 w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                            placeholder="username"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label htmlFor="linkedin" className="block text-sm font-medium text-gray-700 mb-1">
-                          LinkedIn
-                        </label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-gray-500">@</span>
-                          </div>
-                          <input
-                            type="text"
-                            id="linkedin"
-                            value={formData.socialMedia.linkedin}
-                            onChange={(e) => setFormData(prev => ({
-                              ...prev,
-                              socialMedia: { ...prev.socialMedia, linkedin: e.target.value }
-                            }))}
-                            className="pl-8 w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                            placeholder="username"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Language Mediums */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Teaching Mediums
-                    </label>
-                    <div className="flex flex-wrap gap-3">
-                      {LANGUAGE_MEDIUMS.map((medium) => (
-                        <button
-                          key={`medium-${medium.id}`}
-                          type="button"
-                          onClick={() => handleMediumToggle(medium.id)}
-                          className={`flex items-center px-4 py-2 rounded-xl border transition-all duration-200 ${
-                            formData.teachingMediums.includes(medium.id)
-                              ? 'bg-primary-50 border-primary-200 text-primary-700'
-                              : 'bg-white border-gray-200 text-gray-600 hover:border-primary-200'
-                          }`}
-                        >
-                          <span className="mr-2">{medium.flag}</span>
-                          {medium.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
-                      Bio
-                    </label>
-                    <textarea
-                      id="bio"
-                      value={formData.bio}
-                      onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                      rows={4}
-                      className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Basic Information */}
+            <EditTutorProfileBasicInfo
+              data={{
+                phone: formData.phone,
+                bio: formData.bio,
+                gender: formData.gender,
+                socialMedia: formData.socialMedia,
+                teachingMediums: formData.teachingMediums
+              }}
+              profileImage={profileImage}
+              isUploading={isUploading}
+              onDataChange={handleBasicInfoChange}
+              onProfileImageUpload={handleProfileImageUpload}
+            />
 
             {/* Education Section */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 p-8">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold flex items-center text-gray-900">
-                  <GraduationCap className="w-5 h-5 mr-2 text-primary-600" />
-                  Education
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({
-                    ...prev,
-                    education: [...prev.education, { degree: '', institution: '', year: new Date().getFullYear() }]
-                  }))}
-                  className="inline-flex items-center px-4 py-2 bg-primary-50 text-primary-700 rounded-xl hover:bg-primary-100 transition-all duration-200"
-                >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Add Education
-                </button>
-              </div>
-              <div className="space-y-4">
-                {formData.education.map((edu, index) => (
-                  <div key={`education-${edu.degree}-${edu.institution}-${edu.year}-${index}`} className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Degree</label>
-                          <input
-                            type="text"
-                            value={edu.degree}
-                            onChange={(e) => {
-                              const newEducation = formData.education.map((item, i) =>
-                                i === index ? { ...item, degree: e.target.value } : item
-                              );
-                              setFormData(prev => ({ ...prev, education: newEducation }));
-                            }}
-                            className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Institution</label>
-                          <input
-                            type="text"
-                            value={edu.institution}
-                            onChange={(e) => {
-                              const newEducation = formData.education.map((item, i) =>
-                                i === index ? { ...item, institution: e.target.value } : item
-                              );
-                              setFormData(prev => ({ ...prev, education: newEducation }));
-                            }}
-                            className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
-                          <input
-                            type="number"
-                            value={edu.year}
-                            onChange={(e) => {
-                              const newEducation = formData.education.map((item, i) =>
-                                i === index ? { ...item, year: parseInt(e.target.value) } : item
-                              );
-                              setFormData(prev => ({ ...prev, education: newEducation }));
-                            }}
-                            min={1900}
-                            max={new Date().getFullYear()}
-                            className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newEducation = formData.education.filter((_, i) => i !== index);
-                          setFormData(prev => ({ ...prev, education: newEducation }));
-                        }}
-                        className="ml-4 p-2 text-red-600 hover:text-red-700 transition-colors duration-200"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <EditTutorProfileEducation
+              education={formData.education}
+              onEducationChange={handleEducationChange}
+            />
 
             {/* Experience Section */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 p-8">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold flex items-center text-gray-900">
-                  <Briefcase className="w-5 h-5 mr-2 text-primary-600" />
-                  Experience
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({
-                    ...prev,
-                    experience: [...prev.experience, { title: '', company: '', duration: '', description: '' }]
-                  }))}
-                  className="inline-flex items-center px-4 py-2 bg-primary-50 text-primary-700 rounded-xl hover:bg-primary-100 transition-all duration-200"
-                >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Add Experience
-                </button>
-              </div>
-              <div className="space-y-4">
-                {formData.experience.map((exp, index) => (
-                  <div key={`experience-${exp.title}-${exp.company}-${exp.duration}-${index}`} className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                            <input
-                              type="text"
-                              value={exp.title}
-                              onChange={(e) => {
-                                const newExperience = formData.experience.map((item, i) =>
-                                  i === index ? { ...item, title: e.target.value } : item
-                                );
-                                setFormData(prev => ({ ...prev, experience: newExperience }));
-                              }}
-                              className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
-                            <input
-                              type="text"
-                              value={exp.company}
-                              onChange={(e) => {
-                                const newExperience = formData.experience.map((item, i) =>
-                                  i === index ? { ...item, company: e.target.value } : item
-                                );
-                                setFormData(prev => ({ ...prev, experience: newExperience }));
-                              }}
-                              className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                              required
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
-                          <input
-                            type="text"
-                            value={exp.duration}
-                            onChange={(e) => {
-                              const newExperience = formData.experience.map((item, i) =>
-                                i === index ? { ...item, duration: e.target.value } : item
-                              );
-                              setFormData(prev => ({ ...prev, experience: newExperience }));
-                            }}
-                            className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                          <textarea
-                            value={exp.description}
-                            onChange={(e) => {
-                              const newExperience = formData.experience.map((item, i) =>
-                                i === index ? { ...item, description: e.target.value } : item
-                              );
-                              setFormData(prev => ({ ...prev, experience: newExperience }));
-                            }}
-                            rows={3}
-                            className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newExperience = formData.experience.filter((_, i) => i !== index);
-                          setFormData(prev => ({ ...prev, experience: newExperience }));
-                        }}
-                        className="ml-4 p-2 text-red-600 hover:text-red-700 transition-colors duration-200"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <EditTutorProfileExperience
+              experience={formData.experience}
+              onExperienceChange={handleExperienceChange}
+            />
 
             {/* Subjects Section */}
             <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Subject & Rates</h2>
-
               <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
-                {/* Subject Selection */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Select Your Subject</label>
                   <SubjectSelector
                     selectedSubjects={formData.subjects}
-                    onSubjectsChange={(subjects) => {
-                      setFormData(prev => ({
-                        ...prev,
-                        subjects: subjects.map(s => ({
-                          ...s,
-                          availability: prev.subjects.find(p => p._id === s._id)?.availability || []
-                        }))
-                      }));
-                    }}
+                    onSubjectsChange={handleSubjectSelect}
                     onAddTimeSlot={addTimeSlot}
                     onRemoveTimeSlot={removeTimeSlot}
                     onUpdateTimeSlot={updateTimeSlot}
@@ -944,130 +475,15 @@ const EditTutorProfile: React.FC = () => {
             </div>
 
             {/* Documents Section */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 p-8">
-              <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-900">
-                <Upload className="w-5 h-5 mr-2 text-primary-600" />
-                Documents
-              </h2>
-              
-              {/* Selected Documents Preview */}
-              {selectedDocuments.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">Selected Documents ({selectedDocuments.length}/5)</h3>
-                  <div className="space-y-2">
-                    {selectedDocuments.map((file, index) => (
-                      <div key={`selected-doc-${file.name}-${file.size}-${index}`} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <FileText className="w-5 h-5 text-gray-400" />
-                          <span className="text-sm text-gray-600">{file.name}</span>
-                          <span className="text-xs text-gray-500">
-                            ({(file.size / (1024 * 1024)).toFixed(2)}MB)
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeSelectedDocument(index)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleDocumentUpload}
-                    disabled={uploading}
-                    className="mt-4 w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {uploading ? (
-                      <>
-                        <div className="w-4 h-4 mr-2">
-                          <LoadingSpinner size="small" />
-                        </div>
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-4 h-4 mr-2" />
-                        Upload Documents
-                      </>
-                    )}
-                  </button>
-                </div>
-              )}
-
-              {/* Document Upload Area */}
-              <div className="mt-6">
-                <div className="block text-sm font-medium text-yellow-700 mb-2">
-                  <span className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                    </svg>
-                    Tip: Upload photos of your identity, qualification and certification for Earn <span className="font-bold text-primary-600">VERIFIED</span> Badge
-                  </span>
-                </div>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:border-primary-500 transition-colors duration-200">
-                  <div className="space-y-2 text-center">
-                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                    <div className="flex text-sm text-gray-600">
-                      <label
-                        htmlFor="document-upload"
-                        className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
-                      >
-                        <span>Select files</span>
-                        <input
-                          id="document-upload"
-                          type="file"
-                          className="sr-only"
-                          onChange={handleDocumentSelect}
-                          multiple
-                          accept=".jpg,.jpeg,.png"
-                          disabled={uploading || selectedDocuments.length >= 5}
-                        />
-                      </label>
-                      <p className="pl-1">or drag and drop</p>
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      JPG, PNG up to 5MB each (max 5 documents)
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Existing Documents */}
-              {formData.documents && formData.documents.length > 0 && (
-                <div className="mt-8">
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">Uploaded Documents</h3>
-                  <div className="space-y-2">
-                    {formData.documents.map((doc, index) => (
-                      <div key={`doc-${doc.id}-${doc.url}`} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <FileText className="w-5 h-5 text-gray-400" />
-                          <span className="text-sm text-gray-600">Document {index + 1}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <button
-                            type="button"
-                            onClick={() => window.open(doc.url, '_blank')}
-                            className="text-primary-600 hover:text-primary-700"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteDocument(doc.id)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <EditTutorProfileDocuments
+              documents={formData.documents}
+              selectedDocuments={selectedDocuments}
+              uploading={uploading}
+              onDocumentSelect={handleDocumentSelect}
+              onDocumentUpload={handleDocumentUpload}
+              onDeleteDocument={handleDeleteDocument}
+              onRemoveSelectedDocument={removeSelectedDocument}
+            />
           </form>
         </div>
       </div>

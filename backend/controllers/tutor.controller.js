@@ -5,6 +5,7 @@ import Subject from '../models/subject.model.js';
 import Rating from '../models/rating.model.js';
 import Session from '../models/session.model.js';
 import Booking from '../models/booking.model.js';
+import { cloudinary } from '../config/cloudinary.js';
 
 // @desc    Get all tutors
 // @route   GET /api/tutors
@@ -441,7 +442,7 @@ export const updateTutorProfile = async (req, res) => {
         education: req.body.education,
         experience: req.body.experience,
         subjects: req.body.subjects,
-        locations: req.body.locations,
+        availableLocations: req.body.availableLocations,
         documents: req.body.documents,
         updatedAt: new Date()
       } },
@@ -905,6 +906,90 @@ export const updateBookingStatus = async (req, res) => {
     res.status(500).json({ 
       message: 'Error updating booking status',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Upload document
+// @route   POST /api/tutors/documents
+// @access  Private (Tutor only)
+export const uploadDocument = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const tutor = await Tutor.findOne({ user: req.user._id });
+    if (!tutor) {
+      return res.status(404).json({ message: 'Tutor profile not found' });
+    }
+
+    // Add the document to the tutor's documents array
+    const document = {
+      id: req.file.filename,
+      url: req.file.path,
+      type: req.body.type || 'other',
+      uploadedAt: new Date()
+    };
+
+    tutor.documents.push(document);
+    await tutor.save();
+
+    res.status(200).json({
+      success: true,
+      data: document,
+      message: 'Document uploaded successfully'
+    });
+  } catch (error) {
+    console.error('Document upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload document'
+    });
+  }
+};
+
+// @desc    Delete document
+// @route   DELETE /api/tutors/documents/:id
+// @access  Private (Tutor only)
+export const deleteDocument = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const tutor = await Tutor.findOne({ user: req.user._id });
+    if (!tutor) {
+      return res.status(404).json({ message: 'Tutor profile not found' });
+    }
+
+    // Find the document
+    const documentIndex = tutor.documents.findIndex(doc => doc.id === id);
+    if (documentIndex === -1) {
+      return res.status(404).json({ message: 'Document not found' });
+    }
+
+    const document = tutor.documents[documentIndex];
+
+    // Delete the file from Cloudinary
+    try {
+      await cloudinary.uploader.destroy(id);
+    } catch (cloudinaryError) {
+      console.error('Error deleting file from Cloudinary:', cloudinaryError);
+      // Continue with database deletion even if Cloudinary deletion fails
+    }
+
+    // Remove the document from the array
+    tutor.documents.splice(documentIndex, 1);
+    await tutor.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Document deleted successfully'
+    });
+  } catch (error) {
+    console.error('Document delete error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete document'
     });
   }
 }; 
