@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTutor, TutorProfile } from '../contexts/TutorContext';
 import { useSubjects } from '../contexts/SubjectContext';
 import TutorFilters, { FilterState } from '../components/filter/TutorFilters';
+import SubjectBubbles from '../components/filter/SubjectBubbles';
+import SubjectTopics from '../components/filter/SubjectTopics';
 import { useScrollToTop } from '../hooks/useScrollToTop';
 import {
   BreadcrumbNav,
@@ -144,6 +146,19 @@ const TutorListingPage: React.FC = () => {
       filters.teachingMode, filters.sortBy, filters.sortOrder, 
       filters.availability, filters.experience, filters.search]);
 
+  // Update active filters whenever filters change
+  useEffect(() => {
+    const newActiveFilters: string[] = [];
+    if (filters.selectedSubject) newActiveFilters.push('subject');
+    if (filters.selectedTopic) newActiveFilters.push('topic');
+    if (filters.location) newActiveFilters.push('location');
+    if (filters.rating > 0) newActiveFilters.push('rating');
+    if (filters.price.min > 0 || filters.price.max < 10000) newActiveFilters.push('price');
+    if (filters.teachingMode) newActiveFilters.push('teachingMode');
+    if (filters.search) newActiveFilters.push('search');
+    setActiveFilters(newActiveFilters);
+  }, [filters]);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => {
@@ -171,9 +186,7 @@ const TutorListingPage: React.FC = () => {
     console.log("Current search query:", filters.search);
     
     // Check if this is a clear all operation (all filters are reset to initial state)
-    const isClearAll = !newFilters.selectedSubject && 
-                      !newFilters.selectedTopic && 
-                      !newFilters.teachingMode && 
+    const isClearAll = !newFilters.teachingMode && 
                       !newFilters.location && 
                       newFilters.extraFilters.minRating === 0 && 
                       newFilters.extraFilters.priceRange[0] === 0 && 
@@ -201,12 +214,11 @@ const TutorListingPage: React.FC = () => {
       console.log("Clearing all filters and search:", resetFilters);
       setFilters(resetFilters);
       setSearchQuery('');
-      setActiveFilters([]);
     } else {
-      // Normal filter update - preserve search
+      // Normal filter update - preserve search and subject selection
       const updatedFilters = {
-        selectedSubject: newFilters.selectedSubject,
-        selectedTopic: newFilters.selectedTopic,
+        selectedSubject: filters.selectedSubject,
+        selectedTopic: filters.selectedTopic,
         rating: newFilters.extraFilters.minRating,
         price: {
           min: newFilters.extraFilters.priceRange[0],
@@ -225,16 +237,6 @@ const TutorListingPage: React.FC = () => {
 
       console.log("Updated filters with preserved search:", updatedFilters);
       setFilters(updatedFilters);
-
-      const newActiveFilters: string[] = [];
-      if (newFilters.selectedSubject) newActiveFilters.push('subject');
-      if (newFilters.selectedTopic) newActiveFilters.push('topic');
-      if (newFilters.location) {
-        newActiveFilters.push('location');
-      }
-      if (newFilters.extraFilters.femaleOnly) newActiveFilters.push('gender');
-      if (newFilters.teachingMode) newActiveFilters.push('teachingMode');
-      setActiveFilters(newActiveFilters);
     }
   };
 
@@ -279,6 +281,23 @@ const TutorListingPage: React.FC = () => {
     }));
   };
 
+  const handleSubjectSelect = (subjectId: string | null) => {
+    setFilters(prev => ({
+      ...prev,
+      selectedSubject: subjectId,
+      selectedTopic: null,
+      page: 1
+    }));
+  };
+
+  const handleTopicSelect = (topic: string | null) => {
+    setFilters(prev => ({
+      ...prev,
+      selectedTopic: topic,
+      page: 1
+    }));
+  };
+
   const transformTutors = (tutors: TutorProfile[]): TransformedTutor[] => {
     return tutors.map((tutor) => ({
       id: tutor._id,
@@ -319,8 +338,22 @@ const TutorListingPage: React.FC = () => {
           onSearchClear={handleSearchClear}
         />
 
-        {/* Filters Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
+        {/* Subject Bubbles - Show at top without container */}
+        <SubjectBubbles
+          selectedSubject={filters.selectedSubject}
+          onSubjectSelect={handleSubjectSelect}
+          showBubbles={!filters.selectedSubject}
+        />
+
+        {/* Subject Topics - Show when subject is selected */}
+        <SubjectTopics
+          selectedSubject={filters.selectedSubject}
+          selectedTopic={filters.selectedTopic}
+          onTopicSelect={handleTopicSelect}
+        />
+
+        {/* Filters Section - Without container */}
+        <div className="mb-6">
           <TutorFilters onFilterChange={handleFilterChange} />
         </div>
 
