@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BookOpen, Clock, DollarSign, MapPin, Plus, X, Check, AlertCircle } from 'lucide-react';
+import { BookOpen, Clock, DollarSign, MapPin, X, Check, AlertCircle } from 'lucide-react';
 import { Subject, Topic } from '../../contexts/AdminContext';
 import { toast } from 'react-toastify';
 
@@ -48,41 +48,6 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
   allTopics,
   onSubjectsChange
 }) => {
-  const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
-  const [showAddSubject, setShowAddSubject] = useState(false);
-
-  const addSubject = () => {
-    if (!selectedSubjectId) return;
-
-    const subject = allSubjects.find(s => s._id === selectedSubjectId);
-    if (!subject) return;
-
-    // Check if a subject is already selected
-    if (subjects.length > 0) {
-      toast.error('You can only select one subject. Please remove the current subject first.');
-      return;
-    }
-
-    const newSubject: SubjectData = {
-      _id: selectedSubjectId,
-      name: subject.name,
-      selectedTopics: [],
-      teachingModes: [
-        { type: 'online', rate: 0, enabled: false },
-        { type: 'home-visit', rate: 0, enabled: false },
-        { type: 'group', rate: 0, enabled: false }
-      ],
-      availability: DAYS_OF_WEEK.map(day => ({
-        day,
-        slots: []
-      }))
-    };
-
-    onSubjectsChange([newSubject]);
-    setSelectedSubjectId('');
-    setShowAddSubject(false);
-  };
-
   const removeSubject = (subjectId: string) => {
     onSubjectsChange([]);
   };
@@ -170,59 +135,7 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
           <BookOpen className="w-5 h-5 mr-2 text-primary-600" />
           Subject & Teaching Details
         </h2>
-        {subjects.length === 0 && (
-          <button
-            type="button"
-            onClick={() => setShowAddSubject(true)}
-            className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Select Subject
-          </button>
-        )}
       </div>
-
-      {/* Add Subject Modal */}
-      {showAddSubject && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Select Your Subject</h3>
-            <p className="text-sm text-gray-600 mb-4">Choose the subject you want to teach</p>
-            <select
-              value={selectedSubjectId}
-              onChange={(e) => setSelectedSubjectId(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-xl mb-4 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            >
-              <option value="">Select a subject</option>
-              {allSubjects
-                .filter(subject => !subjects.find(s => s._id === subject._id))
-                .map(subject => (
-                  <option key={subject._id} value={subject._id}>
-                    {subject.name}
-                  </option>
-                ))}
-            </select>
-            <div className="flex gap-3">
-              <button
-                onClick={addSubject}
-                disabled={!selectedSubjectId}
-                className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Select
-              </button>
-              <button
-                onClick={() => {
-                  setShowAddSubject(false);
-                  setSelectedSubjectId('');
-                }}
-                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Subject Display */}
       <div className="space-y-6">
@@ -415,18 +328,44 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
         })}
 
         {subjects.length === 0 && (
-          <div className="text-center py-12">
-            <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No subject selected yet</h3>
-            <p className="text-gray-500 mb-4">Select your subject to start teaching and set your availability</p>
-            <button
-              type="button"
-              onClick={() => setShowAddSubject(true)}
-              className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors duration-200"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Select Your Subject
-            </button>
+          <div className="bg-gray-50/80 rounded-2xl p-6 border border-gray-200">
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Select Your Subject</h3>
+              <p className="text-sm text-gray-600">Choose the subject you want to teach</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {allSubjects.map((subject) => (
+                <button
+                  key={subject._id}
+                  type="button"
+                  onClick={() => {
+                    const newSubject: SubjectData = {
+                      _id: subject._id,
+                      name: subject.name,
+                      selectedTopics: [],
+                      teachingModes: [
+                        { type: 'online', rate: 0, enabled: false },
+                        { type: 'home-visit', rate: 0, enabled: false },
+                        { type: 'group', rate: 0, enabled: false }
+                      ],
+                      availability: DAYS_OF_WEEK.map(day => ({
+                        day,
+                        slots: []
+                      }))
+                    };
+                    onSubjectsChange([newSubject]);
+                  }}
+                  className="flex flex-col items-center p-6 bg-white rounded-xl border-2 border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-all duration-200 text-left"
+                >
+                  <BookOpen className="w-8 h-8 text-primary-600 mb-3" />
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">{subject.name}</h4>
+                  <p className="text-sm text-gray-600 text-center">
+                    Click to select this subject and configure your teaching details
+                  </p>
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>

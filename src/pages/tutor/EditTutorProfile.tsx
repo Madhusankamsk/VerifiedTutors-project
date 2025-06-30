@@ -4,7 +4,6 @@ import { useSubjects } from '../../contexts/SubjectContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import { MapPin } from 'lucide-react';
-import LocationSelector from '../../components/location/LocationSelector';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../../config/constants';
@@ -312,10 +311,6 @@ const EditTutorProfile: React.FC = () => {
     setSelectedDocuments(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleLocationChange = (availableLocations: string) => {
-    setFormData(prev => ({ ...prev, availableLocations }));
-  };
-
   const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -433,10 +428,41 @@ const EditTutorProfile: React.FC = () => {
                 <MapPin className="w-5 h-5 mr-2 text-primary-600" />
                 Teaching Locations
               </h2>
-              <LocationSelector
-                availableLocations={formData.availableLocations}
-                onLocationsChange={handleLocationChange}
-              />
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="availableLocations" className="block text-sm font-medium text-gray-700 mb-2">
+                    Available Teaching Locations
+                  </label>
+                  <textarea
+                    id="availableLocations"
+                    value={formData.availableLocations}
+                    onChange={(e) => setFormData(prev => ({ ...prev, availableLocations: e.target.value }))}
+                    placeholder="Enter your available teaching locations (e.g., Colombo, Kandy, Online, etc.)"
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 ${
+                      formData.availableLocations.length > 100 ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
+                    }`}
+                    rows={3}
+                    maxLength={100}
+                    required
+                  />
+                  <div className="flex justify-between items-center mt-1">
+                    <p className="text-sm text-gray-500">
+                      Describe the areas where you are available to teach. You can include cities, towns, or specify if you offer online teaching.
+                    </p>
+                    <span className={`text-xs ${
+                      formData.availableLocations.length > 100 ? 'text-red-600' : 
+                      formData.availableLocations.length > 80 ? 'text-yellow-600' : 'text-gray-500'
+                    }`}>
+                      {formData.availableLocations.length}/100
+                    </span>
+                  </div>
+                  {formData.availableLocations.length > 100 && (
+                    <p className="text-xs text-red-600 mt-1">
+                      Location description is too long. Please keep it under 100 characters.
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Documents Section */}
