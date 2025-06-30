@@ -44,6 +44,24 @@ export const getTopicsBySubject = async (req, res) => {
   }
 };
 
+// Get single topic by ID
+export const getTopicById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const topic = await Topic.findById(id).populate('subject', 'name');
+    
+    if (!topic) {
+      return res.status(404).json({ message: 'Topic not found' });
+    }
+    
+    res.json(topic);
+  } catch (error) {
+    console.error('Error fetching topic by ID:', error);
+    res.status(500).json({ message: 'Error fetching topic' });
+  }
+};
+
 // Create topic
 export const createTopic = async (req, res) => {
   try {

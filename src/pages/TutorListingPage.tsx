@@ -76,6 +76,7 @@ const TutorListingPage: React.FC = () => {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const observerTarget = useRef<HTMLDivElement>(null);
+  const [topicName, setTopicName] = useState<string>('');
 
   // Scroll to top when filters change (but not for load more)
   useScrollToTop([filters.selectedSubject, filters.selectedTopic, filters.rating, filters.price, filters.location, 
@@ -109,15 +110,10 @@ const TutorListingPage: React.FC = () => {
       }
 
       if (filters.selectedTopic) {
-        // Get topic name from the topics API
-        try {
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/${filters.selectedTopic}`);
-          if (response.ok) {
-            const topicData = await response.json();
-            searchParams.topic = topicData.name;
-          }
-        } catch (error) {
-          console.error('Error fetching topic name:', error);
+        // Use the stored topic name if available, otherwise use the topic ID
+        if (topicName) {
+          searchParams.topic = topicName;
+        } else {
           // Fallback to using the topic ID
           searchParams.topic = filters.selectedTopic;
         }
@@ -155,7 +151,7 @@ const TutorListingPage: React.FC = () => {
         setLoading(false);
       }
     }
-  }, [filters, searchTutors, subjects]);
+  }, [filters, searchTutors, subjects, topicName]);
 
   useEffect(() => {
     console.log('Non-search filters changed, fetching tutors with filters:', filters);
@@ -214,6 +210,7 @@ const TutorListingPage: React.FC = () => {
     
     if (isClearAll) {
       // Reset everything including search
+      setTopicName(''); // Clear topic name
       const resetFilters = {
         selectedSubject: null,
         selectedTopic: null,
@@ -262,6 +259,7 @@ const TutorListingPage: React.FC = () => {
   };
 
   const resetFilters = () => {
+    setTopicName(''); // Clear topic name
     const resetFilters = {
       selectedSubject: null,
       selectedTopic: null,
@@ -304,6 +302,7 @@ const TutorListingPage: React.FC = () => {
   };
 
   const handleSubjectSelect = (subjectId: string | null) => {
+    setTopicName(''); // Clear topic name when subject changes
     setFilters(prev => ({
       ...prev,
       selectedSubject: subjectId,
@@ -312,7 +311,25 @@ const TutorListingPage: React.FC = () => {
     }));
   };
 
-  const handleTopicSelect = (topic: string | null) => {
+  const handleTopicSelect = async (topic: string | null) => {
+    if (topic) {
+      // Fetch topic name when a topic is selected
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/${topic}`);
+        if (response.ok) {
+          const topicData = await response.json();
+          setTopicName(topicData.name);
+        } else {
+          setTopicName('');
+        }
+      } catch (error) {
+        console.error('Error fetching topic name:', error);
+        setTopicName('');
+      }
+    } else {
+      setTopicName('');
+    }
+    
     setFilters(prev => ({
       ...prev,
       selectedTopic: topic,

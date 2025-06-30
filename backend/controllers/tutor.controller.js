@@ -87,19 +87,37 @@ export const getTutors = async (req, res) => {
 
         if (topicDoc) {
           // Use Topic object ID for filtering - check both new and legacy fields
-          query.$or = [
+          const topicConditions = [
             { 'subjects.selectedTopics': topicDoc._id },
             { 'subjects.bestTopics': { $regex: new RegExp(topic, 'i') } }
           ];
+          
+          // Combine with existing query using $and
+          if (Object.keys(query).length > 0) {
+            query.$and = query.$and || [];
+            query.$and.push({ $or: topicConditions });
+          } else {
+            query.$or = topicConditions;
+          }
         } else {
           // Fallback to string-based filtering for legacy topics
-          query['subjects.bestTopics'] = { $regex: new RegExp(topic, 'i') };
+          if (Object.keys(query).length > 0) {
+            query.$and = query.$and || [];
+            query.$and.push({ 'subjects.bestTopics': { $regex: new RegExp(topic, 'i') } });
+          } else {
+            query['subjects.bestTopics'] = { $regex: new RegExp(topic, 'i') };
+          }
         }
         console.log('Topic filter applied:', topic);
       } catch (err) {
         console.error('Error in topic filtering:', err);
         // Fallback to legacy filtering
-        query['subjects.bestTopics'] = { $regex: new RegExp(topic, 'i') };
+        if (Object.keys(query).length > 0) {
+          query.$and = query.$and || [];
+          query.$and.push({ 'subjects.bestTopics': { $regex: new RegExp(topic, 'i') } });
+        } else {
+          query['subjects.bestTopics'] = { $regex: new RegExp(topic, 'i') };
+        }
       }
     }
 

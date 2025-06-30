@@ -2,6 +2,7 @@ import express from 'express';
 import {
   getTopics,
   getTopicsBySubject,
+  getTopicById,
   createTopic,
   updateTopic,
   deleteTopic
@@ -13,6 +14,7 @@ const router = express.Router();
 // Public routes
 router.get('/', getTopics);
 router.get('/subject/:subjectId', getTopicsBySubject);
+router.get('/:id', getTopicById);
 
 // Protected routes (admin only)
 router.post('/', protect, admin, createTopic);
