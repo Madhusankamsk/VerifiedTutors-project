@@ -32,11 +32,17 @@ export const getTutors = async (req, res) => {
 
     let query = {};
     const sortOptions = {};
+    
+    // Import Topic model once
+    const Topic = (await import('../models/topic.model.js')).default;
 
     // Search functionality
     if (search) {
       try {
-        // First, find users with matching name or email
+        // Create a comprehensive search query
+        const searchConditions = [];
+        
+        // 1. Search by tutor name and email (via User collection)
         const users = await User.find({
           $or: [
             { name: { $regex: search, $options: 'i' } },
@@ -44,17 +50,70 @@ export const getTutors = async (req, res) => {
           ]
         }).select('_id');
         
-        // Then, filter tutors by these user IDs
+        if (users.length > 0) {
+          const userIds = users.map(user => user._id);
+          searchConditions.push({ user: { $in: userIds } });
+        }
+        
+        // 2. Search by location
+        searchConditions.push({ availableLocations: { $regex: search, $options: 'i' } });
+        
+        // 3. Search by subject name
+        const subjects = await Subject.find({
+          name: { $regex: search, $options: 'i' }
+        }).select('_id');
+        
+        if (subjects.length > 0) {
+          const subjectIds = subjects.map(subject => subject._id);
+          searchConditions.push({ 'subjects.subject': { $in: subjectIds } });
+        }
+        
+        // 4. Search by topic name (both new Topic objects and legacy strings)
+        const topics = await Topic.find({
+          name: { $regex: search, $options: 'i' },
+          isActive: true
+        }).select('_id');
+        
+        if (topics.length > 0) {
+          const topicIds = topics.map(topic => topic._id);
+          searchConditions.push({ 'subjects.selectedTopics': { $in: topicIds } });
+        }
+        
+        // Also search in legacy bestTopics field
+        searchConditions.push({ 'subjects.bestTopics': { $regex: search, $options: 'i' } });
+        
+        // Combine all search conditions with OR
+        if (searchConditions.length > 0) {
+          if (Object.keys(query).length > 0) {
+            query.$and = query.$and || [];
+            query.$and.push({ $or: searchConditions });
+          } else {
+            query.$or = searchConditions;
+          }
+        } else {
+          // If no search conditions found, return empty result
+          query._id = { $in: [] };
+        }
+        
+        console.log('Enhanced search filter applied:', search);
+        console.log('Search conditions:', searchConditions);
+        console.log('Final search query structure:', JSON.stringify(query, null, 2));
+      } catch (err) {
+        console.error('Error in search filtering:', err);
+        // Fallback to basic search
+        const users = await User.find({
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } }
+          ]
+        }).select('_id');
+        
         if (users.length > 0) {
           const userIds = users.map(user => user._id);
           query.user = { $in: userIds };
         } else {
-          // If no matching users, return empty result
           query.user = { $in: [] };
         }
-        console.log('Search filter applied:', search);
-      } catch (err) {
-        console.error('Error in search filtering:', err);
       }
     }
 
@@ -79,7 +138,6 @@ export const getTutors = async (req, res) => {
     if (topic) {
       try {
         // First try to find Topic object by name
-        const Topic = (await import('../models/topic.model.js')).default;
         const topicDoc = await Topic.findOne({
           name: { $regex: new RegExp(topic, 'i') },
           isActive: true

@@ -18,7 +18,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   onSearchChange,
   onSearchSubmit,
   onSearchClear,
-  placeholder = "Search by tutor name, subject, location, or expertise..."
+  placeholder = "Search by tutor name, location, subject, or topic..."
 }) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {

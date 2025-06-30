@@ -284,6 +284,7 @@ const TutorListingPage: React.FC = () => {
 
   const handleSearchSubmit = () => {
     const searchParam = searchQuery.trim();
+    console.log('Search submitted with query:', searchParam);
     setFilters(prev => ({ ...prev, page: 1, search: searchParam }));
   };
 
