@@ -227,6 +227,7 @@ interface TutorContextType {
     limit?: number;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
+    femaleOnly?: boolean;
   }) => Promise<{
     tutors: TutorProfile[];
     pagination: {
@@ -895,6 +896,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     limit?: number;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
+    femaleOnly?: boolean;
   }) => {
     try {
       setLoading(true);
@@ -910,16 +912,16 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (params.price) {
         queryParams.append('priceRange', JSON.stringify([params.price.min, params.price.max]));
       }
-      if (params.location) {
-        try {
-          const locationObj = JSON.parse(params.location);
-          queryParams.append('location', JSON.stringify(locationObj));
-        } catch (err) {
-          console.error('Error parsing location:', err);
-        }
+      if (params.location && params.location.trim() !== '') {
+        queryParams.append('location', params.location.trim());
       }
       if (params.teachingMode && params.teachingMode.trim() !== '') {
-        queryParams.append('teachingMode', params.teachingMode.toUpperCase());
+        // Map teaching mode values to backend expectations
+        let teachingModeValue = params.teachingMode.toUpperCase();
+        if (teachingModeValue === 'INDIVIDUAL') {
+          teachingModeValue = 'INDIVIDUAL'; // Keep as INDIVIDUAL for backend
+        }
+        queryParams.append('teachingMode', teachingModeValue);
       }
       // Ensure search parameter is properly handled
       console.log('Search param:', params.search);
@@ -933,6 +935,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (params.limit) queryParams.append('limit', params.limit.toString());
       if (params.sortBy) queryParams.append('sortBy', params.sortBy);
       if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params.femaleOnly) queryParams.append('femaleOnly', 'true');
 
       const queryString = queryParams.toString();
       console.log(`Making API request to: ${API_URL}/api/tutors?${queryString}`);

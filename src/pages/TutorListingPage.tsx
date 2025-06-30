@@ -29,6 +29,7 @@ interface Filters {
   availability: string;
   experience: string;
   search: string;
+  femaleOnly: boolean;
 }
 
 interface TransformedTutor {
@@ -63,7 +64,8 @@ const TutorListingPage: React.FC = () => {
     sortOrder: 'desc',
     availability: 'all',
     experience: 'all',
-    search: ''
+    search: '',
+    femaleOnly: false
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [tutors, setTutors] = useState<TutorProfile[]>([]);
@@ -107,12 +109,28 @@ const TutorListingPage: React.FC = () => {
       }
 
       if (filters.selectedTopic) {
-        searchParams.topic = filters.selectedTopic;
+        // Get topic name from the topics API
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/${filters.selectedTopic}`);
+          if (response.ok) {
+            const topicData = await response.json();
+            searchParams.topic = topicData.name;
+          }
+        } catch (error) {
+          console.error('Error fetching topic name:', error);
+          // Fallback to using the topic ID
+          searchParams.topic = filters.selectedTopic;
+        }
       }
 
       // Convert teaching mode to the format expected by the API
       if (filters.teachingMode) {
         searchParams.teachingMode = filters.teachingMode;
+      }
+
+      // Add femaleOnly filter
+      if (filters.femaleOnly) {
+        searchParams.femaleOnly = true;
       }
       
       const response = await searchTutors(searchParams);
@@ -144,7 +162,7 @@ const TutorListingPage: React.FC = () => {
     fetchTutors(false);
   }, [filters.selectedSubject, filters.selectedTopic, filters.rating, filters.price, filters.location, 
       filters.teachingMode, filters.sortBy, filters.sortOrder, 
-      filters.availability, filters.experience, filters.search]);
+      filters.availability, filters.experience, filters.search, filters.femaleOnly]);
 
   // Update active filters whenever filters change
   useEffect(() => {
@@ -156,6 +174,7 @@ const TutorListingPage: React.FC = () => {
     if (filters.price.min > 0 || filters.price.max < 10000) newActiveFilters.push('price');
     if (filters.teachingMode) newActiveFilters.push('teachingMode');
     if (filters.search) newActiveFilters.push('search');
+    if (filters.femaleOnly) newActiveFilters.push('femaleOnly');
     setActiveFilters(newActiveFilters);
   }, [filters]);
 
@@ -208,7 +227,8 @@ const TutorListingPage: React.FC = () => {
         sortOrder: 'desc',
         availability: 'all',
         experience: 'all',
-        search: ''
+        search: '',
+        femaleOnly: false
       } as Filters;
       
       console.log("Clearing all filters and search:", resetFilters);
@@ -232,7 +252,8 @@ const TutorListingPage: React.FC = () => {
         sortOrder: filters.sortOrder || 'desc',
         availability: 'all',
         experience: 'all',
-        search: filters.search
+        search: filters.search,
+        femaleOnly: newFilters.extraFilters.femaleOnly
       };
 
       console.log("Updated filters with preserved search:", updatedFilters);
@@ -254,7 +275,8 @@ const TutorListingPage: React.FC = () => {
       sortOrder: 'desc',
       availability: 'all',
       experience: 'all',
-      search: ''
+      search: '',
+      femaleOnly: false
     } as Filters;
     
     setFilters(resetFilters);
@@ -369,13 +391,23 @@ const TutorListingPage: React.FC = () => {
         {!loading && tutors.length === 0 ? (
           <EmptyState onResetFilters={resetFilters} />
         ) : (
-          <TutorGrid
-            tutors={transformedTutors}
-            loading={loading}
-            loadingMore={loadingMore}
-            hasMore={hasMore}
-            observerTarget={observerTarget}
-          />
+          <>
+            <TutorGrid
+              tutors={transformedTutors}
+              loading={loading}
+            />
+            {/* Infinite scroll observer target */}
+            {hasMore && (
+              <div 
+                ref={observerTarget}
+                className="h-10 flex items-center justify-center"
+              >
+                {loadingMore && (
+                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary-600"></div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
