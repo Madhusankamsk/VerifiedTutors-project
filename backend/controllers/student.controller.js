@@ -57,7 +57,16 @@ export const removeFavorite = async (req, res) => {
 // @access  Private/Student
 export const createBooking = async (req, res) => {
   try {
-    const { tutorId, subjectId, startTime, endTime, notes } = req.body;
+    const { 
+      tutorId, 
+      subjectId, 
+      startTime, 
+      endTime, 
+      notes,
+      learningMethod = 'online',
+      selectedTopics = [],
+      contactNumber
+    } = req.body;
     
     // Validate required fields
     if (!tutorId || !subjectId || !startTime || !endTime) {
@@ -65,9 +74,15 @@ export const createBooking = async (req, res) => {
         message: 'Please provide tutor, subject, start time and end time' 
       });
     }
+
+    if (!contactNumber) {
+      return res.status(400).json({ 
+        message: 'Contact number is required' 
+      });
+    }
     
     // Find tutor and subject to calculate amount
-    const tutor = await Tutor.findById(tutorId);
+    const tutor = await Tutor.findById(tutorId).populate('subjects.subject');
     if (!tutor) {
       return res.status(404).json({ message: 'Tutor not found' });
     }
@@ -82,9 +97,16 @@ export const createBooking = async (req, res) => {
     const end = new Date(endTime);
     const durationHours = (end - start) / (1000 * 60 * 60);
     
+    // Validate duration
+    if (durationHours <= 0 || durationHours > 8) {
+      return res.status(400).json({ 
+        message: 'Session duration must be between 1 and 8 hours' 
+      });
+    }
+    
     // Find the tutor's rate for this subject
     const tutorSubject = tutor.subjects.find(
-      s => s.subject.toString() === subjectId
+      s => s.subject._id.toString() === subjectId
     );
     
     if (!tutorSubject) {
@@ -93,23 +115,81 @@ export const createBooking = async (req, res) => {
       });
     }
     
-    // Use online rate by default
-    const hourlyRate = tutorSubject.rates.online || 0;
+    // Get rate based on learning method and teaching modes
+    let hourlyRate = 0;
+    
+    if (tutorSubject.teachingModes && tutorSubject.teachingModes.length > 0) {
+      // Use new teaching modes structure
+      const teachingMode = tutorSubject.teachingModes.find(
+        mode => mode.type === learningMethod && mode.enabled
+      );
+      
+      if (teachingMode) {
+        hourlyRate = teachingMode.rate;
+      } else {
+        return res.status(400).json({ 
+          message: `Tutor does not offer ${learningMethod} sessions for this subject` 
+        });
+      }
+    } else if (tutorSubject.rates) {
+      // Fallback to legacy rates structure
+      switch (learningMethod) {
+        case 'online':
+          hourlyRate = tutorSubject.rates.online || 0;
+          break;
+        case 'individual':
+          hourlyRate = tutorSubject.rates.individual || 0;
+          break;
+        case 'group':
+          hourlyRate = tutorSubject.rates.group || 0;
+          break;
+        default:
+          hourlyRate = tutorSubject.rates.online || 0;
+      }
+    }
+    
+    if (hourlyRate <= 0) {
+      return res.status(400).json({ 
+        message: 'No valid rate found for the selected learning method' 
+      });
+    }
     
     // Calculate total amount
     const amount = hourlyRate * durationHours;
+    
+    // Validate selected topics (optional)
+    let validTopics = [];
+    if (selectedTopics && selectedTopics.length > 0) {
+      const tutorTopics = tutorSubject.selectedTopics || [];
+      validTopics = selectedTopics.filter(topicId => 
+        tutorTopics.includes(topicId)
+      );
+    }
+    
+    // Extract contact number from notes if provided there
+    let extractedContactNumber = contactNumber;
+    if (!extractedContactNumber && notes && notes.includes('Contact number:')) {
+      const match = notes.match(/Contact number:\s*([+\-\s\d]+)/);
+      if (match) {
+        extractedContactNumber = match[1].trim();
+      }
+    }
     
     // Create the booking
     const booking = await Booking.create({
       student: req.user._id,
       tutor: tutorId,
       subject: subjectId,
+      selectedTopics: validTopics,
       startTime: start,
       endTime: end,
+      duration: durationHours,
+      learningMethod,
       status: 'pending',
       amount,
       paymentStatus: 'pending',
-      notes
+      notes,
+      contactNumber: extractedContactNumber
     });
     
     // Populate the booking with related data
@@ -119,12 +199,21 @@ export const createBooking = async (req, res) => {
         path: 'tutor',
         populate: { path: 'user', select: 'name email profileImage' }
       })
-      .populate('subject', 'name category');
+      .populate('subject', 'name category')
+      .populate('selectedTopics', 'name description');
     
-    res.status(201).json(populatedBooking);
+    res.status(201).json({
+      success: true,
+      message: 'Booking created successfully',
+      booking: populatedBooking
+    });
   } catch (error) {
     console.error('Error creating booking:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to create booking',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
@@ -133,18 +222,48 @@ export const createBooking = async (req, res) => {
 // @access  Private/Student
 export const getStudentBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find({ student: req.user._id })
+    const { status, page = 1, limit = 10 } = req.query;
+    
+    // Build query
+    let query = { student: req.user._id };
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+    
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    // Count total documents
+    const total = await Booking.countDocuments(query);
+    
+    const bookings = await Booking.find(query)
       .populate('student', 'name email profileImage')
       .populate({
         path: 'tutor',
         populate: { path: 'user', select: 'name email profileImage' }
       })
       .populate('subject', 'name category')
-      .sort({ createdAt: -1 });
+      .populate('selectedTopics', 'name description')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
     
-    res.json(bookings);
+    res.json({
+      success: true,
+      bookings,
+      pagination: {
+        current: parseInt(page),
+        pages: Math.ceil(total / parseInt(limit)),
+        total,
+        hasMore: skip + bookings.length < total
+      }
+    });
   } catch (error) {
     console.error('Error fetching bookings:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to fetch bookings',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 }; 

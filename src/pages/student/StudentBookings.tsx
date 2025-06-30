@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStudent } from '../../contexts/StudentContext';
-import { Calendar, Clock, DollarSign, User, Book, ChevronLeft, ChevronRight, Filter, Search } from 'lucide-react';
+import { Calendar, Clock, DollarSign, User, Book, ChevronLeft, ChevronRight, Filter, Search, Video, Home, Users, Hash, Phone } from 'lucide-react';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { Link } from 'react-router-dom';
 
@@ -28,6 +28,37 @@ const StudentBookings = () => {
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  const getLearningMethodIcon = (method: string) => {
+    switch (method) {
+      case 'online':
+        return <Video className="w-4 h-4" />;
+      case 'individual':
+        return <Home className="w-4 h-4" />;
+      case 'group':
+        return <Users className="w-4 h-4" />;
+      default:
+        return <Video className="w-4 h-4" />;
+    }
+  };
+
+  const getLearningMethodLabel = (method: string) => {
+    switch (method) {
+      case 'online':
+        return 'Online';
+      case 'individual':
+        return 'Home Visit';
+      case 'group':
+        return 'Group';
+      default:
+        return 'Online';
+    }
+  };
+
+  const formatDuration = (duration?: number) => {
+    if (!duration) return 'N/A';
+    return `${duration} hour${duration > 1 ? 's' : ''}`;
   };
 
   const filteredBookings = statusFilter === 'all' 
@@ -115,7 +146,7 @@ const StudentBookings = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                   <div className="flex items-start">
                     <User className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
                     <div>
@@ -137,10 +168,20 @@ const StudentBookings = () => {
                   <div className="flex items-start">
                     <Clock className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
                     <div>
-                      <p className="text-sm text-gray-500">End Time</p>
-                      <p className="font-medium text-gray-800">{formatDate(booking.endTime)}</p>
+                      <p className="text-sm text-gray-500">Duration</p>
+                      <p className="font-medium text-gray-800">{formatDuration(booking.duration)}</p>
                     </div>
                   </div>
+
+                  {booking.learningMethod && (
+                    <div className="flex items-start">
+                      {getLearningMethodIcon(booking.learningMethod)}
+                      <div className="ml-2">
+                        <p className="text-sm text-gray-500">Learning Method</p>
+                        <p className="font-medium text-gray-800">{getLearningMethodLabel(booking.learningMethod)}</p>
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="flex items-start">
                     <DollarSign className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
@@ -159,7 +200,37 @@ const StudentBookings = () => {
                       </p>
                     </div>
                   </div>
+
+                  {booking.contactNumber && (
+                    <div className="flex items-start">
+                      <Phone className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-gray-500">Contact</p>
+                        <p className="font-medium text-gray-800">{booking.contactNumber}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                {/* Selected Topics */}
+                {booking.selectedTopics && booking.selectedTopics.length > 0 && (
+                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Hash className="w-4 h-4 text-blue-600" />
+                      <p className="text-sm font-medium text-blue-800">Selected Topics</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {booking.selectedTopics.map((topic) => (
+                        <span 
+                          key={topic._id}
+                          className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full border border-blue-200"
+                        >
+                          {topic.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {booking.notes && (
                   <div className="mt-4 p-3 bg-gray-50 rounded-lg">

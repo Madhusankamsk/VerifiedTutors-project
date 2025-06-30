@@ -212,6 +212,9 @@ interface TutorContextType {
     endTime: Date;
     notes?: string;
     learningMethod: 'online' | 'individual' | 'group';
+    contactNumber: string;
+    selectedTopics?: string[];
+    duration?: number;
   }) => Promise<any>;
   
   // Search & Filter
@@ -855,6 +858,9 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     endTime: Date;
     notes?: string;
     learningMethod: 'online' | 'individual' | 'group';
+    contactNumber: string;
+    selectedTopics?: string[];
+    duration?: number;
   }) => {
     if (!user) {
       throw new Error('User not authenticated');
@@ -863,9 +869,25 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
+      
+      // Prepare the booking payload with all required fields
+      const bookingPayload = {
+        tutorId: bookingData.tutorId,
+        subjectId: bookingData.subjectId,
+        startTime: bookingData.startTime,
+        endTime: bookingData.endTime,
+        notes: bookingData.notes || '',
+        learningMethod: bookingData.learningMethod,
+        contactNumber: bookingData.contactNumber,
+        selectedTopics: bookingData.selectedTopics || [],
+        duration: bookingData.duration || ((bookingData.endTime.getTime() - bookingData.startTime.getTime()) / (1000 * 60 * 60))
+      };
+
+      console.log('Creating booking with payload:', bookingPayload);
+
       const response = await axios.post(
-        `${API_URL}/api/bookings`,
-        bookingData,
+        `${API_URL}/api/students/bookings`,
+        bookingPayload,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`

@@ -80,10 +80,13 @@ const TutorProfilePage: React.FC = () => {
 
   const handleBookingSubmit = async (data: { 
     subject: string;
+    topics: string[];
     day: string; 
     timeSlot: string; 
+    duration: 1 | 2 | 3;
     contactNumber: string; 
-    learningMethod: 'online' | 'individual' | 'group' 
+    learningMethod: 'online' | 'home-visit' | 'group';
+    totalPrice: number;
   }) => {
     if (!id || !profile) return;
     
@@ -96,23 +99,45 @@ const TutorProfilePage: React.FC = () => {
 
       const selectedSubjectForBooking = selectedSubject.subject._id;
       
-      // Parse time slot
-      const [startTime, endTime] = data.timeSlot.split(' - ');
+      // Parse time slot to get start time
+      const [startTime] = data.timeSlot.split(' - ');
       const [startHours, startMinutes] = startTime.split(':').map(Number);
-      const [endHours, endMinutes] = endTime.split(':').map(Number);
       
-      // Parse date
-      const bookingDate = new Date(data.day);
+      // Create start and end times based on duration
+      const today = new Date();
+      const nextWeek = new Date(today);
+      nextWeek.setDate(today.getDate() + 7); // Set to next week for booking
+      
+      // Find the selected day in the next week
+      const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const targetDayIndex = daysOfWeek.indexOf(data.day);
+      const currentDayIndex = today.getDay();
+      
+      let daysToAdd = targetDayIndex - currentDayIndex;
+      if (daysToAdd <= 0) {
+        daysToAdd += 7; // Schedule for next week
+      }
+      
+      const bookingDate = new Date(today);
+      bookingDate.setDate(today.getDate() + daysToAdd);
       
       const startTimeObj = new Date(bookingDate);
       startTimeObj.setHours(startHours, startMinutes, 0, 0);
       
-      const endTimeObj = new Date(bookingDate);
-      endTimeObj.setHours(endHours, endMinutes, 0, 0);
+      const endTimeObj = new Date(startTimeObj);
+      endTimeObj.setHours(startTimeObj.getHours() + data.duration); // Add duration
       
-      // Get the rate based on learning method
-      const rates = getRatesFromTeachingModes(selectedSubject.teachingModes);
-      const rate = rates[data.learningMethod];
+      // Prepare notes with contact number and selected topics
+      let notes = `Contact number: ${data.contactNumber}`;
+      if (data.topics.length > 0) {
+        // Since selectedTopics are stored as topic IDs, we'll use the IDs directly for now
+        notes += `\nSelected topics: ${data.topics.join(', ')}`;
+      }
+      notes += `\nDuration: ${data.duration} hour${data.duration > 1 ? 's' : ''}`;
+      notes += `\nTotal price: $${data.totalPrice}`;
+      
+      // Map learning method to backend compatible format
+      const backendLearningMethod = data.learningMethod === 'home-visit' ? 'individual' : data.learningMethod;
       
       // Create booking
       await createBooking({
@@ -120,11 +145,14 @@ const TutorProfilePage: React.FC = () => {
         subjectId: selectedSubjectForBooking,
         startTime: startTimeObj,
         endTime: endTimeObj,
-        notes: `Contact number: ${data.contactNumber}`,
-        learningMethod: data.learningMethod
+        notes,
+        learningMethod: backendLearningMethod as 'online' | 'individual' | 'group',
+        contactNumber: data.contactNumber,
+        selectedTopics: data.topics,
+        duration: data.duration
       });
       
-      toast.success(`Session for ${selectedSubject.subject.name} booked successfully!`);
+      toast.success(`${data.duration}-hour session for ${selectedSubject.subject.name} booked successfully!`);
       setShowBookingModal(false);
       
       // Redirect to student bookings page
@@ -276,30 +304,39 @@ const TutorProfilePage: React.FC = () => {
       />
 
       {/* Booking Modal */}
-      <BookingModal
-        isOpen={showBookingModal}
-        onClose={() => setShowBookingModal(false)}
-        onSubmit={handleBookingSubmit}
-        tutorAvailability={{
-          subject: profile.subjects[0].subject.name,
-          availability: profile.subjects[0].availability.reduce((acc, day) => {
-            acc[day.day] = day.slots;
-            return acc;
-          }, {} as { [key: string]: { start: string; end: string; }[] })
-        }}
-        selectedSubject={profile.subjects[0].subject.name}
-        availableMethods={{
-          online: getRatesFromTeachingModes(profile.subjects[0].teachingModes).online > 0,
-          individual: getRatesFromTeachingModes(profile.subjects[0].teachingModes).individual > 0,
-          group: getRatesFromTeachingModes(profile.subjects[0].teachingModes).group > 0
-        }}
-        subjects={profile.subjects.map(subject => ({
-          _id: subject.subject._id,
-          name: subject.subject.name,
-          rates: getRatesFromTeachingModes(subject.teachingModes),
-          availability: subject.availability
-        }))}
-      />
+      {showBookingModal && profile && (
+        <BookingModal
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          onSubmit={handleBookingSubmit}
+          tutorAvailability={{
+            subject: profile.subjects[0]?.subject.name || '',
+            availability: profile.subjects[0]?.availability.reduce((acc, avail) => {
+              acc[avail.day] = avail.slots;
+              return acc;
+            }, {} as { [key: string]: { start: string; end: string; }[] })
+          }}
+          selectedSubject={selectedSubjectForBooking}
+          availableMethods={{
+            online: profile.subjects[0]?.teachingModes.some(mode => mode.type === 'online' && mode.enabled) || false,
+            'home-visit': profile.subjects[0]?.teachingModes.some(mode => mode.type === 'home-visit' && mode.enabled) || false,
+            group: profile.subjects[0]?.teachingModes.some(mode => mode.type === 'group' && mode.enabled) || false
+          }}
+          subjects={profile.subjects.map(subj => ({
+            _id: subj.subject._id,
+            name: subj.subject.name,
+            selectedTopics: (subj.selectedTopics || []).map(topicId => ({
+              _id: topicId,
+              name: topicId, // Using ID as name for now - this should be fetched from backend
+              description: ''
+            })),
+            teachingModes: subj.teachingModes || [],
+            availability: subj.availability || [],
+            rates: subj.rates
+          }))}
+          tutorName={profile.user.name}
+        />
+      )}
     </TutorProfileBackground>
   );
 };

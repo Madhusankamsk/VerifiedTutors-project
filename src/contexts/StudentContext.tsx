@@ -26,13 +26,21 @@ interface Booking {
     name: string;
     category: string;
   };
+  selectedTopics?: {
+    _id: string;
+    name: string;
+    description?: string;
+  }[];
   startTime: string;
   endTime: string;
+  duration?: number;
+  learningMethod?: string;
   status: string;
   amount: number;
   paymentStatus: string;
   meetingLink?: string;
   notes?: string;
+  contactNumber?: string;
   cancellationReason?: string;
   createdAt: string;
 }
@@ -101,7 +109,13 @@ export const StudentProvider: React.FC<StudentProviderProps> = ({ children }) =>
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      setBookings(response.data);
+      // Handle the new API response structure with pagination
+      if (response.data.success && response.data.bookings) {
+        setBookings(response.data.bookings);
+      } else {
+        // Fallback for old API response structure
+        setBookings(Array.isArray(response.data) ? response.data : []);
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch bookings');
       console.error('Error fetching bookings:', err);

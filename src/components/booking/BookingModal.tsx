@@ -1,23 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { X, Clock, Calendar, Video, Home, Users, BookOpen } from 'lucide-react';
+import { X, Clock, Calendar, Video, Home, Users, BookOpen, DollarSign, Hash } from 'lucide-react';
 
 interface TimeSlot {
   start: string;
   end: string;
 }
 
+interface Topic {
+  _id: string;
+  name: string;
+  description?: string;
+}
+
 interface Subject {
   _id: string;
   name: string;
-  rates: {
-    individual: number;
-    group: number;
-    online: number;
-  };
+  selectedTopics: Topic[];
+  teachingModes: {
+    type: 'online' | 'home-visit' | 'group';
+    rate: number;
+    enabled: boolean;
+  }[];
   availability: {
     day: string;
     slots: TimeSlot[];
   }[];
+  // Legacy rates for backward compatibility
+  rates?: {
+    individual: number;
+    group: number;
+    online: number;
+  };
 }
 
 interface TutorAvailability {
@@ -27,29 +40,35 @@ interface TutorAvailability {
   };
 }
 
-type LearningMethod = 'online' | 'individual' | 'group';
+type LearningMethod = 'online' | 'home-visit' | 'group';
+type Duration = 1 | 2 | 3;
 
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: { 
     subject: string;
+    topics: string[];
     day: string; 
     timeSlot: string; 
+    duration: Duration;
     contactNumber: string; 
-    learningMethod: LearningMethod 
+    learningMethod: LearningMethod;
+    totalPrice: number;
   }) => void;
   tutorAvailability: TutorAvailability;
   selectedSubject: string;
   availableMethods?: {
     online: boolean;
-    individual: boolean;
+    'home-visit': boolean;
     group: boolean;
   };
   subjects?: Subject[];
+  tutorName?: string;
 }
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const DURATION_OPTIONS = [1, 2, 3] as const;
 
 const BookingModal: React.FC<BookingModalProps> = ({ 
   isOpen, 
@@ -57,91 +76,191 @@ const BookingModal: React.FC<BookingModalProps> = ({
   onSubmit,
   tutorAvailability,
   selectedSubject,
-  availableMethods = { online: true, individual: true, group: true },
-  subjects = []
+  availableMethods = { online: true, 'home-visit': true, group: true },
+  subjects = [],
+  tutorName = 'Tutor'
 }) => {
   const [selectedDay, setSelectedDay] = useState<string>('');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
+  const [selectedDuration, setSelectedDuration] = useState<Duration>(1);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [contactNumber, setContactNumber] = useState('');
   const [learningMethod, setLearningMethod] = useState<LearningMethod>('online');
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
+  const [currentSubject, setCurrentSubject] = useState<Subject | null>(null);
+  const [totalPrice, setTotalPrice] = useState<number>(0);
 
+  // Initialize selected subject
   useEffect(() => {
     if (subjects.length > 0 && !selectedSubjectId) {
       setSelectedSubjectId(subjects[0]._id);
     }
   }, [subjects, selectedSubjectId]);
 
+  // Update current subject when selection changes
   useEffect(() => {
-    if (selectedDay && tutorAvailability) {
+    if (selectedSubjectId && subjects.length > 0) {
+      const subject = subjects.find(s => s._id === selectedSubjectId);
+      setCurrentSubject(subject || null);
+      setSelectedTopics([]); // Reset topics when subject changes
+    }
+  }, [selectedSubjectId, subjects]);
+
+  // Update available time slots based on selected day, duration, and tutor availability
+  useEffect(() => {
+    if (selectedDay && tutorAvailability && selectedDuration) {
       const slots = tutorAvailability.availability[selectedDay] || [];
-      setAvailableTimeSlots(slots);
+      
+      // Filter slots based on duration to ensure we have enough time
+      const filteredSlots = slots.filter(slot => {
+        const [startHour, startMin] = slot.start.split(':').map(Number);
+        const [endHour, endMin] = slot.end.split(':').map(Number);
+        
+        const startTime = startHour * 60 + startMin;
+        const endTime = endHour * 60 + endMin;
+        const slotDuration = (endTime - startTime) / 60; // Convert to hours
+        
+        return slotDuration >= selectedDuration;
+      });
+      
+      setAvailableTimeSlots(filteredSlots);
     } else {
       setAvailableTimeSlots([]);
     }
-  }, [selectedDay, tutorAvailability]);
+  }, [selectedDay, tutorAvailability, selectedDuration]);
 
   // Set default learning method based on available methods
   useEffect(() => {
     if (availableMethods.online) {
       setLearningMethod('online');
-    } else if (availableMethods.individual) {
-      setLearningMethod('individual');
+    } else if (availableMethods['home-visit']) {
+      setLearningMethod('home-visit');
     } else if (availableMethods.group) {
       setLearningMethod('group');
     }
   }, [availableMethods]);
 
+  // Calculate total price based on duration and learning method
+  useEffect(() => {
+    if (currentSubject && selectedDuration) {
+      let rate = 0;
+      
+      // Get rate from teaching modes
+      const teachingMode = currentSubject.teachingModes.find(mode => 
+        mode.type === learningMethod && mode.enabled
+      );
+      
+      if (teachingMode) {
+        rate = teachingMode.rate;
+      } else if (currentSubject.rates) {
+        // Fallback to legacy rates
+        switch (learningMethod) {
+          case 'online':
+            rate = currentSubject.rates.online;
+            break;
+          case 'home-visit':
+            rate = currentSubject.rates.individual;
+            break;
+          case 'group':
+            rate = currentSubject.rates.group;
+            break;
+        }
+      }
+      
+      setTotalPrice(rate * selectedDuration);
+    }
+  }, [currentSubject, selectedDuration, learningMethod]);
+
+  const handleTopicToggle = (topicId: string) => {
+    setSelectedTopics(prev => 
+      prev.includes(topicId) 
+        ? prev.filter(id => id !== topicId)
+        : [...prev, topicId]
+    );
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Find the selected subject name
-    const subject = subjects.find(s => s._id === selectedSubjectId)?.name || selectedSubject;
+    if (!currentSubject) return;
     
     onSubmit({
-      subject,
+      subject: currentSubject.name,
+      topics: selectedTopics,
       day: selectedDay,
       timeSlot: selectedTimeSlot,
+      duration: selectedDuration,
       contactNumber,
-      learningMethod
+      learningMethod,
+      totalPrice
     });
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(price);
+  };
+
+  const getLearningMethodIcon = (method: LearningMethod) => {
+    switch (method) {
+      case 'online':
+        return <Video className="w-4 h-4" />;
+      case 'home-visit':
+        return <Home className="w-4 h-4" />;
+      case 'group':
+        return <Users className="w-4 h-4" />;
+    }
+  };
+
+  const getLearningMethodLabel = (method: LearningMethod) => {
+    switch (method) {
+      case 'online':
+        return 'Online';
+      case 'home-visit':
+        return 'Home Visit';
+      case 'group':
+        return 'Group';
+    }
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
-      <div className="bg-white rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto relative">
+      <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-600 transition-colors z-10 p-2 -m-2"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-10 p-2 -m-2"
         >
-          <X className="w-5 h-5 sm:w-6 sm:h-6" />
+          <X className="w-6 h-6" />
         </button>
 
         {/* Modal content */}
-        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-          <div className="pr-8 sm:pr-12">
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Book a Session</h2>
+        <div className="p-6 space-y-6">
+          {/* Header */}
+          <div className="pr-12">
+            <h2 className="text-2xl font-semibold text-gray-900">Book a Session</h2>
             <p className="mt-1 text-sm text-gray-500">
-              Select your preferred subject, day, and time slot
+              Book a session with {tutorName}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Subject selection */}
             {subjects.length > 1 && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
                   Select Subject
                 </label>
                 <div className="relative">
                   <select
                     value={selectedSubjectId}
                     onChange={(e) => setSelectedSubjectId(e.target.value)}
-                    className="w-full px-3 sm:px-4 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 appearance-none bg-white text-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 appearance-none bg-white"
                   >
                     {subjects.map((subject) => (
                       <option key={subject._id} value={subject._id}>
@@ -150,18 +269,101 @@ const BookingModal: React.FC<BookingModalProps> = ({
                     ))}
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+                    <BookOpen className="w-5 h-5 text-gray-400" />
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Day selection */}
+            {/* Available Topics */}
+            {currentSubject && currentSubject.selectedTopics.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Available Topics (Optional)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {currentSubject.selectedTopics.map((topic) => (
+                    <button
+                      key={topic._id}
+                      type="button"
+                      onClick={() => handleTopicToggle(topic._id)}
+                      className={`p-3 text-left rounded-lg border transition-all ${
+                        selectedTopics.includes(topic._id)
+                          ? 'border-primary-500 bg-primary-50 text-primary-700'
+                          : 'border-gray-200 hover:border-primary-300 text-gray-700'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <Hash className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <div className="font-medium text-sm">{topic.name}</div>
+                          {topic.description && (
+                            <div className="text-xs text-gray-500 mt-1">{topic.description}</div>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Duration Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Session Duration
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                {DURATION_OPTIONS.map((duration) => (
+                  <button
+                    key={duration}
+                    type="button"
+                    onClick={() => setSelectedDuration(duration)}
+                    className={`px-4 py-3 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 ${
+                      selectedDuration === duration
+                        ? 'border-primary-500 bg-primary-50 text-primary-700'
+                        : 'border-gray-200 hover:border-primary-300 text-gray-700'
+                    }`}
+                  >
+                    <Clock className="w-4 h-4" />
+                    <span>{duration} Hour{duration > 1 ? 's' : ''}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Learning Method Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Learning Method
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {Object.entries(availableMethods).map(([method, isAvailable]) => 
+                  isAvailable && (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => setLearningMethod(method as LearningMethod)}
+                      className={`px-4 py-3 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 ${
+                        learningMethod === method
+                          ? 'border-primary-500 bg-primary-50 text-primary-700'
+                          : 'border-gray-200 hover:border-primary-300 text-gray-700'
+                      }`}
+                    >
+                      {getLearningMethodIcon(method as LearningMethod)}
+                      <span>{getLearningMethodLabel(method as LearningMethod)}</span>
+                    </button>
+                  )
+                )}
+              </div>
+            </div>
+
+            {/* Day Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
                 Select Day
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {DAYS_OF_WEEK.map((day) => {
                   const hasAvailability = tutorAvailability.availability[day]?.length > 0;
                   return (
@@ -170,7 +372,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
                       type="button"
                       onClick={() => setSelectedDay(day)}
                       disabled={!hasAvailability}
-                      className={`px-3 sm:px-4 py-3 sm:py-2 text-xs sm:text-sm rounded-lg border transition-all flex items-center justify-center gap-1 sm:gap-2 min-h-[44px] ${
+                      className={`px-3 py-3 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 ${
                         selectedDay === day
                           ? 'border-primary-500 bg-primary-50 text-primary-700'
                           : hasAvailability
@@ -178,77 +380,26 @@ const BookingModal: React.FC<BookingModalProps> = ({
                             : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
                       }`}
                     >
-                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                      <span className="truncate">{day}</span>
+                      <Calendar className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{day.slice(0, 3)}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Learning Method selection */}
+            {/* Time Slot Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Learning Method
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Available Time Slots
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                {availableMethods.online && (
-                  <button
-                    type="button"
-                    onClick={() => setLearningMethod('online')}
-                    className={`px-3 sm:px-4 py-3 sm:py-2 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 min-h-[44px] ${
-                      learningMethod === 'online'
-                        ? 'border-primary-500 bg-primary-50 text-primary-700'
-                        : 'border-gray-200 hover:border-primary-300 text-gray-700'
-                    }`}
-                  >
-                    <Video className="w-4 h-4 flex-shrink-0" />
-                    <span>Online</span>
-                  </button>
-                )}
-                {availableMethods.individual && (
-                  <button
-                    type="button"
-                    onClick={() => setLearningMethod('individual')}
-                    className={`px-3 sm:px-4 py-3 sm:py-2 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 min-h-[44px] ${
-                      learningMethod === 'individual'
-                        ? 'border-primary-500 bg-primary-50 text-primary-700'
-                        : 'border-gray-200 hover:border-primary-300 text-gray-700'
-                    }`}
-                  >
-                    <Home className="w-4 h-4 flex-shrink-0" />
-                    <span>Home Visit</span>
-                  </button>
-                )}
-                {availableMethods.group && (
-                  <button
-                    type="button"
-                    onClick={() => setLearningMethod('group')}
-                    className={`px-3 sm:px-4 py-3 sm:py-2 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 min-h-[44px] ${
-                      learningMethod === 'group'
-                        ? 'border-primary-500 bg-primary-50 text-primary-700'
-                        : 'border-gray-200 hover:border-primary-300 text-gray-700'
-                    }`}
-                  >
-                    <Users className="w-4 h-4 flex-shrink-0" />
-                    <span>Group</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Time slot selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Time Slot
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {availableTimeSlots.map((slot) => (
                   <button
                     key={`${slot.start}-${slot.end}`}
                     type="button"
                     onClick={() => setSelectedTimeSlot(`${slot.start} - ${slot.end}`)}
-                    className={`px-3 sm:px-4 py-3 sm:py-2 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 min-h-[44px] ${
+                    className={`px-4 py-3 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 ${
                       selectedTimeSlot === `${slot.start} - ${slot.end}`
                         ? 'border-primary-500 bg-primary-50 text-primary-700'
                         : 'border-gray-200 hover:border-primary-300 text-gray-700'
@@ -259,21 +410,24 @@ const BookingModal: React.FC<BookingModalProps> = ({
                   </button>
                 ))}
                 {availableTimeSlots.length === 0 && selectedDay && (
-                  <p className="col-span-1 sm:col-span-2 text-sm text-gray-500 text-center py-4">
-                    No available time slots for {selectedDay}
-                  </p>
+                  <div className="col-span-2 sm:col-span-3 text-center py-8 text-gray-500">
+                    <Clock className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                    <p>No available time slots for {selectedDay}</p>
+                    <p className="text-sm mt-1">Try selecting a different day or duration</p>
+                  </div>
                 )}
                 {!selectedDay && (
-                  <p className="col-span-1 sm:col-span-2 text-sm text-gray-500 text-center py-4">
-                    Please select a day to view available time slots
-                  </p>
+                  <div className="col-span-2 sm:col-span-3 text-center py-8 text-gray-500">
+                    <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                    <p>Please select a day to view available time slots</p>
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* Contact number input */}
+            {/* Contact Number */}
             <div>
-              <label htmlFor="contactNumber" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="contactNumber" className="block text-sm font-medium text-gray-700 mb-3">
                 Contact Number
               </label>
               <input
@@ -282,34 +436,52 @@ const BookingModal: React.FC<BookingModalProps> = ({
                 value={contactNumber}
                 onChange={(e) => setContactNumber(e.target.value)}
                 placeholder="Enter your contact number"
-                className="w-full px-3 sm:px-4 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 required
                 minLength={10}
                 maxLength={15}
                 pattern="[0-9]*"
               />
               {contactNumber && contactNumber.length < 10 && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-2 text-sm text-red-600">
                   Contact number must be at least 10 digits
                 </p>
               )}
             </div>
 
-            {/* Submit button */}
-            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+            {/* Price Summary */}
+            {totalPrice > 0 && (
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-green-600" />
+                    <span className="font-medium text-gray-900">Total Price</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-green-600">{formatPrice(totalPrice)}</div>
+                    <div className="text-sm text-gray-500">
+                      {formatPrice(totalPrice / selectedDuration)} × {selectedDuration} hour{selectedDuration > 1 ? 's' : ''}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-3 sm:py-2 text-sm font-medium text-gray-700 hover:text-gray-800 order-2 sm:order-1"
+                className="px-6 py-3 text-sm font-medium text-gray-700 hover:text-gray-800 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={!selectedTimeSlot || !selectedDay || !contactNumber || contactNumber.length < 10}
-                className="px-4 py-3 sm:py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2"
+                className="px-6 py-3 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Book Session
+                Book Session - {formatPrice(totalPrice)}
               </button>
             </div>
           </form>
