@@ -129,40 +129,40 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold flex items-center text-gray-900">
-          <BookOpen className="w-5 h-5 mr-2 text-primary-600" />
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold flex items-center text-gray-900">
+          <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-primary-600" />
           Subject & Teaching Details
         </h2>
       </div>
 
       {/* Subject Display */}
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 lg:space-y-8">
         {subjects.map((subject) => {
           const availableTopics = getTopicsBySubject(subject._id);
           
           return (
-            <div key={subject._id} className="bg-gray-50/80 rounded-2xl p-6 border border-gray-200">
+            <div key={subject._id} className="bg-gray-50/80 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200">
               {/* Subject Header */}
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{subject.name}</h3>
-                  <p className="text-sm text-gray-600">Your selected subject</p>
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 truncate">{subject.name}</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">Your selected subject</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => removeSubject(subject._id)}
-                  className="text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50"
+                  className="text-red-500 hover:text-red-700 p-1.5 sm:p-2 rounded-lg hover:bg-red-50 flex-shrink-0 ml-2"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
               </div>
 
               {/* Topics Selection */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-medium text-gray-700">Best Topics (Max 5)</h4>
+              <div className="mb-6 sm:mb-8">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <h4 className="text-xs sm:text-sm font-medium text-gray-700">Best Topics (Max 5)</h4>
                   <span className={`text-xs px-2 py-1 rounded-full ${
                     subject.selectedTopics.length >= 5 
                       ? 'bg-red-100 text-red-700' 
@@ -171,7 +171,7 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
                     {subject.selectedTopics.length}/5 selected
                   </span>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
                   {availableTopics.map((topic) => {
                     const isSelected = subject.selectedTopics.includes(topic._id);
                     const isDisabled = !isSelected && subject.selectedTopics.length >= 5;
@@ -179,7 +179,7 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
                     return (
                       <label
                         key={topic._id}
-                        className={`flex items-center p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                        className={`flex items-center p-2 sm:p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                           isSelected
                             ? 'border-primary-500 bg-primary-50 text-primary-700'
                             : isDisabled
@@ -200,62 +200,62 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
                           }}
                           className="sr-only"
                         />
-                        <Check className={`w-4 h-4 mr-2 ${
+                        <Check className={`w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0 ${
                           isSelected ? 'text-primary-600' : 'text-transparent'
                         }`} />
-                        <span className="text-sm font-medium">{topic.name}</span>
+                        <span className="text-xs sm:text-sm font-medium truncate">{topic.name}</span>
                       </label>
                     );
                   })}
                 </div>
                 {subject.selectedTopics.length === 0 && (
-                  <p className="text-sm text-gray-500 mt-2 flex items-center">
-                    <AlertCircle className="w-4 h-4 mr-1" />
+                  <p className="text-xs sm:text-sm text-gray-500 mt-2 sm:mt-3 flex items-center">
+                    <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
                     Select up to 5 topics you're best at teaching
                   </p>
                 )}
                 {subject.selectedTopics.length >= 5 && (
-                  <p className="text-sm text-amber-600 mt-2 flex items-center">
-                    <AlertCircle className="w-4 h-4 mr-1" />
+                  <p className="text-xs sm:text-sm text-amber-600 mt-2 sm:mt-3 flex items-center">
+                    <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
                     Maximum 5 topics selected. Deselect a topic to add another.
                   </p>
                 )}
               </div>
 
               {/* Teaching Modes */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                  <DollarSign className="w-4 h-4 mr-1" />
+              <div className="mb-6 sm:mb-8">
+                <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-3 sm:mb-4 flex items-center">
+                  <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
                   Teaching Modes & Rates
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {subject.teachingModes.map((mode) => (
-                    <div key={mode.type} className="bg-white rounded-xl p-4 border border-gray-200">
+                    <div key={mode.type} className="bg-white rounded-xl p-3 sm:p-4 border border-gray-200">
                       <div className="flex items-center justify-between mb-3">
                         <label className="flex items-center">
                           <input
                             type="checkbox"
                             checked={mode.enabled}
                             onChange={(e) => updateTeachingMode(subject._id, mode.type, { enabled: e.target.checked })}
-                            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                            className="w-3 h-3 sm:w-4 sm:h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                           />
-                          <span className="ml-2 text-sm font-medium text-gray-700">
+                          <span className="ml-2 text-xs sm:text-sm font-medium text-gray-700">
                             {TEACHING_MODE_LABELS[mode.type]}
                           </span>
                         </label>
                       </div>
                       {mode.enabled && (
                         <div className="flex items-center">
-                          <span className="text-sm text-gray-500 mr-2">$</span>
+                          <span className="text-xs sm:text-sm text-gray-500 mr-1 sm:mr-2">$</span>
                           <input
                             type="number"
                             value={mode.rate}
                             onChange={(e) => updateTeachingMode(subject._id, mode.type, { rate: Number(e.target.value) })}
                             placeholder="0"
                             min="0"
-                            className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                            className="flex-1 p-1.5 sm:p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xs sm:text-sm"
                           />
-                          <span className="text-sm text-gray-500 ml-2">/hour</span>
+                          <span className="text-xs sm:text-sm text-gray-500 ml-1 sm:ml-2">/hour</span>
                         </div>
                       )}
                     </div>
@@ -265,19 +265,19 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
 
               {/* Availability */}
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                  <Clock className="w-4 h-4 mr-1" />
+                <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-3 sm:mb-4 flex items-center">
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
                   Available Time Slots
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                   {subject.availability.map((dayAvailability) => (
-                    <div key={dayAvailability.day} className="bg-white rounded-xl p-4 border border-gray-200">
+                    <div key={dayAvailability.day} className="bg-white rounded-xl p-3 sm:p-4 border border-gray-200">
                       <div className="flex items-center justify-between mb-3">
-                        <h5 className="text-sm font-medium text-gray-700">{dayAvailability.day}</h5>
+                        <h5 className="text-xs sm:text-sm font-medium text-gray-700 truncate">{dayAvailability.day}</h5>
                         <button
                           type="button"
                           onClick={() => addTimeSlot(subject._id, dayAvailability.day)}
-                          className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                          className="text-primary-600 hover:text-primary-700 text-xs sm:text-sm font-medium flex-shrink-0 ml-2"
                         >
                           + Add Slot
                         </button>
@@ -288,21 +288,21 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
                       ) : (
                         <div className="space-y-2">
                           {dayAvailability.slots.map((slot, slotIndex) => (
-                            <div key={slotIndex} className="flex items-center gap-2">
+                            <div key={slotIndex} className="flex items-center gap-1 sm:gap-2">
                               <select
                                 value={slot.start}
                                 onChange={(e) => updateTimeSlot(subject._id, dayAvailability.day, slotIndex, 'start', e.target.value)}
-                                className="flex-1 p-2 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                className="flex-1 p-1 sm:p-2 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                               >
                                 {TIME_SLOTS.map(time => (
                                   <option key={time} value={time}>{time}</option>
                                 ))}
                               </select>
-                              <span className="text-xs text-gray-500">to</span>
+                              <span className="text-xs text-gray-500 flex-shrink-0">to</span>
                               <select
                                 value={slot.end}
                                 onChange={(e) => updateTimeSlot(subject._id, dayAvailability.day, slotIndex, 'end', e.target.value)}
-                                className="flex-1 p-2 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                className="flex-1 p-1 sm:p-2 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                               >
                                 {TIME_SLOTS.map(time => (
                                   <option key={time} value={time}>{time}</option>
@@ -311,9 +311,9 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
                               <button
                                 type="button"
                                 onClick={() => removeTimeSlot(subject._id, dayAvailability.day, slotIndex)}
-                                className="text-red-500 hover:text-red-700 p-1"
+                                className="text-red-500 hover:text-red-700 p-1 flex-shrink-0"
                               >
-                                <X className="w-3 h-3" />
+                                <X className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                               </button>
                             </div>
                           ))}
@@ -328,13 +328,13 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
         })}
 
         {subjects.length === 0 && (
-          <div className="bg-gray-50/80 rounded-2xl p-6 border border-gray-200">
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Select Your Subject</h3>
-              <p className="text-sm text-gray-600">Choose the subject you want to teach</p>
+          <div className="bg-gray-50/80 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200">
+            <div className="mb-4 sm:mb-6">
+              <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">Select Your Subject</h3>
+              <p className="text-xs sm:text-sm text-gray-600">Choose the subject you want to teach</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {allSubjects.map((subject) => (
                 <button
                   key={subject._id}
@@ -356,11 +356,11 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
                     };
                     onSubjectsChange([newSubject]);
                   }}
-                  className="flex flex-col items-center p-6 bg-white rounded-xl border-2 border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-all duration-200 text-left"
+                  className="flex flex-col items-center p-4 sm:p-6 bg-white rounded-xl border-2 border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-all duration-200 text-left"
                 >
-                  <BookOpen className="w-8 h-8 text-primary-600 mb-3" />
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">{subject.name}</h4>
-                  <p className="text-sm text-gray-600 text-center">
+                  <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600 mb-2 sm:mb-3" />
+                  <h4 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2 text-center">{subject.name}</h4>
+                  <p className="text-xs sm:text-sm text-gray-600 text-center">
                     Click to select this subject and configure your teaching details
                   </p>
                 </button>

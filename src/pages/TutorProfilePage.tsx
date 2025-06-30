@@ -231,7 +231,7 @@ const TutorProfilePage: React.FC = () => {
       {/* Breadcrumb Navigation */}
       <TutorProfileBreadcrumb tutorName={profile.user.name} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 pb-6 sm:pb-8">
         {/* Header Section */}
         <TutorProfileHeader profile={profile} />
         
@@ -244,16 +244,16 @@ const TutorProfilePage: React.FC = () => {
         />
 
         {/* Main Content Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Main Content Column */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Tab Content */}
             {activeTab === 'about' && <TutorProfileAbout profile={profile} />}
             {activeTab === 'subjects' && <TutorProfileSubjects profile={profile} />}
             {activeTab === 'education' && <TutorProfileEducation profile={profile} />}
             {activeTab === 'experience' && <TutorProfileExperience profile={profile} />}
             {activeTab === 'reviews' && (
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                 <ReviewList
                   reviews={mappedReviews}
                   averageRating={profile.rating}
