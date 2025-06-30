@@ -2,10 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useSubjects } from '../../contexts/SubjectContext';
 import { Check, ChevronDown } from 'lucide-react';
 
+interface Topic {
+  _id: string;
+  name: string;
+  description: string;
+  subject: string;
+  isActive: boolean;
+}
+
 interface Subject {
   _id: string;
   name: string;
-  topics: string[];
+  topics?: string[];
   description: string;
   isActive: boolean;
 }
@@ -25,26 +33,46 @@ const SubjectFilter: React.FC<SubjectFilterProps> = ({
 }) => {
   const { subjects, loading, error } = useSubjects();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [topicsLoading, setTopicsLoading] = useState(false);
 
   const handleSubjectClick = (subjectId: string) => {
     if (selectedSubject === subjectId) {
       onSubjectSelect(null);
       onTopicSelect(null);
+      setTopics([]);
     } else {
       onSubjectSelect(subjectId);
       onTopicSelect(null);
+      fetchTopics(subjectId);
     }
   };
 
-  const handleTopicClick = (topic: string) => {
-    if (selectedTopic === topic) {
+  const handleTopicClick = (topicId: string) => {
+    if (selectedTopic === topicId) {
       onTopicSelect(null);
     } else {
-      onTopicSelect(topic);
+      onTopicSelect(topicId);
+    }
+  };
+
+  const fetchTopics = async (subjectId: string) => {
+    try {
+      setTopicsLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/subject/${subjectId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setTopics(data.filter((topic: Topic) => topic.isActive));
+      }
+    } catch (error) {
+      console.error('Error fetching topics:', error);
+    } finally {
+      setTopicsLoading(false);
     }
   };
 
   const selectedSubjectData = subjects.find(s => s._id === selectedSubject);
+  const selectedTopicData = topics.find(t => t._id === selectedTopic);
 
   if (loading) {
     return (
@@ -100,24 +128,32 @@ const SubjectFilter: React.FC<SubjectFilterProps> = ({
           <h3 className="text-sm font-medium text-gray-900 mb-3">
             Select Topic for {selectedSubjectData.name}
           </h3>
-          <div className="flex flex-wrap gap-2">
-            {selectedSubjectData.topics.map((topic) => (
-              <button
-                key={topic}
-                onClick={() => handleTopicClick(topic)}
-                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                  selectedTopic === topic
-                    ? 'bg-blue-100 text-blue-700 border-2 border-blue-300 shadow-sm'
-                    : 'bg-gray-50 text-gray-600 border-2 border-transparent hover:bg-gray-100 hover:border-gray-200'
-                }`}
-              >
-                {topic}
-                {selectedTopic === topic && (
-                  <Check className="h-3 w-3" />
-                )}
-              </button>
-            ))}
-          </div>
+          {topicsLoading ? (
+            <div className="flex flex-wrap gap-2">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="h-8 bg-gray-200 rounded-full w-20 animate-pulse"></div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {topics.map((topic) => (
+                <button
+                  key={topic._id}
+                  onClick={() => handleTopicClick(topic._id)}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                    selectedTopic === topic._id
+                      ? 'bg-blue-100 text-blue-700 border-2 border-blue-300 shadow-sm'
+                      : 'bg-gray-50 text-gray-600 border-2 border-transparent hover:bg-gray-100 hover:border-gray-200'
+                  }`}
+                >
+                  {topic.name}
+                  {selectedTopic === topic._id && (
+                    <Check className="h-3 w-3" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -139,9 +175,9 @@ const SubjectFilter: React.FC<SubjectFilterProps> = ({
                 </button>
               </div>
             )}
-            {selectedTopic && (
+            {selectedTopic && selectedTopicData && (
               <div className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-200">
-                <span>{selectedTopic}</span>
+                <span>{selectedTopicData.name}</span>
                 <button
                   onClick={() => onTopicSelect(null)}
                   className="hover:bg-blue-100 rounded-full p-0.5 -mr-0.5 transition-colors"

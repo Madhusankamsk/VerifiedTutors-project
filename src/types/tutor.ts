@@ -27,6 +27,15 @@ export interface TutorProfile {
   rating: number;
   totalReviews: number;
   isVerified: boolean;
+  verificationStatus: 'pending' | 'approved' | 'rejected';
+  verificationChecks: {
+    documents: boolean;
+    education: boolean;
+    experience: boolean;
+    background: boolean;
+    interview: boolean;
+  };
+  rejectionReason?: string;
   status: 'active' | 'inactive' | 'suspended';
   createdAt: string;
   updatedAt: string;
@@ -52,29 +61,38 @@ export interface Experience {
 
 // Document interface
 export interface Document {
-  id: string;
+  id?: string;
   url: string;
+}
+
+// Teaching mode interface
+export interface TeachingMode {
+  type: 'online' | 'home-visit' | 'group';
+  rate: number;
+  enabled: boolean;
 }
 
 // Tutor subject interface
 export interface TutorSubject {
   subject: Subject;
-  bestTopics?: string[]; // Legacy string topics
-  topicObjects?: Topic[]; // New Topic objects
-  rates: {
+  selectedTopics: string[]; // Topic IDs
+  teachingModes: TeachingMode[];
+  availability: TutorAvailability[];
+  // Legacy fields for backward compatibility
+  bestTopics?: string[];
+  rates?: {
     individual: number;
     group: number;
     online: number;
   };
-  availability: TutorAvailability[];
 }
 
 // Availability interface
 export interface TutorAvailability {
-  day: string;
+  day: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
   slots: {
-    start: string;
-    end: string;
+    start: string; // HH:mm format
+    end: string; // HH:mm format
   }[];
 }
 
@@ -95,13 +113,8 @@ export interface EditTutorFormData {
   subjects: Array<{
     _id: string;
     name: string;
-    bestTopics: string[]; // Legacy string topics
-    topicObjects?: Topic[]; // New Topic objects
-    rates: {
-      individual: number;
-      group: number;
-      online: number;
-    };
+    selectedTopics: string[];
+    teachingModes: TeachingMode[];
     availability: Array<{
       day: string;
       slots: Array<{
@@ -109,7 +122,7 @@ export interface EditTutorFormData {
         end: string;
       }>;
     }>;
-  }>;
+  }>; // Note: Array with max length 1
   availableLocations: string;
   documents: Document[];
 }
@@ -221,4 +234,24 @@ export interface TutorSearchResults {
     pages: number;
     limit: number;
   };
+}
+
+// Tutor listing interface (for search results)
+export interface TutorListing {
+  _id: string;
+  user: {
+    _id: string;
+    name: string;
+    email: string;
+    profileImage?: string;
+  };
+  subjects: TutorSubject[];
+  availableLocations: string;
+  rating: number;
+  totalReviews: number;
+  isVerified: boolean;
+  verificationStatus: 'pending' | 'approved' | 'rejected';
+  status: 'active' | 'inactive' | 'suspended';
+  createdAt: string;
+  updatedAt: string;
 } 

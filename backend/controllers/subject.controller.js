@@ -52,16 +52,16 @@ export const createSubject = async (req, res) => {
   try {
     const { name, description, topics } = req.body;
 
-    if (!name || !topics || !Array.isArray(topics) || topics.length === 0) {
+    if (!name) {
       return res.status(400).json({ 
-        message: 'Subject name and at least one topic are required' 
+        message: 'Subject name is required' 
       });
     }
 
     const subject = await Subject.create({
       name,
       description: description || '',
-      topics
+      topics: topics || [] // Make topics optional
     });
 
     res.status(201).json(subject);

@@ -86,8 +86,9 @@ export const getTutors = async (req, res) => {
         });
 
         if (topicDoc) {
-          // Use Topic object ID for filtering
+          // Use Topic object ID for filtering - check both new and legacy fields
           query.$or = [
+            { 'subjects.selectedTopics': topicDoc._id },
             { 'subjects.topicObjects': topicDoc._id },
             { 'subjects.bestTopics': { $regex: new RegExp(topic, 'i') } }
           ];
@@ -107,17 +108,20 @@ export const getTutors = async (req, res) => {
     const teachingModeConditions = [];
     if (teachingMode) {
       if (teachingMode === 'ONLINE') {
-        teachingModeConditions.push({
-          'subjects.rates.online': { $gt: 0 }
-        });
+        teachingModeConditions.push(
+          { 'subjects.teachingModes': { $elemMatch: { type: 'online', enabled: true, rate: { $gt: 0 } } } },
+          { 'subjects.rates.online': { $gt: 0 } } // Legacy support
+        );
       } else if (teachingMode === 'INDIVIDUAL') {
-        teachingModeConditions.push({
-          'subjects.rates.individual': { $gt: 0 }
-        });
+        teachingModeConditions.push(
+          { 'subjects.teachingModes': { $elemMatch: { type: 'home-visit', enabled: true, rate: { $gt: 0 } } } },
+          { 'subjects.rates.individual': { $gt: 0 } } // Legacy support
+        );
       } else if (teachingMode === 'GROUP') {
-        teachingModeConditions.push({
-          'subjects.rates.group': { $gt: 0 }
-        });
+        teachingModeConditions.push(
+          { 'subjects.teachingModes': { $elemMatch: { type: 'group', enabled: true, rate: { $gt: 0 } } } },
+          { 'subjects.rates.group': { $gt: 0 } } // Legacy support
+        );
       }
     }
 
@@ -139,17 +143,19 @@ export const getTutors = async (req, res) => {
         
         if (minPrice > 0) {
           priceConditions.push(
-            { 'subjects.rates.online': { $gte: minPrice } },
-            { 'subjects.rates.individual': { $gte: minPrice } },
-            { 'subjects.rates.group': { $gte: minPrice } }
+            { 'subjects.teachingModes': { $elemMatch: { enabled: true, rate: { $gte: minPrice } } } },
+            { 'subjects.rates.online': { $gte: minPrice } }, // Legacy support
+            { 'subjects.rates.individual': { $gte: minPrice } }, // Legacy support
+            { 'subjects.rates.group': { $gte: minPrice } } // Legacy support
           );
         }
         
         if (maxPrice < 10000) {
           priceConditions.push(
-            { 'subjects.rates.online': { $lte: maxPrice } },
-            { 'subjects.rates.individual': { $lte: maxPrice } },
-            { 'subjects.rates.group': { $lte: maxPrice } }
+            { 'subjects.teachingModes': { $elemMatch: { enabled: true, rate: { $lte: maxPrice } } } },
+            { 'subjects.rates.online': { $lte: maxPrice } }, // Legacy support
+            { 'subjects.rates.individual': { $lte: maxPrice } }, // Legacy support
+            { 'subjects.rates.group': { $lte: maxPrice } } // Legacy support
           );
         }
         
@@ -202,6 +208,7 @@ export const getTutors = async (req, res) => {
     const tutors = await Tutor.find(query)
       .populate('user', 'name email profileImage')
       .populate('subjects.subject', 'name topics')
+      .populate('subjects.selectedTopics', 'name description')
       .populate('subjects.topicObjects', 'name description')
       .sort(sortOptions)
       .skip(skip)
@@ -351,6 +358,13 @@ export const updateTutorProfile = async (req, res) => {
 
     // Process subjects with validation
     if (req.body.subjects) {
+      // Ensure only one subject is selected
+      if (req.body.subjects.length > 1) {
+        return res.status(400).json({ 
+          message: 'You can only select one subject. Please remove additional subjects.' 
+        });
+      }
+
       for (const subject of req.body.subjects) {
         if (!subject.subject || !subject.subject._id) {
           return res.status(400).json({ 
@@ -358,66 +372,114 @@ export const updateTutorProfile = async (req, res) => {
           });
         }
 
-        // Validate rates and teaching modes
-        if (!subject.rates) {
+        // Handle both new and legacy structures
+        const hasNewStructure = subject.selectedTopics !== undefined && subject.teachingModes !== undefined;
+        const hasLegacyStructure = subject.rates !== undefined;
+
+        if (hasNewStructure) {
+          // Validate selectedTopics
+          if (!Array.isArray(subject.selectedTopics)) {
+            return res.status(400).json({ 
+              message: 'selectedTopics must be an array for each subject' 
+            });
+          }
+
+          // Validate that no more than 5 topics are selected
+          if (subject.selectedTopics.length > 5) {
+            return res.status(400).json({ 
+              message: 'Maximum 5 topics can be selected per subject' 
+            });
+          }
+
+          // Validate teachingModes
+          if (!Array.isArray(subject.teachingModes)) {
+            return res.status(400).json({ 
+              message: 'teachingModes must be an array for each subject' 
+            });
+          }
+
+          // Validate each teaching mode
+          let hasEnabledMode = false;
+          for (const mode of subject.teachingModes) {
+            if (!mode.type || !['online', 'home-visit', 'group'].includes(mode.type)) {
+              return res.status(400).json({ 
+                message: 'Invalid teaching mode type. Must be online, home-visit, or group' 
+              });
+            }
+
+            if (typeof mode.rate !== 'number' || mode.rate < 0) {
+              return res.status(400).json({ 
+                message: 'Teaching mode rate must be a non-negative number' 
+              });
+            }
+
+            if (mode.enabled && mode.rate > 0) {
+              hasEnabledMode = true;
+            }
+          }
+
+          // Ensure at least one teaching mode is enabled with a rate > 0
+          if (!hasEnabledMode) {
+            return res.status(400).json({ 
+              message: 'At least one teaching mode must be enabled with a rate greater than 0' 
+            });
+          }
+        } else if (hasLegacyStructure) {
+          // Legacy validation for rates structure
+          const { individual, group, online } = subject.rates;
+          const teachingModes = [];
+
+          if (individual !== undefined && individual !== null) {
+            if (individual < 0) {
+              return res.status(400).json({ 
+                message: 'Individual rate cannot be negative' 
+              });
+            }
+            if (individual > 0) {
+              teachingModes.push('INDIVIDUAL');
+            }
+          }
+
+          if (group !== undefined && group !== null) {
+            if (group < 0) {
+              return res.status(400).json({ 
+                message: 'Group rate cannot be negative' 
+              });
+            }
+            if (group > 0) {
+              teachingModes.push('GROUP');
+            }
+          }
+
+          if (online !== undefined && online !== null) {
+            if (online < 0) {
+              return res.status(400).json({ 
+                message: 'Online rate cannot be negative' 
+              });
+            }
+            if (online > 0) {
+              teachingModes.push('ONLINE');
+            }
+          }
+
+          if (teachingModes.length === 0) {
+            return res.status(400).json({ 
+              message: 'At least one teaching mode (Individual, Group, or Online) must be selected with a rate greater than 0' 
+            });
+          }
+
+          // Convert legacy structure to new structure
+          subject.selectedTopics = subject.selectedTopics || [];
+          subject.teachingModes = [
+            { type: 'online', rate: online || 0, enabled: online > 0 },
+            { type: 'home-visit', rate: individual || 0, enabled: individual > 0 },
+            { type: 'group', rate: group || 0, enabled: group > 0 }
+          ];
+        } else {
           return res.status(400).json({ 
-            message: 'Rates are required for each subject' 
+            message: 'Subject must have either selectedTopics/teachingModes (new structure) or rates (legacy structure)' 
           });
         }
-
-        const { individual, group, online } = subject.rates;
-        const teachingModes = [];
-
-        // Check each teaching mode and its rate
-        if (individual !== undefined && individual !== null) {
-          if (individual < 0) {
-            return res.status(400).json({ 
-              message: 'Individual rate cannot be negative' 
-            });
-          }
-          if (individual > 0) {
-            teachingModes.push('INDIVIDUAL');
-          }
-        }
-
-        if (group !== undefined && group !== null) {
-          if (group < 0) {
-            return res.status(400).json({ 
-              message: 'Group rate cannot be negative' 
-            });
-          }
-          if (group > 0) {
-            teachingModes.push('GROUP');
-          }
-        }
-
-        if (online !== undefined && online !== null) {
-          if (online < 0) {
-            return res.status(400).json({ 
-              message: 'Online rate cannot be negative' 
-            });
-          }
-          if (online > 0) {
-            teachingModes.push('ONLINE');
-          }
-        }
-
-        // Ensure at least one teaching mode is selected with a rate > 0
-        if (teachingModes.length === 0) {
-          return res.status(400).json({ 
-            message: 'At least one teaching mode (Individual, Group, or Online) must be selected with a rate greater than 0' 
-          });
-        }
-
-        // Store the teaching modes in the subject object
-        subject.teachingModes = teachingModes;
-
-        // Set undefined rates to 0
-        subject.rates = {
-          individual: individual || 0,
-          group: group || 0,
-          online: online || 0
-        };
 
         // Validate availability if provided
         if (subject.availability) {

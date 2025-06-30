@@ -4,18 +4,36 @@ import { Star, CheckCircle, Book, Video, Home, Users, Heart } from 'lucide-react
 import { useAuth } from '../../contexts/AuthContext';
 import { useStudent } from '../../contexts/StudentContext';
 import { toast } from 'react-toastify';
+import { getRatesFromTeachingModes } from '../../utils/tutorUtils';
 
 interface TutorCardProps {
   tutor: {
     id: string;
     name: string;
     profileImage?: string;
-    subjects: string[];
+    subjects: Array<{
+      subject: {
+        name: string;
+      };
+      selectedTopics?: string[];
+      teachingModes?: Array<{
+        type: 'online' | 'home-visit' | 'group';
+        rate: number;
+        enabled: boolean;
+      }>;
+      // Legacy support
+      rates?: {
+        online: number;
+        individual: number;
+        group: number;
+      };
+    }>;
     location: string;
     rating: number;
     reviewCount: number;
     verified: boolean;
-    hourlyRate: {
+    // Legacy support
+    hourlyRate?: {
       online: number;
       homeVisit: number;
       group: number;
@@ -24,35 +42,71 @@ interface TutorCardProps {
 }
 
 const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
-  const { isAuthenticated, user } = useAuth();
-  const { isFavorite, addFavorite, removeFavorite } = useStudent();
+  const { user } = useAuth();
+  const { favorites, addFavorite, removeFavorite } = useStudent();
   const navigate = useNavigate();
-  
-  const isStudent = user?.role === 'student';
-  const isTutorFavorite = isFavorite(tutor.id);
-  
-  const handleFavoriteClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    
-    if (!isAuthenticated) {
-      toast.info('Please login as a student to add tutors to favorites');
-      navigate('/login', { state: { from: `/tutors` } });
-      return;
+
+  // Get rates from new structure or fallback to legacy
+  const getRates = () => {
+    if (tutor.subjects && tutor.subjects.length > 0) {
+      const subject = tutor.subjects[0];
+      if (subject.teachingModes) {
+        return getRatesFromTeachingModes(subject.teachingModes);
+      } else if (subject.rates) {
+        return {
+          online: subject.rates.online || 0,
+          individual: subject.rates.individual || 0,
+          group: subject.rates.group || 0
+        };
+      }
     }
-    
-    if (!isStudent) {
-      toast.info('Only students can add tutors to favorites');
-      return;
+    // Fallback to legacy hourlyRate
+    if (tutor.hourlyRate) {
+      return {
+        online: tutor.hourlyRate.online || 0,
+        individual: tutor.hourlyRate.homeVisit || 0,
+        group: tutor.hourlyRate.group || 0
+      };
     }
-    
-    if (isTutorFavorite) {
-      removeFavorite(tutor.id);
-    } else {
-      addFavorite(tutor.id);
-    }
+    return { online: 0, individual: 0, group: 0 };
   };
 
-  const hasAnyRate = tutor.hourlyRate.online > 0 || tutor.hourlyRate.homeVisit > 0 || tutor.hourlyRate.group > 0;
+  const rates = getRates();
+
+  // Get subject names
+  const getSubjectNames = () => {
+    if (tutor.subjects && tutor.subjects.length > 0) {
+      return tutor.subjects.map(s => s.subject.name);
+    }
+    return [];
+  };
+
+  const subjectNames = getSubjectNames();
+
+  const isTutorFavorite = favorites.some(fav => fav.tutor._id === tutor.id);
+
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!user) {
+      toast.error('Please login to add favorites');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      if (isTutorFavorite) {
+        await removeFavorite(tutor.id);
+        toast.success('Removed from favorites');
+      } else {
+        await addFavorite(tutor.id);
+        toast.success('Added to favorites');
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    }
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group border border-gray-100 w-full h-80">
@@ -92,7 +146,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
       </div>
 
       {/* Content Section - More compact */}
-      <div className="p-3 flex flex-col h-48">
+      <div className="p-4 flex flex-col h-48">
         {/* Name and Rating - Compact */}
         <div className="mb-2">
           <h3 className="text-base font-semibold text-gray-900 mb-1 line-clamp-1 group-hover:text-primary-600 transition-colors">
@@ -127,31 +181,31 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
           <div className="flex items-start text-gray-600">
             <Book className="h-3 w-3 mr-1.5 text-gray-400 mt-0.5 flex-shrink-0" />
             <span className="text-xs line-clamp-2 leading-relaxed">
-              {tutor.subjects.join(', ')}
+              {subjectNames.join(', ')}
             </span>
           </div>
         </div>
 
         {/* Horizontal Pricing Section */}
-        {hasAnyRate && (
+        {(rates.online > 0 || rates.individual > 0 || rates.group > 0) && (
           <div className="mb-3">
             <div className="flex items-center justify-between text-xs">
-              {tutor.hourlyRate.online > 0 && (
+              {rates.online > 0 && (
                 <div className="flex items-center">
                   <Video className="h-3 w-3 text-blue-600 mr-1" />
-                  <span className="text-gray-500">Rs. {tutor.hourlyRate.online}</span>
+                  <span className="text-gray-500">Rs. {rates.online}</span>
                 </div>
               )}
-              {tutor.hourlyRate.homeVisit > 0 && (
+              {rates.individual > 0 && (
                 <div className="flex items-center">
                   <Home className="h-3 w-3 text-blue-600 mr-1" />
-                  <span className="text-gray-500">Rs. {tutor.hourlyRate.homeVisit}</span>
+                  <span className="text-gray-500">Rs. {rates.individual}</span>
                 </div>
               )}
-              {tutor.hourlyRate.group > 0 && (
+              {rates.group > 0 && (
                 <div className="flex items-center">
                   <Users className="h-3 w-3 text-blue-600 mr-1" />
-                  <span className="text-gray-500">Rs. {tutor.hourlyRate.group}</span>
+                  <span className="text-gray-500">Rs. {rates.group}</span>
                 </div>
               )}
             </div>

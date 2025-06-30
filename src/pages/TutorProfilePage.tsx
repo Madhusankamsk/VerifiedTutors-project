@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import { ReviewList } from '../components/ReviewList';
 import BookingModal from '../components/booking/BookingModal';
 import { useScrollToTop } from '../hooks/useScrollToTop';
+import { getRatesFromTeachingModes } from '../utils/tutorUtils';
 
 // Import the new components
 import {
@@ -87,43 +88,38 @@ const TutorProfilePage: React.FC = () => {
     if (!id || !profile) return;
     
     try {
-      // Find the selected subject
-      const selectedSubject = profile.subjects.find(s => s.subject._id === selectedSubjectForBooking);
+      const selectedSubject = profile.subjects.find(s => s.subject.name === data.subject);
       if (!selectedSubject) {
         toast.error('Selected subject not found');
         return;
       }
+
+      const selectedSubjectForBooking = selectedSubject.subject._id;
       
       // Parse time slot
-      const [startTimeStr, endTimeStr] = data.timeSlot.split(' - ');
+      const [startTime, endTime] = data.timeSlot.split(' - ');
+      const [startHours, startMinutes] = startTime.split(':').map(Number);
+      const [endHours, endMinutes] = endTime.split(':').map(Number);
       
-      // Create date objects for start and end time
-      const today = new Date();
-      const dayIndex = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].indexOf(data.day);
-      const daysToAdd = (dayIndex - today.getDay() + 7) % 7;
+      // Parse date
+      const bookingDate = new Date(data.day);
       
-      const bookingDate = new Date(today);
-      bookingDate.setDate(today.getDate() + daysToAdd);
+      const startTimeObj = new Date(bookingDate);
+      startTimeObj.setHours(startHours, startMinutes, 0, 0);
       
-      // Parse hours and minutes from time strings
-      const [startHours, startMinutes] = startTimeStr.split(':').map(Number);
-      const [endHours, endMinutes] = endTimeStr.split(':').map(Number);
-      
-      const startTime = new Date(bookingDate);
-      startTime.setHours(startHours, startMinutes, 0, 0);
-      
-      const endTime = new Date(bookingDate);
-      endTime.setHours(endHours, endMinutes, 0, 0);
+      const endTimeObj = new Date(bookingDate);
+      endTimeObj.setHours(endHours, endMinutes, 0, 0);
       
       // Get the rate based on learning method
-      const rate = selectedSubject.rates[data.learningMethod];
+      const rates = getRatesFromTeachingModes(selectedSubject.teachingModes);
+      const rate = rates[data.learningMethod];
       
       // Create booking
       await createBooking({
         tutorId: id,
         subjectId: selectedSubjectForBooking,
-        startTime,
-        endTime,
+        startTime: startTimeObj,
+        endTime: endTimeObj,
         notes: `Contact number: ${data.contactNumber}`,
         learningMethod: data.learningMethod
       });
@@ -293,14 +289,14 @@ const TutorProfilePage: React.FC = () => {
         }}
         selectedSubject={profile.subjects[0].subject.name}
         availableMethods={{
-          online: profile.subjects[0].rates.online > 0,
-          individual: profile.subjects[0].rates.individual > 0,
-          group: profile.subjects[0].rates.group > 0
+          online: getRatesFromTeachingModes(profile.subjects[0].teachingModes).online > 0,
+          individual: getRatesFromTeachingModes(profile.subjects[0].teachingModes).individual > 0,
+          group: getRatesFromTeachingModes(profile.subjects[0].teachingModes).group > 0
         }}
         subjects={profile.subjects.map(subject => ({
           _id: subject.subject._id,
           name: subject.subject.name,
-          rates: subject.rates,
+          rates: getRatesFromTeachingModes(subject.teachingModes),
           availability: subject.availability
         }))}
       />

@@ -8,36 +8,35 @@ const emailPattern = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 // Tutor profile validation schema
 export const validateTutorProfile = (req, res, next) => {
   const schema = Joi.object({
-    phone: Joi.string().pattern(phonePattern).required().messages({
-      'string.pattern.base': 'Please provide a valid 10-digit phone number',
-      'any.required': 'Phone number is required'
+    phone: Joi.string().pattern(/^[0-9]{10}$/).messages({
+      'string.pattern.base': 'Please add a valid 10-digit phone number'
     }),
-    gender: Joi.string().valid('Male', 'Female', 'Other').required().messages({
-      'any.only': 'Gender must be either Male, Female, or Other',
-      'any.required': 'Gender is required'
+    gender: Joi.string().valid('Male', 'Female', 'Other').messages({
+      'any.only': 'Gender must be Male, Female, or Other'
     }),
-    bio: Joi.string().max(1000).allow('').messages({
+    bio: Joi.string().max(1000).messages({
       'string.max': 'Bio cannot exceed 1000 characters'
     }),
     socialMedia: Joi.object({
-      instagram: Joi.string().allow('').messages({
-        'string.base': 'Instagram username must be a string'
+      instagram: Joi.string().uri().allow('').messages({
+        'string.uri': 'Instagram URL must be a valid URI'
       }),
-      youtube: Joi.string().allow('').messages({
-        'string.base': 'YouTube channel must be a string'
+      youtube: Joi.string().uri().allow('').messages({
+        'string.uri': 'YouTube URL must be a valid URI'
       }),
-      facebook: Joi.string().allow('').messages({
-        'string.base': 'Facebook username must be a string'
+      facebook: Joi.string().uri().allow('').messages({
+        'string.uri': 'Facebook URL must be a valid URI'
       }),
-      linkedin: Joi.string().allow('').messages({
-        'string.base': 'LinkedIn username must be a string'
+      linkedin: Joi.string().uri().allow('').messages({
+        'string.uri': 'LinkedIn URL must be a valid URI'
       })
-    }).default({}),
+    }).messages({
+      'object.base': 'Social media must be an object'
+    }),
     teachingMediums: Joi.array().items(
       Joi.string().valid('english', 'sinhala', 'tamil')
     ).messages({
-      'array.base': 'Teaching mediums must be an array',
-      'any.only': 'Invalid teaching medium'
+      'array.base': 'Teaching mediums must be an array'
     }),
     education: Joi.array().items(
       Joi.object({
@@ -60,21 +59,17 @@ export const validateTutorProfile = (req, res, next) => {
     }),
     experience: Joi.array().items(
       Joi.object({
-        title: Joi.string().required().messages({
-          'string.empty': 'Title is required',
-          'any.required': 'Title is required'
+        title: Joi.string().messages({
+          'string.empty': 'Title is required'
         }),
-        company: Joi.string().required().messages({
-          'string.empty': 'Company is required',
-          'any.required': 'Company is required'
+        company: Joi.string().messages({
+          'string.empty': 'Company is required'
         }),
-        duration: Joi.string().required().messages({
-          'string.empty': 'Duration is required',
-          'any.required': 'Duration is required'
+        duration: Joi.string().messages({
+          'string.empty': 'Duration is required'
         }),
-        description: Joi.string().required().messages({
-          'string.empty': 'Description is required',
-          'any.required': 'Description is required'
+        description: Joi.string().messages({
+          'string.empty': 'Description is required'
         })
       })
     ).messages({
@@ -90,19 +85,46 @@ export const validateTutorProfile = (req, res, next) => {
           name: Joi.string().required().messages({
             'string.empty': 'Subject name is required',
             'any.required': 'Subject name is required'
-          }),
-          topics: Joi.array().items(Joi.string()).default([]).messages({
-            'array.base': 'Topics must be an array of strings'
           })
         }).required(),
-        bestTopics: Joi.array().items(Joi.string()).max(5).required().messages({
-          'array.max': 'A tutor can have at most 5 best topics per subject',
-          'any.required': 'Best topics are required'
+        // New structure: selectedTopics (Topic IDs)
+        selectedTopics: Joi.array().items(Joi.string()).max(5).messages({
+          'array.max': 'A tutor can have at most 5 selected topics per subject',
+          'array.base': 'Selected topics must be an array'
         }),
-        hourlyRate: Joi.number().min(0).required().messages({
-          'number.min': 'Hourly rate must be a positive number',
-          'any.required': 'Hourly rate is required'
+        // New structure: teachingModes
+        teachingModes: Joi.array().items(
+          Joi.object({
+            type: Joi.string().valid('online', 'home-visit', 'group').required().messages({
+              'any.only': 'Teaching mode must be online, home-visit, or group',
+              'any.required': 'Teaching mode type is required'
+            }),
+            rate: Joi.number().min(0).required().messages({
+              'number.min': 'Rate must be a non-negative number',
+              'any.required': 'Rate is required'
+            }),
+            enabled: Joi.boolean().default(false)
+          })
+        ).messages({
+          'array.base': 'Teaching modes must be an array'
         }),
+        // Legacy structure: rates (for backward compatibility)
+        rates: Joi.object({
+          individual: Joi.number().min(0).messages({
+            'number.min': 'Individual rate cannot be negative'
+          }),
+          group: Joi.number().min(0).messages({
+            'number.min': 'Group rate cannot be negative'
+          }),
+          online: Joi.number().min(0).messages({
+            'number.min': 'Online rate cannot be negative'
+          })
+        }),
+        // Legacy structure: bestTopics (for backward compatibility)
+        bestTopics: Joi.array().items(Joi.string()).max(5).messages({
+          'array.max': 'A tutor can have at most 5 best topics per subject'
+        }),
+        // Availability structure
         availability: Joi.array().items(
           Joi.object({
             day: Joi.string().valid('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday').required().messages({
@@ -127,50 +149,29 @@ export const validateTutorProfile = (req, res, next) => {
                 }
                 return obj;
               })
-            ).min(1).required().messages({
-              'array.min': 'At least one time slot is required',
-              'any.required': 'Time slots are required'
+            ).min(1).messages({
+              'array.min': 'At least one time slot is required'
             })
           })
-        ).required().messages({
-          'array.base': 'Availability must be an array',
-          'any.required': 'Availability is required'
+        ).messages({
+          'array.base': 'Availability must be an array'
         })
       })
-    ).min(1).required().messages({
-      'array.min': 'At least one subject is required',
-      'any.required': 'Subjects are required'
+    ).max(1).messages({
+      'array.max': 'A tutor can only have one subject'
     }),
-    availableLocations: Joi.string().required().trim().max(100).messages({
-      'string.empty': 'Available locations are required',
-      'any.required': 'Available locations are required',
+    availableLocations: Joi.string().trim().max(100).messages({
       'string.max': 'Available locations cannot exceed 100 characters'
     }),
     documents: Joi.array().items(
       Joi.object({
-        type: Joi.string().valid('qualification', 'identity', 'other').required().messages({
-          'any.only': 'Document type must be qualification, identity, or other',
-          'any.required': 'Document type is required'
-        }),
         url: Joi.string().uri().required().messages({
           'string.uri': 'Document URL must be a valid URI',
           'any.required': 'Document URL is required'
-        }),
-        verified: Joi.boolean().default(false)
+        })
       })
     ).messages({
       'array.base': 'Documents must be an array'
-    }),
-    rating: Joi.number().min(0).max(5).default(0).messages({
-      'number.min': 'Rating must be at least 0',
-      'number.max': 'Rating cannot exceed 5'
-    }),
-    totalReviews: Joi.number().min(0).default(0).messages({
-      'number.min': 'Total reviews cannot be negative'
-    }),
-    isVerified: Joi.boolean().default(false),
-    status: Joi.string().valid('active', 'inactive', 'suspended').default('active').messages({
-      'any.only': 'Status must be active, inactive, or suspended'
     })
   });
 
@@ -362,23 +363,73 @@ export const validateSubjects = (req, res, next) => {
           name: Joi.string().required().messages({
             'string.empty': 'Subject name is required',
             'any.required': 'Subject name is required'
-          }),
-          topics: Joi.array().items(Joi.string()).default([]).messages({
-            'array.base': 'Topics must be an array of strings'
           })
         }).required(),
-        bestTopics: Joi.array().items(Joi.string()).max(5).required().messages({
-          'array.max': 'A tutor can have at most 5 best topics per subject',
-          'any.required': 'Best topics are required'
+        // New structure: selectedTopics (Topic IDs)
+        selectedTopics: Joi.array().items(Joi.string()).max(5).messages({
+          'array.max': 'A tutor can have at most 5 selected topics per subject',
+          'array.base': 'Selected topics must be an array'
         }),
-        hourlyRate: Joi.number().min(0).required().messages({
-          'number.min': 'Hourly rate must be a positive number',
-          'any.required': 'Hourly rate is required'
+        // New structure: teachingModes
+        teachingModes: Joi.array().items(
+          Joi.object({
+            type: Joi.string().valid('online', 'home-visit', 'group').required().messages({
+              'any.only': 'Teaching mode must be online, home-visit, or group',
+              'any.required': 'Teaching mode type is required'
+            }),
+            rate: Joi.number().min(0).required().messages({
+              'number.min': 'Rate must be a non-negative number',
+              'any.required': 'Rate is required'
+            }),
+            enabled: Joi.boolean().default(false)
+          })
+        ).messages({
+          'array.base': 'Teaching modes must be an array'
+        }),
+        // Legacy structure: rates (for backward compatibility)
+        rates: Joi.object({
+          individual: Joi.number().min(0).messages({
+            'number.min': 'Individual rate cannot be negative'
+          }),
+          group: Joi.number().min(0).messages({
+            'number.min': 'Group rate cannot be negative'
+          }),
+          online: Joi.number().min(0).messages({
+            'number.min': 'Online rate cannot be negative'
+          })
+        }),
+        // Legacy structure: bestTopics (for backward compatibility)
+        bestTopics: Joi.array().items(Joi.string()).max(5).messages({
+          'array.max': 'A tutor can have at most 5 best topics per subject'
+        }),
+        // Availability structure
+        availability: Joi.array().items(
+          Joi.object({
+            day: Joi.string().valid('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday').required().messages({
+              'any.only': 'Invalid day of the week',
+              'any.required': 'Day is required'
+            }),
+            slots: Joi.array().items(
+              Joi.object({
+                start: Joi.string().pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).required().messages({
+                  'string.pattern.base': 'Start time must be in HH:MM format',
+                  'any.required': 'Start time is required'
+                }),
+                end: Joi.string().pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).required().messages({
+                  'string.pattern.base': 'End time must be in HH:MM format',
+                  'any.required': 'End time is required'
+                })
+              })
+            ).min(1).messages({
+              'array.min': 'At least one time slot is required'
+            })
+          })
+        ).messages({
+          'array.base': 'Availability must be an array'
         })
       })
-    ).min(1).required().messages({
-      'array.min': 'At least one subject is required',
-      'any.required': 'Subjects are required'
+    ).max(1).messages({
+      'array.max': 'A tutor can only have one subject'
     })
   });
 

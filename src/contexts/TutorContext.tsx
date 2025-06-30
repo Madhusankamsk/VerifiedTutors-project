@@ -36,11 +36,12 @@ export interface TutorProfile {
   }[];
   subjects: {
     subject: Subject;
-    rates: {
-      individual: number;
-      group: number;
-      online: number;
-    };
+    selectedTopics: string[];
+    teachingModes: {
+      type: 'online' | 'home-visit' | 'group';
+      rate: number;
+      enabled: boolean;
+    }[];
     availability: {
       day: string;
       slots: {
@@ -48,7 +49,14 @@ export interface TutorProfile {
         end: string;
       }[];
     }[];
-  }[];
+    // Legacy fields for backward compatibility
+    bestTopics?: string[];
+    rates?: {
+      individual: number;
+      group: number;
+      online: number;
+    };
+  }[]; // Note: Array with max length 1
   availableLocations: string;
   documents: {
     id?: string;
@@ -57,6 +65,15 @@ export interface TutorProfile {
   rating: number;
   totalReviews: number;
   isVerified: boolean;
+  verificationStatus: 'pending' | 'approved' | 'rejected';
+  verificationChecks: {
+    documents: boolean;
+    education: boolean;
+    experience: boolean;
+    background: boolean;
+    interview: boolean;
+  };
+  rejectionReason?: string;
   status: 'active' | 'inactive' | 'suspended';
   createdAt: string;
   updatedAt: string;
@@ -75,12 +92,20 @@ export interface TutorAvailability {
 
 export interface TutorSubject {
   subject: Subject;
-  rates: {
+  selectedTopics: string[];
+  teachingModes: {
+    type: 'online' | 'home-visit' | 'group';
+    rate: number;
+    enabled: boolean;
+  }[];
+  availability: TutorAvailability[];
+  // Legacy fields for backward compatibility
+  bestTopics?: string[];
+  rates?: {
     individual: number;
     group: number;
     online: number;
   };
-  availability: TutorAvailability[];
 }
 
 export interface TutorReview {

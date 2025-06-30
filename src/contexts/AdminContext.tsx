@@ -109,7 +109,6 @@ export interface Subject {
   _id: string;
   name: string;
   description: string;
-  topics: string[]; // Legacy string topics
   topicObjects?: Topic[]; // New Topic objects
   isActive: boolean;
   createdAt: string;
@@ -413,8 +412,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (!subject) throw new Error('Subject not found');
       
       const response = await axios.put(`${API_URL}/api/subjects/${id}`, {
-        isActive: !subject.isActive,
-        topics: subject.topics
+        isActive: !subject.isActive
       });
       
       setSubjects(prev => prev.map(subject => 

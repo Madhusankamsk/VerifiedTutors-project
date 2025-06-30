@@ -81,11 +81,16 @@ export const createTopic = async (req, res) => {
 export const updateTopic = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description } = req.body;
+    const { name, description, isActive } = req.body;
+    
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (isActive !== undefined) updateData.isActive = isActive;
     
     const topic = await Topic.findByIdAndUpdate(
       id,
-      { name, description },
+      updateData,
       { new: true, runValidators: true }
     ).populate('subject', 'name');
     
@@ -105,11 +110,7 @@ export const deleteTopic = async (req, res) => {
   try {
     const { id } = req.params;
     
-    const topic = await Topic.findByIdAndUpdate(
-      id,
-      { isActive: false },
-      { new: true }
-    );
+    const topic = await Topic.findByIdAndDelete(id);
     
     if (!topic) {
       return res.status(404).json({ message: 'Topic not found' });

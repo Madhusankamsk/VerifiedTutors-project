@@ -16,10 +16,6 @@ const tutorSchema = new mongoose.Schema({
     enum: ['Male', 'Female', 'Other'],
    // required: true,
   },
-  mobileNumber: {
-    type: String,
-   // required: true,
-  },
   bio: {
     type: String,
    // required: true,
@@ -79,72 +75,85 @@ const tutorSchema = new mongoose.Schema({
      // required: true,
     },
   }],
-  hourlyRate: {
-    type: Number,
-  //  required: true,
-  },
-  subjects: [{
-    subject: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Subject',
-      required: true,
-    },
-    // Legacy string topics for backward compatibility
-    bestTopics: [{
-      type: String,
-      validate: {
-        validator: function(topics) {
-          return topics.length <= 5;
-        },
-        message: 'A tutor can have at most 5 best topics per subject'
-      }
-    }],
-    // New topic objects
-    topicObjects: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Topic',
-      validate: {
-        validator: function(topics) {
-          return topics.length <= 5;
-        },
-        message: 'A tutor can have at most 5 best topics per subject'
-      }
-    }],
-    rates: {
-      individual: {
-        type: Number,
-        required: false,
-        min: 0,
-      },
-      group: {
-        type: Number,
-        required: false,
-        min: 0,
-      },
-      online: {
-        type: Number,
-        required: false,
-        min: 0,
-      }
-    },
-    availability: [{
-      day: {
-        type: String,
-        enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+  subjects: {
+    type: [{
+      subject: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Subject',
         required: true,
       },
-      slots: [{
-        start: {
+      // Selected topics (Topic IDs)
+      selectedTopics: {
+        type: [{
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Topic'
+        }],
+        validate: {
+          validator: function(topics) {
+            return topics.length <= 5;
+          },
+          message: 'A tutor can have at most 5 selected topics per subject'
+        }
+      },
+      // Teaching modes with rates
+      teachingModes: [{
+        type: {
           type: String,
+          enum: ['online', 'home-visit', 'group'],
           required: true,
         },
-        end: {
-          type: String,
+        rate: {
+          type: Number,
+          min: 0,
           required: true,
         },
+        enabled: {
+          type: Boolean,
+          default: false,
+        }
+      }],
+      rates: {
+        individual: {
+          type: Number,
+          required: false,
+          min: 0,
+        },
+        group: {
+          type: Number,
+          required: false,
+          min: 0,
+        },
+        online: {
+          type: Number,
+          required: false,
+          min: 0,
+        }
+      },
+      availability: [{
+        day: {
+          type: String,
+          enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+          required: true,
+        },
+        slots: [{
+          start: {
+            type: String,
+            required: true,
+          },
+          end: {
+            type: String,
+            required: true,
+          },
+        }],
       }],
     }],
-  }],
+    validate: {
+      validator: function(subjects) {
+        return subjects.length <= 1;
+      },
+      message: 'A tutor can only have one subject'
+    }
+  },
   availableLocations: {
     type: String,
     trim: true,
@@ -157,14 +166,6 @@ const tutorSchema = new mongoose.Schema({
       required: true,
     }
   }],
-  rating: {
-    type: Number,
-    default: 0,
-  },
-  totalRatings: {
-    type: Number,
-    default: 0,
-  },
   isVerified: {
     type: Boolean,
     default: false,

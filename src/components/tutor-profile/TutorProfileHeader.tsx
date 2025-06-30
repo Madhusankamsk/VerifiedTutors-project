@@ -1,6 +1,7 @@
 import React from 'react';
 import { Star, MapPin, Users, Video, Home, CheckCircle } from 'lucide-react';
 import { TutorProfile } from '../../contexts/TutorContext';
+import { getRatesFromTeachingModes } from '../../utils/tutorUtils';
 
 interface TutorProfileHeaderProps {
   profile: TutorProfile;
@@ -67,19 +68,28 @@ const TutorProfileHeader: React.FC<TutorProfileHeaderProps> = ({ profile }) => {
             
             {/* Teaching Modes */}
             <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-3">
-              {profile.subjects.some(subject => subject.rates.online > 0) && (
+              {profile.subjects.some(subject => {
+                const rates = getRatesFromTeachingModes(subject.teachingModes);
+                return rates.online > 0;
+              }) && (
                 <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm border border-blue-100">
                   <Video className="h-4 w-4 mr-1.5" />
                   <span>Online</span>
                 </div>
               )}
-              {profile.subjects.some(subject => subject.rates.individual > 0) && (
+              {profile.subjects.some(subject => {
+                const rates = getRatesFromTeachingModes(subject.teachingModes);
+                return rates.individual > 0;
+              }) && (
                 <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-50 text-green-700 text-sm border border-green-100">
                   <Home className="h-4 w-4 mr-1.5" />
                   <span>Home Visit</span>
                 </div>
               )}
-              {profile.subjects.some(subject => subject.rates.group > 0) && (
+              {profile.subjects.some(subject => {
+                const rates = getRatesFromTeachingModes(subject.teachingModes);
+                return rates.group > 0;
+              }) && (
                 <div className="inline-flex items-center px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-sm border border-purple-100">
                   <Users className="h-4 w-4 mr-1.5" />
                   <span>Group</span>

@@ -7,11 +7,6 @@ const subjectSchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
-  // Legacy topics array for backward compatibility
-  topics: [{
-    type: String,
-    trim: true
-  }],
   description: {
     type: String,
     default: ''
