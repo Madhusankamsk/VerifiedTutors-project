@@ -47,9 +47,13 @@ const ResultsHeader: React.FC<ResultsHeaderProps> = ({
               className="appearance-none px-3 py-1.5 pr-7 text-xs border border-gray-200 rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all cursor-pointer hover:border-gray-300"
             >
               <option value="rating-desc">Top Rated</option>
+              <option value="rating-asc">Lowest Rated</option>
               <option value="price-asc">Price: Low to High</option>
               <option value="price-desc">Price: High to Low</option>
-              <option value="experience-desc">Most Experienced</option>
+              <option value="name-asc">Name: A to Z</option>
+              <option value="name-desc">Name: Z to A</option>
+              <option value="createdAt-desc">Newest First</option>
+              <option value="createdAt-asc">Oldest First</option>
             </select>
             <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400 pointer-events-none" />
           </div>

@@ -59,7 +59,7 @@ const TutorListingPage: React.FC = () => {
     location: '',
     teachingMode: '',
     page: 1,
-    limit: 20,
+    limit: 24,
     sortBy: 'rating',
     sortOrder: 'desc',
     availability: 'all',
@@ -73,6 +73,7 @@ const TutorListingPage: React.FC = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalTutors, setTotalTutors] = useState(0);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -83,7 +84,7 @@ const TutorListingPage: React.FC = () => {
                   filters.teachingMode, filters.sortBy, filters.sortOrder, 
                   filters.availability, filters.experience, filters.search]);
 
-  const fetchTutors = useCallback(async (isLoadMore = false) => {
+  const fetchTutors = useCallback(async (isLoadMore = false, targetPage?: number) => {
     try {
       if (isLoadMore) {
         setLoadingMore(true);
@@ -92,7 +93,7 @@ const TutorListingPage: React.FC = () => {
       }
       setError(null);
       
-      console.log(`fetchTutors called with isLoadMore=${isLoadMore}`);
+      console.log(`fetchTutors called with isLoadMore=${isLoadMore}, targetPage=${targetPage}`);
       console.log('Current filters:', filters);
       console.log('Search parameter:', filters.search);
       
@@ -100,6 +101,11 @@ const TutorListingPage: React.FC = () => {
       const searchParams: any = {
         ...filters
       };
+
+      // Use target page if provided, otherwise use current page
+      if (targetPage !== undefined) {
+        searchParams.page = targetPage;
+      }
 
       // Convert subject and topic filters to the format expected by the API
       if (filters.selectedSubject) {
@@ -140,7 +146,13 @@ const TutorListingPage: React.FC = () => {
       }
       
       setTotalPages(response.pagination.pages);
+      setTotalTutors(response.pagination.total);
       setHasMore(response.pagination.page < response.pagination.pages);
+      
+      // Update current page in filters if using pagination mode
+      if (targetPage !== undefined) {
+        setFilters(prev => ({ ...prev, page: targetPage }));
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to fetch tutors');
       console.error('Error fetching tutors:', err);
@@ -219,7 +231,7 @@ const TutorListingPage: React.FC = () => {
         location: '',
         teachingMode: '',
         page: 1,
-        limit: 20,
+        limit: 24,
         sortBy: 'rating',
         sortOrder: 'desc',
         availability: 'all',
@@ -231,6 +243,7 @@ const TutorListingPage: React.FC = () => {
       console.log("Clearing all filters and search:", resetFilters);
       setFilters(resetFilters);
       setSearchQuery('');
+      setTotalTutors(0);
     } else {
       // Normal filter update - preserve search and subject selection
       const updatedFilters = {
@@ -244,7 +257,7 @@ const TutorListingPage: React.FC = () => {
         location: newFilters.location,
         teachingMode: newFilters.teachingMode || '',
         page: 1,
-        limit: 20,
+        limit: 24,
         sortBy: filters.sortBy || 'rating',
         sortOrder: filters.sortOrder || 'desc',
         availability: 'all',
@@ -255,6 +268,7 @@ const TutorListingPage: React.FC = () => {
 
       console.log("Updated filters with preserved search:", updatedFilters);
       setFilters(updatedFilters);
+      setTotalTutors(0);
     }
   };
 
@@ -268,7 +282,7 @@ const TutorListingPage: React.FC = () => {
       location: '',
       teachingMode: '',
       page: 1,
-      limit: 20,
+      limit: 24,
       sortBy: 'rating',
       sortOrder: 'desc',
       availability: 'all',
@@ -280,6 +294,7 @@ const TutorListingPage: React.FC = () => {
     setFilters(resetFilters);
     setSearchQuery('');
     setActiveFilters([]);
+    setTotalTutors(0);
   };
 
   const handleSearchSubmit = () => {
@@ -414,6 +429,7 @@ const TutorListingPage: React.FC = () => {
               tutors={transformedTutors}
               loading={loading}
             />
+            
             {/* Infinite scroll observer target */}
             {hasMore && (
               <div 

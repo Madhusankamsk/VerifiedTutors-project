@@ -22,16 +22,18 @@ export const getTutors = async (req, res) => {
       femaleOnly,
       search,
       page = 1,
-      limit = 10,
+      limit = 24,
       sortBy = 'rating',
       sortOrder = 'desc'
     } = req.query;
 
     console.log('getTutors called with query params:', req.query);
     console.log('Search parameter:', search);
+    console.log('Sort parameters:', { sortBy, sortOrder });
 
     let query = {};
-    const sortOptions = {};
+    let sortOptions = {};
+    let shouldSortAfterPopulation = false;
     
     // Import Topic model once
     const Topic = (await import('../models/topic.model.js')).default;
@@ -270,7 +272,35 @@ export const getTutors = async (req, res) => {
     }
 
     // Set sort options
-    sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    switch (sortBy) {
+      case 'rating':
+        sortOptions.rating = sortOrder === 'desc' ? -1 : 1;
+        break;
+      case 'price':
+        // For price sorting, we'll sort by the minimum rate across all teaching modes
+        // We'll use the online rate as the primary sort, then individual, then group
+        sortOptions['subjects.rates.online'] = sortOrder === 'desc' ? -1 : 1;
+        sortOptions['subjects.rates.individual'] = sortOrder === 'desc' ? -1 : 1;
+        sortOptions['subjects.rates.group'] = sortOrder === 'desc' ? -1 : 1;
+        // Fallback to rating if no rates available
+        sortOptions.rating = sortOrder === 'desc' ? -1 : 1;
+        break;
+      case 'experience':
+        // Sort by the number of experience entries (more experience = higher priority)
+        // We'll use the length of the experience array
+        sortOptions['experience'] = sortOrder === 'desc' ? -1 : 1;
+        break;
+      case 'name':
+        // For name sorting, we need to sort after population
+        shouldSortAfterPopulation = true;
+        break;
+      case 'createdAt':
+        sortOptions.createdAt = sortOrder === 'desc' ? -1 : 1;
+        break;
+      default:
+        // Default to rating descending
+        sortOptions.rating = -1;
+    }
 
     // Calculate pagination
     const skip = (page - 1) * limit;
@@ -278,15 +308,43 @@ export const getTutors = async (req, res) => {
     // Log the final query for debugging
     console.log('Final Query:', JSON.stringify(query, null, 2));
     console.log('Search parameter received:', search);
+    console.log('Sort options:', sortOptions);
+    console.log('Should sort after population:', shouldSortAfterPopulation);
 
     // Execute query with pagination and sorting
-    const tutors = await Tutor.find(query)
-      .populate('user', 'name email profileImage')
-      .populate('subjects.subject', 'name topics')
-      .populate('subjects.selectedTopics', 'name description')
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(Number(limit));
+    let tutors;
+    
+    if (shouldSortAfterPopulation) {
+      // For name sorting, we need to fetch all tutors and sort in memory
+      // This is less efficient but necessary for name sorting
+      tutors = await Tutor.find(query)
+        .populate('user', 'name email profileImage')
+        .populate('subjects.subject', 'name topics')
+        .populate('subjects.selectedTopics', 'name description');
+      
+      // Sort by name
+      tutors = tutors.sort((a, b) => {
+        const nameA = a.user?.name || '';
+        const nameB = b.user?.name || '';
+        if (sortOrder === 'desc') {
+          return nameB.localeCompare(nameA);
+        } else {
+          return nameA.localeCompare(nameB);
+        }
+      });
+      
+      // Apply pagination after sorting
+      tutors = tutors.slice(skip, skip + Number(limit));
+    } else {
+      // Apply database-level sorting for other fields
+      tutors = await Tutor.find(query)
+        .populate('user', 'name email profileImage')
+        .populate('subjects.subject', 'name topics')
+        .populate('subjects.selectedTopics', 'name description')
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(Number(limit));
+    }
 
     // Get total count for pagination
     const total = await Tutor.countDocuments(query);

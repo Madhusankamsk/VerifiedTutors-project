@@ -10,7 +10,7 @@ import { sendEmail } from '../services/emailService.js';
 export const getAllTutors = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 24;
     const search = req.query.search || '';
     const verified = req.query.verified || 'all';
     const rating = req.query.rating || 'all';
@@ -304,7 +304,7 @@ export const getTutorVerificationDetails = async (req, res) => {
 export const getAllBookings = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 24;
     const status = req.query.status || 'all';
     const sortBy = req.query.sortBy || 'newest';
 
