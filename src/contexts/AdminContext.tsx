@@ -15,52 +15,50 @@ interface DashboardStats {
 
 export interface Tutor {
   _id: string;
-  user?: {
+  user: {
     _id: string;
     name: string;
     email: string;
     profileImage?: string;
   };
-  gender?: 'Male' | 'Female' | 'Other';
-  mobileNumber?: string;
-  phone?: string;
-  bio?: string;
-  subjects?: Array<{
-    subject: {
-      _id: string;
-      name: string;
-      category: string;
-    };
-    rates?: {
-      individual: number;
-      group: number;
-      online: number;
-    };
-  }>;
-  education?: Array<{
+  phone: string;
+  gender: string;
+  bio: string;
+  education: {
     degree: string;
     institution: string;
     year: number;
-  }>;
-  experience?: Array<{
-    position: string;
-    institution: string;
+  }[];
+  experience: {
+    title: string;
+    company: string;
     duration: string;
     description: string;
-  }>;
-  hourlyRate?: number;
-  rating?: number;
-  totalRatings?: number;
-  isVerified: boolean;
-  documents?: Array<{
+  }[];
+  subjects: {
+    subject: Subject;
+    selectedTopics: string[];
+    teachingModes: {
+      type: string;
+      rate: number;
+      enabled: boolean;
+    }[];
+    topicObjects?: Topic[]; // New Topic objects
+  }[];
+  availableLocations: string;
+  documents: {
     id?: string;
     url: string;
-  }>;
+  }[];
+  isVerified: boolean;
+  verificationStatus: string;
+  status: string;
   createdAt: string;
-  verificationStatus?: 'pending' | 'approved' | 'rejected';
-  verificationDate?: string | Date;
-  verifiedBy?: string;
-  rejectionReason?: string;
+  rating: number;
+  totalReviews: number;
+  totalStudents: number;
+  totalEarnings: number;
+  totalRatings: number;
 }
 
 export interface Booking {

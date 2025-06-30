@@ -89,7 +89,6 @@ export const getTutors = async (req, res) => {
           // Use Topic object ID for filtering - check both new and legacy fields
           query.$or = [
             { 'subjects.selectedTopics': topicDoc._id },
-            { 'subjects.topicObjects': topicDoc._id },
             { 'subjects.bestTopics': { $regex: new RegExp(topic, 'i') } }
           ];
         } else {
@@ -209,7 +208,6 @@ export const getTutors = async (req, res) => {
       .populate('user', 'name email profileImage')
       .populate('subjects.subject', 'name topics')
       .populate('subjects.selectedTopics', 'name description')
-      .populate('subjects.topicObjects', 'name description')
       .sort(sortOptions)
       .skip(skip)
       .limit(Number(limit));
@@ -286,17 +284,9 @@ export const createTutorProfile = async (req, res) => {
       return res.status(400).json({ message: 'Tutor profile already exists' });
     }
 
-    // Ensure mobileNumber is set to the same value as phone if phone is provided
-    const tutorData = { ...req.body };
-    if (tutorData.phone && !tutorData.mobileNumber) {
-      tutorData.mobileNumber = tutorData.phone;
-    } else if (tutorData.mobileNumber && !tutorData.phone) {
-      tutorData.phone = tutorData.mobileNumber;
-    }
-
     const tutor = new Tutor({
       user: req.user.id,
-      ...tutorData
+      ...req.body
     });
 
     await tutor.save();
@@ -515,7 +505,6 @@ export const updateTutorProfile = async (req, res) => {
       { user: req.user.id },
       { $set: {
         phone: req.body.phone,
-        mobileNumber: req.body.phone,
         bio: req.body.bio,
         gender: req.body.gender,
         socialMedia: req.body.socialMedia,

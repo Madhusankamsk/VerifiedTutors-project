@@ -53,12 +53,14 @@ const TutorProfileHeader: React.FC<TutorProfileHeaderProps> = ({ profile }) => {
             <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2 my-4 text-gray-600">
               <div className="flex items-center text-base">
                 <Star className="h-5 w-5 text-yellow-500 mr-1.5" />
-                <span className="font-semibold text-gray-800">{profile.rating.toFixed(1)}</span>
-                <span className="text-gray-500 ml-1">({profile.totalReviews} reviews)</span>
+                <span className="font-semibold text-gray-800">
+                  {profile.rating ? profile.rating.toFixed(1) : '0.0'}
+                </span>
+                <span className="text-gray-500 ml-1">({profile.totalReviews || 0} reviews)</span>
               </div>
               <div className="flex items-center text-base">
                 <Users className="h-5 w-5 text-gray-500 mr-1.5" />
-                <span>{profile.totalStudents} students</span>
+                <span>{profile.totalStudents || 0} students</span>
               </div>
               <div className="flex items-center text-base">
                 <MapPin className="h-5 w-5 text-gray-500 mr-1.5" />

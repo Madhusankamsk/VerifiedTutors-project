@@ -52,7 +52,7 @@ const ManageTutors = () => {
         const hasName = !!tutor.user?.name;
         const hasEmail = !!tutor.user?.email;
         const hasGender = !!tutor.gender;
-        const hasPhone = !!tutor.mobileNumber || !!tutor.phone;
+        const hasPhone = !!tutor.phone;
         const hasBio = !!tutor.bio;
         
         const isValid = hasName && hasEmail && hasGender && hasPhone && hasBio;
@@ -600,7 +600,7 @@ const ManageTutors = () => {
                 <div className="border rounded-lg overflow-hidden">
                   <div className="bg-gray-100 px-3 py-2 flex justify-between items-center">
                     <h3 className="font-medium text-sm md:text-base text-gray-900">Personal Information</h3>
-                    {selectedTutor?.user?.name && selectedTutor?.gender && (selectedTutor?.mobileNumber || selectedTutor?.phone) ? (
+                    {selectedTutor?.user?.name && selectedTutor?.gender && (selectedTutor?.phone) ? (
                       <span className="text-green-600 text-xs md:text-sm flex items-center">
                         <Check size={16} className="mr-1 flex-shrink-0" />
                         Complete
@@ -634,8 +634,8 @@ const ManageTutors = () => {
                       </div>
                       <div>
                         <p className="text-xs md:text-sm text-gray-500">Mobile Number</p>
-                        <p className={`text-xs md:text-sm font-medium ${(selectedTutor?.mobileNumber || selectedTutor?.phone) ? 'text-gray-900' : 'text-red-500'}`}>
-                          {selectedTutor?.mobileNumber || selectedTutor?.phone || 'Not provided'}
+                        <p className={`text-xs md:text-sm font-medium ${(selectedTutor?.phone) ? 'text-gray-900' : 'text-red-500'}`}>
+                          {selectedTutor?.phone || 'Not provided'}
                         </p>
                       </div>
                     </div>

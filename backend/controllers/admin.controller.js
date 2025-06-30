@@ -79,12 +79,34 @@ export const getAllTutors = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(limit);
 
-    // Map phone to mobileNumber if mobileNumber is not present
+    // Map the tutor data
     const mappedTutors = tutors.map(tutor => {
-      const tutorObj = tutor.toObject();
-      if (!tutorObj.mobileNumber && tutorObj.phone) {
-        tutorObj.mobileNumber = tutorObj.phone;
-      }
+      const tutorObj = {
+        _id: tutor._id,
+        user: {
+          _id: tutor.user._id,
+          name: tutor.user.name,
+          email: tutor.user.email,
+          profileImage: tutor.user.profileImage
+        },
+        phone: tutor.phone,
+        gender: tutor.gender,
+        bio: tutor.bio,
+        education: tutor.education || [],
+        experience: tutor.experience || [],
+        subjects: tutor.subjects,
+        availableLocations: tutor.availableLocations,
+        documents: tutor.documents || [],
+        isVerified: tutor.isVerified,
+        verificationStatus: tutor.verificationStatus,
+        status: tutor.status,
+        createdAt: tutor.createdAt,
+        rating: tutor.rating || 0,
+        totalReviews: tutor.totalReviews || 0,
+        totalStudents: tutor.totalStudents || 0,
+        totalEarnings: tutor.totalEarnings || 0,
+        totalRatings: tutor.totalReviews || 0 // Use totalReviews as totalRatings for backward compatibility
+      };
       return tutorObj;
     });
 

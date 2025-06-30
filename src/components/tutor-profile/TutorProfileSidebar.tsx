@@ -36,12 +36,14 @@ const TutorProfileSidebar: React.FC<TutorProfileSidebarProps> = ({ profile }) =>
           </div>
           <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
             <span className="text-gray-600 text-sm">Students Taught</span>
-            <span className="font-medium text-gray-900">{profile.totalStudents}</span>
+            <span className="font-medium text-gray-900">{profile.totalStudents || 0}</span>
           </div>
           <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
             <span className="text-gray-600 text-sm">Average Rating</span>
             <div className="flex items-center">
-              <span className="font-medium text-gray-900 mr-1">{profile.rating.toFixed(1)}</span>
+              <span className="font-medium text-gray-900 mr-1">
+                {profile.rating ? profile.rating.toFixed(1) : '0.0'}
+              </span>
               <Star className="h-4 w-4 text-yellow-400" />
             </div>
           </div>

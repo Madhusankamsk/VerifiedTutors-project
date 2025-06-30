@@ -212,6 +212,28 @@ const tutorSchema = new mongoose.Schema({
     enum: ['active', 'inactive', 'suspended'],
     default: 'active',
   },
+  // Rating and statistics fields
+  rating: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5,
+  },
+  totalReviews: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  totalStudents: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  totalEarnings: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -237,7 +259,6 @@ tutorSchema.index({ rating: -1 });
 tutorSchema.index({ 'user.name': 1 });
 tutorSchema.index({ 'user.email': 1 });
 tutorSchema.index({ 'subjects.subject': 1 });
-tutorSchema.index({ 'subjects.topicObjects': 1 });
 
 const Tutor = mongoose.model('Tutor', tutorSchema);
 
