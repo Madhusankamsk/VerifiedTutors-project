@@ -10,7 +10,11 @@ interface TransformedTutor {
     subject: {
       name: string;
     };
-    selectedTopics?: string[];
+    selectedTopics?: Array<{
+      _id: string;
+      name: string;
+      description?: string;
+    }>;
     teachingModes?: Array<{
       type: 'online' | 'home-visit' | 'group';
       rate: number;

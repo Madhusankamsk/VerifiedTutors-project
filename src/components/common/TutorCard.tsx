@@ -15,7 +15,11 @@ interface TutorCardProps {
       subject: {
         name: string;
       };
-      selectedTopics?: string[];
+      selectedTopics?: Array<{
+        _id: string;
+        name: string;
+        description?: string;
+      }>;
       teachingModes?: Array<{
         type: 'online' | 'home-visit' | 'group';
         rate: number;
@@ -81,7 +85,31 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
     return [];
   };
 
+  // Get subject topics for display
+  const getSubjectTopics = () => {
+    if (tutor.subjects && tutor.subjects.length > 0) {
+      const allTopics: string[] = [];
+      tutor.subjects.forEach(subject => {
+        if (subject.selectedTopics && subject.selectedTopics.length > 0) {
+          // Handle both populated topic objects and string arrays (for backwards compatibility)
+          subject.selectedTopics.forEach(topic => {
+            if (typeof topic === 'string') {
+              // Legacy case: topic is just a string
+              allTopics.push(topic);
+            } else if (topic && typeof topic === 'object' && topic.name) {
+              // New case: topic is populated with name
+              allTopics.push(topic.name);
+            }
+          });
+        }
+      });
+      return allTopics;
+    }
+    return [];
+  };
+
   const subjectNames = getSubjectNames();
+  const subjectTopics = getSubjectTopics();
 
   const isTutorFavorite = favorites.some(fav => fav.tutor._id === tutor.id);
 
@@ -176,14 +204,40 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
           </div>
         </div>
 
-        {/* Subjects - Compact */}
+        {/* Subjects and Topics - More space allocated */}
         <div className="mb-3 flex-1">
-          <div className="flex items-start text-gray-600">
+          {/* Subject Names */}
+          <div className="flex items-start text-gray-600 mb-2">
             <Book className="h-3 w-3 mr-1.5 text-gray-400 mt-0.5 flex-shrink-0" />
-            <span className="text-xs line-clamp-2 leading-relaxed">
+            <span className="text-xs line-clamp-1 leading-relaxed font-medium">
               {subjectNames.join(', ')}
             </span>
           </div>
+          
+          {/* Subject Topics */}
+          {subjectTopics.length > 0 && (
+            <div className="mt-2">
+              <div className="flex flex-wrap gap-1">
+                {subjectTopics.slice(0, 4).map((topic, index) => (
+                  <span
+                    key={index}
+                    className="px-1.5 py-0.5 bg-primary-50 text-primary-700 text-xs rounded border border-primary-200 truncate max-w-20 sm:max-w-24"
+                    title={topic}
+                  >
+                    {topic}
+                  </span>
+                ))}
+                {subjectTopics.length > 4 && (
+                  <span 
+                    className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded border border-gray-200"
+                    title={`${subjectTopics.length - 4} more topics: ${subjectTopics.slice(4).join(', ')}`}
+                  >
+                    +{subjectTopics.length - 4}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Horizontal Pricing Section */}
