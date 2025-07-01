@@ -429,12 +429,52 @@ const EditTutorProfile: React.FC = () => {
       return;
     }
     
-    // Handle existing documents - remove from form data to be deleted on save
-    setFormData(prev => ({
-      ...prev,
-      documents: prev.documents.filter(doc => doc.id !== documentId)
-    }));
-    toast.success('Image will be deleted when you save changes!');
+    try {
+      setUploading(true);
+      console.log('Deleting document with ID:', documentId);
+      
+      // URL encode the document ID to handle special characters
+      const encodedId = encodeURIComponent(documentId);
+      const deleteUrl = `/api/upload/${encodedId}`;
+      console.log('Delete URL:', deleteUrl);
+      
+      // Delete the file from server/Cloudinary
+      const response = await fetch(deleteUrl, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      console.log('Delete response status:', response.status);
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to delete image';
+        try {
+          const error = await response.json();
+          errorMessage = error.message || errorMessage;
+        } catch (parseError) {
+          // If response is not JSON (like HTML), get the text
+          const errorText = await response.text();
+          console.error('Non-JSON error response:', errorText);
+          errorMessage = `Server error (${response.status}): Unable to delete image`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Remove from local form data
+      setFormData(prev => ({
+        ...prev,
+        documents: prev.documents.filter(doc => doc.id !== documentId)
+      }));
+      
+      toast.success('Image deleted successfully!');
+    } catch (error: any) {
+      console.error('Error deleting document:', error);
+      toast.error(error.message || 'Failed to delete image. Please try again.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const removeSelectedDocument = (index: number) => {

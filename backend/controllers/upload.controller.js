@@ -53,11 +53,31 @@ export const uploadVerificationDocs = asyncHandler(async (req, res) => {
 // @access  Private
 export const deleteImage = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  
+  console.log('Delete request received for ID:', id);
 
-  await cloudinary.uploader.destroy(id);
+  if (!id) {
+    return res.status(400).json({
+      success: false,
+      message: 'Document ID is required'
+    });
+  }
 
-  res.status(200).json({
-    success: true,
-    message: 'Document deleted successfully'
-  });
+  try {
+    // Delete from Cloudinary
+    const result = await cloudinary.uploader.destroy(id);
+    console.log('Cloudinary delete result:', result);
+
+    res.status(200).json({
+      success: true,
+      message: 'Document deleted successfully',
+      data: result
+    });
+  } catch (error) {
+    console.error('Error deleting from Cloudinary:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete document from storage'
+    });
+  }
 }); 
