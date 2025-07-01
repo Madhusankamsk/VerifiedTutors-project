@@ -493,14 +493,6 @@ const ManageTutors = () => {
                       {selectedTutor.verificationStatus || 'Unknown'}
                     </p>
                   </div>
-                  {selectedTutor.verificationDate && (
-                    <div>
-                      <p className="text-xs md:text-sm text-gray-600">Verification Date</p>
-                      <p className="text-xs md:text-sm font-medium text-gray-800">
-                        {new Date(selectedTutor.verificationDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                  )}
                 </div>
 
                 {/* Verification Progress */}
@@ -534,13 +526,6 @@ const ManageTutors = () => {
                     </span>
                   </div>
                 </div>
-                
-                {selectedTutor.rejectionReason && (
-                  <div className="mt-3 p-2 bg-red-50 border border-red-100 rounded">
-                    <p className="text-xs md:text-sm font-medium text-red-800">Rejection Reason:</p>
-                    <p className="text-xs md:text-sm text-red-700">{selectedTutor.rejectionReason}</p>
-                  </div>
-                )}
               </div>
 
               {/* Verification Checklist */}
@@ -699,22 +684,6 @@ const ManageTutors = () => {
                       </span>
                     )}
                   </div>
-                  <div className="p-3 md:p-4">
-                    {selectedTutor?.experience && selectedTutor.experience.length > 0 ? (
-                      <div className="space-y-3">
-                        {selectedTutor.experience.map((exp: { position: string; institution: string; duration: string; description: string }, index: number) => (
-                          <div key={index} className="bg-gray-50 p-3 rounded-md">
-                            <p className="text-xs md:text-sm font-medium text-gray-900">{exp.position}</p>
-                            <p className="text-xs md:text-sm text-gray-500">{exp.institution}</p>
-                            <p className="text-xs md:text-sm text-gray-500">{exp.duration}</p>
-                            <p className="text-xs md:text-sm text-gray-500">{exp.description}</p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs md:text-sm text-gray-500">No experience information provided (optional)</p>
-                    )}
-                  </div>
                 </div>
 
                 {/* Documents Section */}
@@ -776,7 +745,6 @@ const ManageTutors = () => {
                         {selectedTutor.subjects.map((subj, index) => (
                           <div key={index} className="bg-gray-50 p-3 rounded-md">
                             <p className="text-xs md:text-sm font-medium text-gray-900">{subj.subject?.name}</p>
-                            <p className="text-xs md:text-sm text-gray-500">Category: {subj.subject?.category}</p>
                           </div>
                         ))}
                       </div>
