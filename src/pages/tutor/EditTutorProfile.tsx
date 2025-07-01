@@ -66,12 +66,41 @@ const EditTutorProfile: React.FC = () => {
   });
   const [initialFormData, setInitialFormData] = useState<EditTutorFormData | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  
+  // New state for temporary uploads
   const [selectedDocuments, setSelectedDocuments] = useState<File[]>([]);
-  const [uploading, setUploading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [tempProfileImage, setTempProfileImage] = useState<{file: File, preview: string} | null>(null);
+  
+  const [uploading, setUploading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Profile completion validation
+  const validateProfileCompletion = () => {
+    const requiredFields = {
+      personalInfo: !!(formData.phone && formData.bio && formData.gender && user?.name && user?.email),
+      education: formData.education.length > 0,
+      subjects: formData.subjects.length > 0 && formData.subjects.some(s => s && s.selectedTopics && s.selectedTopics.length > 0),
+      profileImage: !!(profileImage || tempProfileImage),
+      documents: formData.documents.length > 0,
+      locations: !!formData.availableLocations
+    };
+
+    const completedFields = Object.values(requiredFields).filter(Boolean).length;
+    const totalFields = Object.keys(requiredFields).length;
+    const isComplete = completedFields === totalFields;
+
+    return {
+      isComplete,
+      completedFields,
+      totalFields,
+      requirements: requiredFields
+    };
+  };
+
+  const profileValidation = validateProfileCompletion();
 
   useEffect(() => {
     // Check if user is authenticated and is a tutor
@@ -101,49 +130,61 @@ const EditTutorProfile: React.FC = () => {
         teachingMediums: profile.teachingMediums || [],
         education: profile.education || [],
         experience: profile.experience || [],
-        subjects: profile.subjects.map(s => {
-          // Handle both new and legacy structures
-          const hasNewStructure = s.selectedTopics !== undefined && s.teachingModes !== undefined;
-          const hasLegacyStructure = (s as any).rates !== undefined;
+        subjects: (() => {
+          const processedSubjects = [];
+          for (const s of profile.subjects || []) {
+            if (!s || !s.subject || !s.subject._id) {
+              continue; // Skip invalid subjects
+            }
+            
+            try {
+              // Handle both new and legacy structures
+              const hasNewStructure = s.selectedTopics !== undefined && s.teachingModes !== undefined;
+              const hasLegacyStructure = (s as any).rates !== undefined;
 
-          let selectedTopics: string[] = [];
-          let teachingModes: any[] = [];
+              let selectedTopics: string[] = [];
+              let teachingModes: any[] = [];
 
-          if (hasNewStructure) {
-            selectedTopics = s.selectedTopics || [];
-            teachingModes = s.teachingModes || [
-              { type: 'online', rate: 0, enabled: false },
-              { type: 'home-visit', rate: 0, enabled: false },
-              { type: 'group', rate: 0, enabled: false }
-            ];
-          } else if (hasLegacyStructure) {
-            // Convert legacy structure to new structure
-            selectedTopics = s.selectedTopics || (s as any).bestTopics || [];
-            const { individual = 0, group = 0, online = 0 } = (s as any).rates || {};
-            teachingModes = [
-              { type: 'online', rate: online, enabled: online > 0 },
-              { type: 'home-visit', rate: individual, enabled: individual > 0 },
-              { type: 'group', rate: group, enabled: group > 0 }
-            ];
-          } else {
-            // Default structure for new subjects
-            selectedTopics = [];
-            teachingModes = [
-              { type: 'online', rate: 0, enabled: false },
-              { type: 'home-visit', rate: 0, enabled: false },
-              { type: 'group', rate: 0, enabled: false }
-            ];
+              if (hasNewStructure) {
+                selectedTopics = s.selectedTopics || [];
+                teachingModes = s.teachingModes || [
+                  { type: 'online', rate: 0, enabled: false },
+                  { type: 'home-visit', rate: 0, enabled: false },
+                  { type: 'group', rate: 0, enabled: false }
+                ];
+              } else if (hasLegacyStructure) {
+                // Convert legacy structure to new structure
+                selectedTopics = s.selectedTopics || (s as any).bestTopics || [];
+                const { individual = 0, group = 0, online = 0 } = (s as any).rates || {};
+                teachingModes = [
+                  { type: 'online', rate: online, enabled: online > 0 },
+                  { type: 'home-visit', rate: individual, enabled: individual > 0 },
+                  { type: 'group', rate: group, enabled: group > 0 }
+                ];
+              } else {
+                // Default structure for new subjects
+                selectedTopics = [];
+                teachingModes = [
+                  { type: 'online', rate: 0, enabled: false },
+                  { type: 'home-visit', rate: 0, enabled: false },
+                  { type: 'group', rate: 0, enabled: false }
+                ];
+              }
+
+              processedSubjects.push({
+                _id: s.subject._id,
+                name: s.subject.name,
+                selectedTopics,
+                teachingModes,
+                availability: getFullWeekAvailability(s.availability),
+                createdAt: new Date().toISOString()
+              });
+            } catch (error) {
+              console.error('Error processing subject:', s, error);
+            }
           }
-
-          return {
-            _id: s.subject._id,
-            name: s.subject.name,
-            selectedTopics,
-            teachingModes,
-            availability: getFullWeekAvailability(s.availability),
-            createdAt: new Date().toISOString()
-          };
-        }) || [],
+          return processedSubjects;
+        })(),
         availableLocations: profile.availableLocations || '',
         documents: profile.documents.map(d => ({
           id: d.id || d.url,
@@ -171,9 +212,10 @@ const EditTutorProfile: React.FC = () => {
   useEffect(() => {
     if (initialFormData) {
       const hasFormChanges = JSON.stringify(formData) !== JSON.stringify(initialFormData);
-      setHasChanges(hasFormChanges);
+      const hasTempUploads = tempProfileImage !== null;
+      setHasChanges(hasFormChanges || hasTempUploads);
     }
-  }, [formData, initialFormData]);
+  }, [formData, initialFormData, tempProfileImage]);
 
   const handleDiscard = () => {
     setShowDiscardConfirm(true);
@@ -182,6 +224,14 @@ const EditTutorProfile: React.FC = () => {
   const confirmDiscard = () => {
     if (initialFormData) {
       setFormData(initialFormData);
+      
+      // Clean up temporary uploads
+      if (tempProfileImage) {
+        URL.revokeObjectURL(tempProfileImage.preview);
+        setTempProfileImage(null);
+      }
+      setSelectedDocuments([]);
+      
       setHasChanges(false);
       setShowDiscardConfirm(false);
     }
@@ -191,7 +241,23 @@ const EditTutorProfile: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
+    // Check if subjects are loaded before saving
+    if (!subjects || subjects.length === 0) {
+      toast.error('Please wait for subjects to load before saving.');
+      setIsSubmitting(false);
+      return;
+    }
+    
     try {
+      // Upload temporary profile image if exists
+      let finalProfileImage = profileImage;
+      if (tempProfileImage) {
+        finalProfileImage = await uploadProfilePhoto(tempProfileImage.file);
+      }
+
+      // Documents are already uploaded and stored in formData.documents
+      const finalDocuments = formData.documents;
+
       const apiData: Partial<TutorProfile> = {
         phone: formData.phone,
         bio: formData.bio,
@@ -200,32 +266,49 @@ const EditTutorProfile: React.FC = () => {
         teachingMediums: formData.teachingMediums,
         education: formData.education,
         experience: formData.experience,
-        subjects: formData.subjects.map(s => {
-          const subject = subjects.find(sub => sub._id === s._id);
-          if (!subject) {
-            throw new Error(`Subject with id ${s._id} not found`);
-          }
-          return {
-            subject: {
-              _id: subject._id,
-              name: subject.name,
-              description: subject.description,
-              isActive: subject.isActive,
-              createdAt: subject.createdAt || new Date().toISOString()
-            },
-            selectedTopics: s.selectedTopics,
-            teachingModes: s.teachingModes,
-            availability: s.availability.map(avail => ({
-              day: avail.day as 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday',
-              slots: avail.slots
-            }))
-          };
-        }),
-        availableLocations: formData.availableLocations
+        subjects: formData.subjects
+          .filter(s => s && s._id) // Filter out subjects without _id
+          .map(s => {
+            const subject = subjects?.find(sub => sub && sub._id === s._id);
+            if (!subject) {
+              console.warn(`Subject with id ${s._id} not found in subjects list`);
+              return null;
+            }
+            return {
+              subject: {
+                _id: subject._id,
+                name: subject.name,
+                description: subject.description,
+                isActive: subject.isActive,
+                createdAt: subject.createdAt || new Date().toISOString()
+              },
+              selectedTopics: s.selectedTopics || [],
+              teachingModes: s.teachingModes || [],
+              availability: (s.availability || []).map(avail => ({
+                day: avail.day as 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday',
+                slots: avail.slots || []
+              }))
+            };
+          })
+          .filter((subject): subject is NonNullable<typeof subject> => subject !== null), // Remove null entries with type guard
+        availableLocations: formData.availableLocations,
+        documents: finalDocuments
       };
 
       await updateProfile(apiData);
-      toast.success('Profile updated successfully!');
+      
+      // Clean up temporary data
+      if (tempProfileImage) {
+        URL.revokeObjectURL(tempProfileImage.preview);
+        setTempProfileImage(null);
+      }
+      setProfileImage(finalProfileImage);
+
+      const message = profileValidation.isComplete 
+        ? 'Profile updated successfully! Your profile is now complete and submitted for admin review.'
+        : 'Profile draft saved successfully! Complete all sections to submit for review.';
+      
+      toast.success(message);
       setHasChanges(false);
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -237,10 +320,23 @@ const EditTutorProfile: React.FC = () => {
 
   const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    console.log('Files selected:', files.length);
+    
+    // Calculate total documents (existing + selected + new files)
+    const totalExisting = formData.documents.length + selectedDocuments.length;
+    const totalAfterAdding = totalExisting + files.length;
+    
+    console.log('Document counts:', {
+      existing: formData.documents.length,
+      selected: selectedDocuments.length,
+      newFiles: files.length,
+      totalAfterAdding
+    });
     
     // Check if adding these files would exceed the limit
-    if (files.length + selectedDocuments.length > 5) {
-      toast.error('Maximum 5 images allowed');
+    if (totalAfterAdding > 5) {
+      const available = 5 - totalExisting;
+      toast.error(`You can only add ${available} more image(s). Maximum 5 images allowed total.`);
       return;
     }
 
@@ -267,22 +363,61 @@ const EditTutorProfile: React.FC = () => {
 
     if (validFiles.length > 0) {
       setSelectedDocuments(prev => [...prev, ...validFiles]);
+      toast.success(`${validFiles.length} image(s) selected for upload.`);
     }
+    
+    // Reset the input value to allow selecting the same files again if needed
+    e.target.value = '';
   };
 
   const handleDocumentUpload = async () => {
-    if (selectedDocuments.length === 0) return;
+    if (selectedDocuments.length === 0) {
+      toast.warning('No documents selected to upload.');
+      return;
+    }
     
+    console.log('Uploading documents immediately:', selectedDocuments.length);
     setUploading(true);
+    
     try {
-      for (const file of selectedDocuments) {
-        await uploadDocument(file, 'other');
+      // Use the generic upload endpoint that doesn't save to profile
+      const formData = new FormData();
+      selectedDocuments.forEach(file => {
+        formData.append('documents', file);
+      });
+
+      const response = await fetch('/api/upload/verification-docs', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Upload failed');
       }
+
+      const data = await response.json();
+      console.log('Upload response:', data);
+
+      // Add uploaded documents to form data (but don't save profile yet)
+      const uploadedDocs = data.data.map((doc: any) => ({
+        id: doc.id,
+        url: doc.url
+      }));
+
+      setFormData(prev => ({
+        ...prev,
+        documents: [...prev.documents, ...uploadedDocs]
+      }));
+      
       setSelectedDocuments([]);
-      toast.success('Documents uploaded successfully!');
-    } catch (error) {
+      toast.success(`${uploadedDocs.length} document(s) uploaded successfully! Click Save Draft to save your profile.`);
+    } catch (error: any) {
       console.error('Error uploading documents:', error);
-      toast.error('Failed to upload documents. Please try again.');
+      toast.error(error.message || 'Failed to upload documents. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -294,17 +429,12 @@ const EditTutorProfile: React.FC = () => {
       return;
     }
     
-    try {
-      await deleteDocument(documentId);
-      setFormData(prev => ({
-        ...prev,
-        documents: prev.documents.filter(doc => doc.id !== documentId)
-      }));
-      toast.success('Image deleted successfully!');
-    } catch (error) {
-      console.error('Error deleting document:', error);
-      toast.error('Failed to delete image. Please try again.');
-    }
+    // Handle existing documents - remove from form data to be deleted on save
+    setFormData(prev => ({
+      ...prev,
+      documents: prev.documents.filter(doc => doc.id !== documentId)
+    }));
+    toast.success('Image will be deleted when you save changes!');
   };
 
   const removeSelectedDocument = (index: number) => {
@@ -322,12 +452,13 @@ const EditTutorProfile: React.FC = () => {
 
     setIsUploading(true);
     try {
-      const imageUrl = await uploadProfilePhoto(file);
-      setProfileImage(imageUrl);
-      toast.success('Profile image updated successfully!');
+      // Store profile image temporarily
+      const preview = URL.createObjectURL(file);
+      setTempProfileImage({ file, preview });
+      toast.success('Profile image selected! It will be uploaded when you save changes.');
     } catch (error) {
-      console.error('Error uploading profile image:', error);
-      toast.error('Failed to upload profile image. Please try again.');
+      console.error('Error processing profile image:', error);
+      toast.error('Failed to process profile image. Please try again.');
     } finally {
       setIsUploading(false);
     }
@@ -369,6 +500,20 @@ const EditTutorProfile: React.FC = () => {
     );
   }
 
+  // Safety check for subjects loading
+  if (!subjects) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="bg-blue-50/80 backdrop-blur-sm border-l-4 border-blue-500 rounded-2xl p-8 shadow-lg">
+            <p className="text-blue-700 font-medium text-lg">Loading subjects...</p>
+            <LoadingSpinner />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-6 sm:py-8 lg:py-12 pb-16 sm:pb-24 lg:pb-32">
       <div className="container mx-auto px-3 sm:px-4 lg:px-6">
@@ -378,6 +523,8 @@ const EditTutorProfile: React.FC = () => {
             onDiscard={handleDiscard}
             onSave={() => {}}
             isSubmitting={isSubmitting}
+            isComplete={profileValidation.isComplete}
+            completionPercentage={Math.round((profileValidation.completedFields / profileValidation.totalFields) * 100)}
           />
 
           <EditTutorProfileDiscardDialog
@@ -396,7 +543,7 @@ const EditTutorProfile: React.FC = () => {
                 socialMedia: formData.socialMedia,
                 teachingMediums: formData.teachingMediums
               }}
-              profileImage={profileImage}
+              profileImage={tempProfileImage?.preview || profileImage}
               isUploading={isUploading}
               onDataChange={handleBasicInfoChange}
               onProfileImageUpload={handleProfileImageUpload}

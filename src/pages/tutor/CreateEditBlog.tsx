@@ -205,7 +205,7 @@ const CreateEditBlog = () => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/upload/profile-photo`, {
+      const response = await fetch('/api/upload/profile-photo', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`

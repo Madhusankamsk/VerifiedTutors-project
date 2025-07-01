@@ -91,15 +91,38 @@ const EditTutorProfileDocuments: React.FC<EditTutorProfileDocumentsProps> = ({
             Tip: Upload photos of your identity, qualification and certification for Earn <span className="font-bold text-primary-600">VERIFIED</span> Badge
           </span>
         </div>
-        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:border-primary-500 transition-colors duration-200">
+        <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-xl transition-colors duration-200 ${
+          (documents.length + selectedDocuments.length) >= 5 
+            ? 'border-gray-200 bg-gray-50' 
+            : 'border-gray-300 hover:border-primary-500'
+        }`}>
           <div className="space-y-2 text-center">
-            <Image className="mx-auto h-12 w-12 text-gray-400" />
+            <Image className={`mx-auto h-12 w-12 ${
+              (documents.length + selectedDocuments.length) >= 5 
+                ? 'text-gray-300' 
+                : 'text-gray-400'
+            }`} />
             <div className="flex text-sm text-gray-600">
               <label
                 htmlFor="document-upload"
-                className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
+                className={`relative rounded-md font-medium focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500 ${
+                  (documents.length + selectedDocuments.length) >= 5 
+                    ? 'cursor-not-allowed text-gray-400 bg-gray-100 px-2 py-1' 
+                    : 'cursor-pointer bg-white text-primary-600 hover:text-primary-500'
+                }`}
+                onClick={(e) => {
+                  if ((documents.length + selectedDocuments.length) >= 5) {
+                    e.preventDefault();
+                    // Could add a toast here if needed
+                  }
+                }}
               >
-                <span>Select images</span>
+                <span>
+                  {(documents.length + selectedDocuments.length) >= 5 
+                    ? 'Maximum reached' 
+                    : 'Select images'
+                  }
+                </span>
                 <input
                   id="document-upload"
                   type="file"
@@ -107,27 +130,39 @@ const EditTutorProfileDocuments: React.FC<EditTutorProfileDocumentsProps> = ({
                   onChange={onDocumentSelect}
                   multiple
                   accept=".jpg,.jpeg,.png"
-                  disabled={uploading || selectedDocuments.length >= 5}
+                  disabled={uploading || (documents.length + selectedDocuments.length) >= 5}
                 />
               </label>
-              <p className="pl-1">or drag and drop</p>
+              {(documents.length + selectedDocuments.length) < 5 && (
+                <p className="pl-1">or drag and drop</p>
+              )}
             </div>
             <p className="text-xs text-gray-500">
-              JPG, PNG up to 2MB each (max 5 images)
+              JPG, PNG up to 2MB each ({documents.length + selectedDocuments.length}/5 images)
+              {(documents.length + selectedDocuments.length) >= 5 && (
+                <span className="block text-orange-600 mt-1">Maximum limit reached</span>
+              )}
             </p>
           </div>
         </div>
       </div>
 
+
+
       {/* Existing Documents */}
       {documents && documents.length > 0 && (
         <div className="mt-8">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Uploaded Images</h3>
+          <h3 className="text-sm font-medium text-green-700 mb-3 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            Uploaded Images ({documents.length})
+          </h3>
           <div className="space-y-2">
             {documents.map((doc, index) => (
-              <div key={doc.id || doc.url || `doc-${index}`} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+              <div key={doc.id || doc.url || `doc-${index}`} className="flex items-center justify-between bg-green-50 p-3 rounded-lg border border-green-200">
                 <div className="flex items-center space-x-3">
-                  <Image className="w-5 h-5 text-gray-400" />
+                  <Image className="w-5 h-5 text-green-600" />
                   <span className="text-sm text-gray-600">Image {index + 1}</span>
                 </div>
                 <div className="flex items-center space-x-2">
