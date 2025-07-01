@@ -23,27 +23,104 @@ const createApiHandler = () => {
   // Read the original server.js
   const serverContent = fs.readFileSync(serverJsPath, 'utf-8');
   
-  // Modify for Vercel serverless functions
-  const modifiedContent = serverContent
-    .replace(
-      // Replace the server starting section
-      /connectDB\(\)\.then\(\(\) => \{[\s\S]*?\}\);/,
-      'export default async (req, res) => {\n' +
-      '  await connectDB();\n' +
-      '  return app(req, res);\n' +
-      '};'
-    )
-    .replace(
-      // Update CORS configuration for Vercel
-      /app\.use\(cors\(\{[\s\S]*?\}\)\);/,
-      'app.use(cors({\n' +
-      '  origin: process.env.NODE_ENV === "production" ? [process.env.VERCEL_URL, process.env.FRONTEND_URL, `https://${process.env.VERCEL_URL}`] : "*",\n' +
-      '  credentials: true,\n' +
-      '}));'
-    );
+  // Create a new serverless function for Vercel
+  const vercelContent = `import './config/env.config.js';
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv';
+import passport from 'passport';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import './config/passport.js';
+
+// Route imports
+import authRoutes from './routes/auth.routes.js';
+import tutorRoutes from './routes/tutor.routes.js';
+import studentRoutes from './routes/student.routes.js';
+import adminRoutes from './routes/admin.routes.js';
+import blogRoutes from './routes/blog.routes.js';
+import subjectRoutes from './routes/subject.routes.js';
+import topicRoutes from './routes/topic.routes.js';
+import ratingRoutes from './routes/rating.routes.js';
+import uploadRoutes from './routes/upload.routes.js';
+import bookingRoutes from './routes/booking.routes.js';
+
+// Middleware imports
+import { errorHandler } from './middleware/errorHandler.js';
+
+dotenv.config();
+
+// Initialize app
+const app = express();
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Middleware
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? [process.env.VERCEL_URL, process.env.FRONTEND_URL, \`https://\${process.env.VERCEL_URL}\`]
+    : ['http://localhost:3000', 'http://localhost:5173', 'http://100.81.203.23:3000'],
+  credentials: true,
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Initialize Passport
+app.use(passport.initialize());
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/tutors', tutorRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/blogs', blogRoutes);
+app.use('/api/subjects', subjectRoutes);
+app.use('/api/topics', topicRoutes);
+app.use('/api/ratings', ratingRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/bookings', bookingRoutes);
+
+// Base API route
+app.get('/api', (req, res) => {
+  res.send('VerifiedTutors API is running');
+});
+
+// All other routes should serve the React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Error handler
+app.use(errorHandler);
+
+// Connect to MongoDB
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGO_URI);
+    console.log(\`MongoDB Connected: \${conn.connection.host}\`);
+  } catch (error) {
+    console.error(\`Error: \${error.message}\`);
+    process.exit(1);
+  }
+};
+
+// Vercel serverless function export
+export default async (req, res) => {
+  await connectDB();
+  return app(req, res);
+};
+`;
   
   // Write the modified file
-  fs.writeFileSync(vercelServerPath, modifiedContent);
+  fs.writeFileSync(vercelServerPath, vercelContent);
   console.log('Created Vercel API handler');
 };
 
@@ -69,6 +146,9 @@ const copyBackendFiles = () => {
   
   // Copy utils
   fs.copySync(path.join(backendDir, 'utils'), path.join(apiDir, 'utils'));
+  
+  // Copy public directory
+  fs.copySync(path.join(backendDir, 'public'), path.join(apiDir, 'public'));
   
   console.log('Copied backend files to API directory');
 };
