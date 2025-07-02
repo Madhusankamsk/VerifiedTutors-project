@@ -149,8 +149,9 @@ export const validateTutorProfile = (req, res, next) => {
                 }
                 return obj;
               })
-            ).min(1).messages({
-              'array.min': 'At least one time slot is required'
+            ).min(1).max(3).messages({
+              'array.min': 'At least one time slot is required',
+              'array.max': 'Maximum 3 time slots allowed per day'
             })
           })
         ).messages({
@@ -328,8 +329,9 @@ export const validateAvailability = (req, res, next) => {
             }
             return obj;
           })
-        ).min(1).required().messages({
+        ).min(1).max(3).required().messages({
           'array.min': 'At least one time slot is required',
+          'array.max': 'Maximum 3 time slots allowed per day',
           'any.required': 'Time slots are required'
         })
       })
@@ -420,8 +422,9 @@ export const validateSubjects = (req, res, next) => {
                   'any.required': 'End time is required'
                 })
               })
-            ).min(1).messages({
-              'array.min': 'At least one time slot is required'
+            ).min(1).max(3).messages({
+              'array.min': 'At least one time slot is required',
+              'array.max': 'Maximum 3 time slots allowed per day'
             })
           })
         ).messages({

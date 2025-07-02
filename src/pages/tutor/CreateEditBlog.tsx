@@ -261,294 +261,296 @@ const CreateEditBlog = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="mb-8">
-          <button
-            onClick={() => navigate('/tutor/blogs')}
-            className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Blogs
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {id ? 'Edit Blog' : 'Create New Blog'}
-          </h1>
-          <p className="mt-2 text-sm text-gray-500">
-            {id ? 'Update your existing blog post' : 'Share your knowledge with the community'}
-          </p>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100 p-3 sm:p-4 lg:p-6">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <button
+              onClick={() => navigate('/tutor/blogs')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </button>
             <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                Title
-              </label>
-              <input
-                type="text"
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                className="block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
-                placeholder="Enter a descriptive title"
-                maxLength={100}
-                required
-              />
-              <p className="mt-1 text-sm text-gray-500">
-                {formData.title.length}/100 characters
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                {id ? 'Edit Blog Post' : 'Create New Blog Post'}
+              </h1>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">
+                {id ? 'Update your blog post' : 'Share your knowledge with students'}
               </p>
             </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={toggleStatus}
+              className={`inline-flex items-center justify-center px-4 py-2.5 rounded-lg font-medium text-sm transition-colors ${
+                formData.status === 'published'
+                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                  : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+              }`}
+            >
+              {formData.status === 'published' ? (
+                <>
+                  <Eye className="w-4 h-4 mr-2" />
+                  Published
+                </>
+              ) : (
+                <>
+                  <EyeOff className="w-4 h-4 mr-2" />
+                  Draft
+                </>
+              )}
+            </button>
+            
+            <button
+              type="submit"
+              form="blog-form"
+              disabled={isLoading || loading}
+              className="inline-flex items-center justify-center px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm transition-colors"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isLoading ? 'Saving...' : (id ? 'Update Post' : 'Create Post')}
+            </button>
+          </div>
+        </div>
 
-            <div>
-              <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
-                Content
-              </label>
-              <div className="border border-gray-200 rounded-lg">
-                <div className="border-b border-gray-200 p-2 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => editor?.chain().focus().toggleBold().run()}
-                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive('bold') ? 'bg-gray-100' : ''}`}
-                  >
-                    <Bold className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => editor?.chain().focus().toggleItalic().run()}
-                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive('italic') ? 'bg-gray-100' : ''}`}
-                  >
-                    <Italic className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => editor?.chain().focus().toggleUnderline().run()}
-                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive('underline') ? 'bg-gray-100' : ''}`}
-                  >
-                    <UnderlineIcon className="w-4 h-4" />
-                  </button>
-                  <div className="w-px h-6 bg-gray-200 mx-2" />
-                  <button
-                    type="button"
-                    onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive('bulletList') ? 'bg-gray-100' : ''}`}
-                  >
-                    <List className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive('orderedList') ? 'bg-gray-100' : ''}`}
-                  >
-                    <ListOrdered className="w-4 h-4" />
-                  </button>
-                  <div className="w-px h-6 bg-gray-200 mx-2" />
-                  <button
-                    type="button"
-                    onClick={() => editor?.chain().focus().setTextAlign('left').run()}
-                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive({ textAlign: 'left' }) ? 'bg-gray-100' : ''}`}
-                  >
-                    <AlignLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => editor?.chain().focus().setTextAlign('center').run()}
-                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive({ textAlign: 'center' }) ? 'bg-gray-100' : ''}`}
-                  >
-                    <AlignCenter className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => editor?.chain().focus().setTextAlign('right').run()}
-                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive({ textAlign: 'right' }) ? 'bg-gray-100' : ''}`}
-                  >
-                    <AlignRight className="w-4 h-4" />
-                  </button>
-                  <div className="w-px h-6 bg-gray-200 mx-2" />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const url = window.prompt('Enter URL');
-                      if (url) {
-                        editor?.chain().focus().setLink({ href: url }).run();
-                      }
-                    }}
-                    className={`p-2 rounded hover:bg-gray-100 ${editor?.isActive('link') ? 'bg-gray-100' : ''}`}
-                  >
-                    <LinkIcon className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const url = window.prompt('Enter image URL');
-                      if (url) {
-                        editor?.chain().focus().setImage({ src: url }).run();
-                      }
-                    }}
-                    className="p-2 rounded hover:bg-gray-100"
-                  >
-                    <ImageIcon2 className="w-4 h-4" />
-                  </button>
-                </div>
-                <EditorContent editor={editor} className="prose max-w-none p-4 min-h-[200px]" />
-              </div>
+        {/* Form */}
+        <form id="blog-form" onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+          {/* Title */}
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 lg:p-8">
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-3">
+              Blog Title *
+            </label>
+            <input
+              type="text"
+              id="title"
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              className="w-full px-4 py-3 text-base sm:text-lg border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+              placeholder="Enter your blog title..."
+              required
+              maxLength={100}
+            />
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-2 gap-1 sm:gap-0">
+              <p className="text-xs sm:text-sm text-gray-500">
+                Make it catchy and descriptive to attract readers
+              </p>
+              <span className={`text-xs ${
+                formData.title.length > 80 ? 'text-red-600' : 
+                formData.title.length > 60 ? 'text-yellow-600' : 'text-gray-500'
+              }`}>
+                {formData.title.length}/100
+              </span>
             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Featured Image
-              </label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
-                <div className="space-y-1 text-center">
-                  {imagePreview ? (
-                    <div className="relative">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="mx-auto h-32 w-auto object-cover rounded-lg"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setImagePreview('');
-                          setFormData(prev => ({ ...prev, featuredImage: '' }));
-                        }}
-                        className="absolute -top-2 -right-2 p-1 bg-red-100 rounded-full text-red-600 hover:bg-red-200"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-                      <div className="flex text-sm text-gray-600">
-                        <label
-                          htmlFor="image-upload"
-                          className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
-                        >
-                          <span>Upload an image</span>
-                          <input
-                            id="image-upload"
-                            name="image-upload"
-                            type="file"
-                            className="sr-only"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                          />
-                        </label>
-                        <p className="pl-1">or drag and drop</p>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        PNG, JPG, GIF up to 5MB
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <select
-                id="status"
-                value={formData.status}
-                onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'draft' | 'published' }))}
-                className="block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-colors"
-              >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-1">
-                Tags
-              </label>
-              <div className="flex rounded-lg shadow-sm">
-                <input
-                  type="text"
-                  id="tags"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddTag();
-                    }
-                  }}
-                  className="flex-1 block w-full rounded-l-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 transition-colors"
-                  placeholder="Add a tag and press Enter"
+          {/* Featured Image */}
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 lg:p-8">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Featured Image
+            </label>
+            
+            {imagePreview ? (
+              <div className="relative group">
+                <img
+                  src={imagePreview}
+                  alt="Featured"
+                  className="w-full h-48 sm:h-64 object-cover rounded-xl"
                 />
+                <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-xl flex items-center justify-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImagePreview('');
+                      setFormData(prev => ({ ...prev, featuredImage: '' }));
+                    }}
+                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                  >
+                    <X className="w-4 h-4 mr-2 inline" />
+                    Remove Image
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 sm:p-8 text-center hover:border-primary-400 transition-colors">
+                <input
+                  type="file"
+                  id="featured-image"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="featured-image"
+                  className="cursor-pointer flex flex-col items-center space-y-3"
+                >
+                  <div className="w-12 h-12 bg-primary-50 rounded-full flex items-center justify-center">
+                    <ImageIcon className="w-6 h-6 text-primary-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm sm:text-base font-medium text-gray-900">Upload featured image</p>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-1">PNG, JPG, GIF up to 5MB</p>
+                  </div>
+                </label>
+              </div>
+            )}
+          </div>
+
+          {/* Content Editor */}
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 lg:p-8">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Content *
+            </label>
+            
+            {/* Editor Toolbar */}
+            {editor && (
+              <div className="border border-gray-200 rounded-t-xl p-2 sm:p-3 bg-gray-50 flex flex-wrap gap-1 sm:gap-2">
                 <button
                   type="button"
-                  onClick={handleAddTag}
-                  className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-r-lg hover:bg-primary-700 transition-colors font-medium"
+                  onClick={() => editor.chain().focus().toggleBold().run()}
+                  className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+                    editor.isActive('bold') ? 'bg-gray-300' : ''
+                  }`}
                 >
-                  Add
+                  <Bold className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().toggleItalic().run()}
+                  className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+                    editor.isActive('italic') ? 'bg-gray-300' : ''
+                  }`}
+                >
+                  <Italic className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().toggleUnderline().run()}
+                  className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+                    editor.isActive('underline') ? 'bg-gray-300' : ''
+                  }`}
+                >
+                  <UnderlineIcon className="w-4 h-4" />
+                </button>
+                
+                <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().toggleBulletList().run()}
+                  className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+                    editor.isActive('bulletList') ? 'bg-gray-300' : ''
+                  }`}
+                >
+                  <List className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                  className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+                    editor.isActive('orderedList') ? 'bg-gray-300' : ''
+                  }`}
+                >
+                  <ListOrdered className="w-4 h-4" />
+                </button>
+                
+                <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                  className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+                    editor.isActive({ textAlign: 'left' }) ? 'bg-gray-300' : ''
+                  }`}
+                >
+                  <AlignLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                  className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+                    editor.isActive({ textAlign: 'center' }) ? 'bg-gray-300' : ''
+                  }`}
+                >
+                  <AlignCenter className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                  className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+                    editor.isActive({ textAlign: 'right' }) ? 'bg-gray-300' : ''
+                  }`}
+                >
+                  <AlignRight className="w-4 h-4" />
                 </button>
               </div>
-              {formData.tags.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {formData.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-50 text-primary-700"
-                    >
-                      {tag}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveTag(tag)}
-                        className="ml-1.5 inline-flex items-center p-0.5 rounded-full text-primary-400 hover:bg-primary-100 hover:text-primary-600 transition-colors"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
+            )}
+            
+            <div className="border border-gray-200 border-t-0 rounded-b-xl">
+              <EditorContent
+                editor={editor}
+                className="prose max-w-none p-4 sm:p-6 min-h-[300px] sm:min-h-[400px] focus:outline-none"
+              />
             </div>
+            
+            <p className="text-xs sm:text-sm text-gray-500 mt-3">
+              Minimum 50 characters required. Use the toolbar to format your content.
+            </p>
+          </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+          {/* Tags */}
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 lg:p-8">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Tags
+            </label>
+            
+            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
+                placeholder="Add tags (e.g., mathematics, education, tips)"
+                maxLength={30}
+              />
               <button
                 type="button"
-                onClick={() => navigate('/tutor/blogs')}
-                className="inline-flex items-center px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                onClick={handleAddTag}
+                className="px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm whitespace-nowrap"
               >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={toggleStatus}
-                className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors font-medium ${
-                  formData.status === 'draft'
-                    ? 'bg-green-50 text-green-700 hover:bg-green-100'
-                    : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
-                }`}
-              >
-                {formData.status === 'draft' ? (
-                  <>
-                    <Eye className="w-4 h-4 mr-2" />
-                    Publish
-                  </>
-                ) : (
-                  <>
-                    <EyeOff className="w-4 h-4 mr-2" />
-                    Save as Draft
-                  </>
-                )}
-              </button>
-              <button
-                type="submit"
-                className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium shadow-sm"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {id ? 'Update Blog' : 'Create Blog'}
+                Add Tag
               </button>
             </div>
-          </form>
-        </div>
+            
+            {formData.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {formData.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-3 py-1.5 bg-primary-100 text-primary-800 rounded-full text-sm font-medium"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="ml-2 hover:text-primary-600 transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            
+            <p className="text-xs sm:text-sm text-gray-500 mt-3">
+              Add relevant tags to help students find your content. Maximum 5 tags.
+            </p>
+          </div>
+        </form>
       </div>
     </div>
   );

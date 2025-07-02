@@ -134,7 +134,8 @@ const TutorProfilePage: React.FC = () => {
         notes += `\nSelected topics: ${data.topics.join(', ')}`;
       }
       notes += `\nDuration: ${data.duration} hour${data.duration > 1 ? 's' : ''}`;
-      notes += `\nTotal price: $${data.totalPrice}`;
+      notes += `\nTotal price: Rs. ${data.totalPrice}`;
+      notes += `\nLearning method: ${data.learningMethod}`;
       
       // Map learning method to backend compatible format
       const backendLearningMethod = data.learningMethod === 'home-visit' ? 'individual' : data.learningMethod;

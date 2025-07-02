@@ -92,6 +92,12 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
     const dayAvailability = subject.availability.find(a => a.day === day);
     if (!dayAvailability) return;
 
+    // Check if already at maximum slots (3 slots per day)
+    if (dayAvailability.slots.length >= 3) {
+      toast.error('Maximum 3 time slots allowed per day');
+      return;
+    }
+
     const newSlot = { start: '09:00', end: '10:00' };
     updateAvailability(subjectId, day, [...dayAvailability.slots, newSlot]);
   };
@@ -245,17 +251,19 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
                         </label>
                       </div>
                       {mode.enabled && (
-                        <div className="flex items-center">
-                          <span className="text-xs sm:text-sm text-gray-500 mr-1 sm:mr-2">$</span>
-                          <input
-                            type="number"
-                            value={mode.rate}
-                            onChange={(e) => updateTeachingMode(subject._id, mode.type, { rate: Number(e.target.value) })}
-                            placeholder="0"
-                            min="0"
-                            className="flex-1 p-1.5 sm:p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xs sm:text-sm"
-                          />
-                          <span className="text-xs sm:text-sm text-gray-500 ml-1 sm:ml-2">/hour</span>
+                        <div className="relative">
+                          <div className="flex items-center bg-gray-50 rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
+                            <span className="text-xs sm:text-sm text-gray-500 pl-2 sm:pl-3">Rs.</span>
+                            <input
+                              type="number"
+                              value={mode.rate}
+                              onChange={(e) => updateTeachingMode(subject._id, mode.type, { rate: Number(e.target.value) })}
+                              placeholder="0"
+                              min="0"
+                              className="flex-1 p-1.5 sm:p-2 bg-transparent border-0 focus:ring-0 focus:outline-none text-xs sm:text-sm min-w-0"
+                            />
+                            <span className="text-xs sm:text-sm text-gray-500 pr-2 sm:pr-3 whitespace-nowrap">/hour</span>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -273,11 +281,25 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
                   {subject.availability.map((dayAvailability) => (
                     <div key={dayAvailability.day} className="bg-white rounded-xl p-3 sm:p-4 border border-gray-200">
                       <div className="flex items-center justify-between mb-3">
-                        <h5 className="text-xs sm:text-sm font-medium text-gray-700 truncate">{dayAvailability.day}</h5>
+                        <div className="flex items-center">
+                          <h5 className="text-xs sm:text-sm font-medium text-gray-700 truncate">{dayAvailability.day}</h5>
+                          <span className={`text-xs px-2 py-1 rounded-full ml-2 ${
+                            dayAvailability.slots.length >= 3 
+                              ? 'bg-red-100 text-red-700' 
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            {dayAvailability.slots.length}/3 slots
+                          </span>
+                        </div>
                         <button
                           type="button"
                           onClick={() => addTimeSlot(subject._id, dayAvailability.day)}
-                          className="text-primary-600 hover:text-primary-700 text-xs sm:text-sm font-medium flex-shrink-0 ml-2"
+                          disabled={dayAvailability.slots.length >= 3}
+                          className={`text-xs sm:text-sm font-medium flex-shrink-0 ml-2 ${
+                            dayAvailability.slots.length >= 3
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'text-primary-600 hover:text-primary-700'
+                          }`}
                         >
                           + Add Slot
                         </button>
@@ -318,6 +340,12 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
                             </div>
                           ))}
                         </div>
+                      )}
+                      {dayAvailability.slots.length >= 3 && (
+                        <p className="text-xs text-amber-600 mt-2 flex items-center">
+                          <AlertCircle className="w-3 h-3 mr-1 flex-shrink-0" />
+                          Maximum 3 time slots reached. Remove a slot to add another.
+                        </p>
                       )}
                     </div>
                   ))}

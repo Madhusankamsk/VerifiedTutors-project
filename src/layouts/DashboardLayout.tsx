@@ -42,7 +42,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
 
       {/* Sidebar */}
       <div
-        className={`fixed left-0 bottom-0 z-30 w-64 bg-white shadow-xl transform ${
+        className={`fixed left-0 bottom-0 z-[45] w-64 bg-white shadow-xl transform ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } transition-transform duration-300 ease-in-out lg:translate-x-0`}
         style={{ 
@@ -86,13 +86,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
       </div>
 
       {/* Main content area */}
-      <div className="lg:pl-64" style={{ paddingTop: '4rem', paddingBottom: '3rem' }}>
+      <div className="lg:pl-64" style={{ paddingTop: '4rem', paddingBottom: '5rem' }}>
         {/* Account for mobile title bar height */}
         <div className="block md:hidden" style={{ height: '3.5rem' }}></div>
         
         {/* Page content */}
         <main className="min-h-screen bg-gray-50">
-          <div className="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8 pb-8">
+          <div className="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8 pb-16 sm:pb-12">
             <Outlet />
           </div>
         </main>

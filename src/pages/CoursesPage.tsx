@@ -203,7 +203,7 @@ const CoursesPage: React.FC = () => {
                   className="w-full h-48 object-cover"
                 />
                 <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-sm font-medium text-blue-600">
-                  ${course.price}
+                  Rs. {course.price}
                 </div>
               </div>
               

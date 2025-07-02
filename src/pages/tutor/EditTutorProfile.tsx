@@ -555,117 +555,143 @@ const EditTutorProfile: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-6 sm:py-8 lg:py-12 pb-16 sm:pb-24 lg:pb-32">
-      <div className="container mx-auto px-3 sm:px-4 lg:px-6">
-        <div className="max-w-4xl mx-auto">
-          <EditTutorProfileHeader
-            hasChanges={hasChanges}
-            onDiscard={handleDiscard}
-            onSave={() => {}}
-            isSubmitting={isSubmitting}
-            isComplete={profileValidation.isComplete}
-            completionPercentage={Math.round((profileValidation.completedFields / profileValidation.totalFields) * 100)}
-          />
+    <>
+      <EditTutorProfileHeader
+        hasChanges={hasChanges}
+        onDiscard={handleDiscard}
+        onSave={() => handleSubmit({} as React.FormEvent)}
+        isSubmitting={isSubmitting}
+        isComplete={profileValidation.isComplete}
+        completionPercentage={Math.round((profileValidation.completedFields / profileValidation.totalFields) * 100)}
+      />
 
-          <EditTutorProfileDiscardDialog
-            isOpen={showDiscardConfirm}
-            onCancel={() => setShowDiscardConfirm(false)}
-            onConfirm={confirmDiscard}
-          />
-
-          <form id="profile-form" onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
-            {/* Basic Information */}
-            <EditTutorProfileBasicInfo
-              data={{
-                phone: formData.phone,
-                bio: formData.bio,
-                gender: formData.gender,
-                socialMedia: formData.socialMedia,
-                teachingMediums: formData.teachingMediums
-              }}
-              profileImage={tempProfileImage?.preview || profileImage}
-              isUploading={isUploading}
-              onDataChange={handleBasicInfoChange}
-              onProfileImageUpload={handleProfileImageUpload}
-            />
-
-            {/* Subjects Section */}
-            <EditTutorProfileSubjects
-              subjects={formData.subjects}
-              allSubjects={subjects}
-              allTopics={topics}
-              onSubjectsChange={handleSubjectsChange}
-            />
-
-            {/* Education Section */}
-            <EditTutorProfileEducation
-              education={formData.education}
-              onEducationChange={handleEducationChange}
-            />
-
-            {/* Experience Section */}
-            <EditTutorProfileExperience
-              experience={formData.experience}
-              onExperienceChange={handleExperienceChange}
-            />
-
-            {/* Locations Section */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold mb-4 sm:mb-6 flex items-center text-gray-900">
-                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-primary-600" />
-                Teaching Locations
-              </h2>
-              <div className="space-y-3 sm:space-y-4">
-                <div>
-                  <label htmlFor="availableLocations" className="block text-sm font-medium text-gray-700 mb-2">
-                    Available Teaching Locations
-                  </label>
-                  <textarea
-                    id="availableLocations"
-                    value={formData.availableLocations}
-                    onChange={(e) => setFormData(prev => ({ ...prev, availableLocations: e.target.value }))}
-                    placeholder="Enter your available teaching locations (e.g., Colombo, Kandy, Online, etc.)"
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm sm:text-base ${
-                      formData.availableLocations.length > 100 ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
-                    }`}
-                    rows={3}
-                    maxLength={100}
-                    required
-                  />
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-1 gap-1 sm:gap-0">
-                    <p className="text-xs sm:text-sm text-gray-500">
-                      Describe the areas where you are available to teach. You can include cities, towns, or specify if you offer online teaching.
-                    </p>
-                    <span className={`text-xs ${
-                      formData.availableLocations.length > 100 ? 'text-red-600' : 
-                      formData.availableLocations.length > 80 ? 'text-yellow-600' : 'text-gray-500'
-                    }`}>
-                      {formData.availableLocations.length}/100
-                    </span>
-                  </div>
-                  {formData.availableLocations.length > 100 && (
-                    <p className="text-xs text-red-600 mt-1">
-                      Location description is too long. Please keep it under 100 characters.
-                    </p>
-                  )}
+      <form id="profile-form" onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 pb-24">
+        {/* Profile Completion Status */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-blue-100">
+          <h3 className="text-lg sm:text-xl font-semibold text-blue-900 mb-4">Profile Completion Status</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            {Object.entries({
+              'Personal Info': profileValidation.requirements.personalInfo,
+              'Education': profileValidation.requirements.education,
+              'Subjects & Topics': profileValidation.requirements.subjects,
+              'Profile Image': profileValidation.requirements.profileImage,
+              'Documents': profileValidation.requirements.documents,
+              'Available Locations': profileValidation.requirements.locations
+            }).map(([label, completed]) => (
+              <div key={label} className="flex items-center space-x-2 sm:space-x-3">
+                <div className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center ${
+                  completed ? 'bg-green-500' : 'bg-gray-300'
+                }`}>
+                  {completed && <span className="text-white text-xs">✓</span>}
                 </div>
+                <span className={`text-sm sm:text-base font-medium ${
+                  completed ? 'text-green-700' : 'text-gray-600'
+                }`}>
+                  {label}
+                </span>
               </div>
-            </div>
-
-            {/* Documents Section */}
-            <EditTutorProfileDocuments
-              documents={formData.documents}
-              selectedDocuments={selectedDocuments}
-              uploading={uploading}
-              onDocumentSelect={handleDocumentSelect}
-              onDocumentUpload={handleDocumentUpload}
-              onDeleteDocument={handleDeleteDocument}
-              onRemoveSelectedDocument={removeSelectedDocument}
-            />
-          </form>
+            ))}
+          </div>
         </div>
-      </div>
-    </div>
+
+        {/* Basic Information */}
+        <EditTutorProfileBasicInfo
+          data={{
+            phone: formData.phone,
+            bio: formData.bio,
+            gender: formData.gender,
+            socialMedia: formData.socialMedia,
+            teachingMediums: formData.teachingMediums
+          }}
+          profileImage={profileImage || (tempProfileImage?.preview || null)}
+          isUploading={isUploading}
+          onDataChange={handleBasicInfoChange}
+          onProfileImageUpload={handleProfileImageUpload}
+        />
+
+        {/* Bio Section */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">About Me</h2>
+          <div>
+            <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">
+              Bio
+            </label>
+            <textarea
+              id="bio"
+              rows={6}
+              value={formData.bio}
+              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 resize-none text-sm sm:text-base"
+              placeholder="Tell students about yourself, your teaching style, and what makes you unique..."
+              required
+            />
+            <p className="text-xs sm:text-sm text-gray-500 mt-2">
+              {formData.bio.length}/500 characters
+            </p>
+          </div>
+        </div>
+
+        {/* Education */}
+        <EditTutorProfileEducation
+          education={formData.education}
+          onEducationChange={handleEducationChange}
+        />
+
+        {/* Experience */}
+        <EditTutorProfileExperience
+          experience={formData.experience}
+          onExperienceChange={handleExperienceChange}
+        />
+
+        {/* Subjects and Topics */}
+        <EditTutorProfileSubjects
+          subjects={formData.subjects}
+          allSubjects={subjects}
+          allTopics={topics}
+          onSubjectsChange={handleSubjectsChange}
+        />
+
+        {/* Available Locations */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center">
+            <MapPin className="w-5 h-5 mr-2 text-primary-600" />
+            Available Locations
+          </h2>
+          <div>
+            <label htmlFor="availableLocations" className="block text-sm font-medium text-gray-700 mb-2">
+              Areas where you can provide tutoring
+            </label>
+            <textarea
+              id="availableLocations"
+              rows={4}
+              value={formData.availableLocations}
+              onChange={(e) => setFormData({ ...formData, availableLocations: e.target.value })}
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 resize-none text-sm sm:text-base"
+              placeholder="e.g., Colombo, Gampaha, Kandy, Online sessions available"
+              required
+            />
+          </div>
+        </div>
+
+        {/* Documents */}
+        <EditTutorProfileDocuments
+          documents={formData.documents}
+          selectedDocuments={selectedDocuments}
+          uploading={uploading}
+          onDocumentSelect={handleDocumentSelect}
+          onDocumentUpload={handleDocumentUpload}
+          onDeleteDocument={handleDeleteDocument}
+          onRemoveSelectedDocument={removeSelectedDocument}
+        />
+      </form>
+
+      {/* Discard Confirmation Dialog */}
+      <EditTutorProfileDiscardDialog
+        isOpen={showDiscardConfirm}
+        onCancel={() => setShowDiscardConfirm(false)}
+        onConfirm={confirmDiscard}
+      />
+    </>
   );
 };
 

@@ -122,23 +122,23 @@ const TutorBookings: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100 p-6 relative">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100 p-3 sm:p-4 lg:p-6 relative">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
       
-      <div className="relative">
-        <h1 className="text-3xl font-bold mb-8 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+      <div className="relative max-w-7xl mx-auto">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
           My Bookings
         </h1>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-md p-4 mb-6 flex flex-wrap gap-4 items-center">
-          <div className="flex items-center space-x-2">
-            <label className="text-sm text-gray-600">Status:</label>
+        <div className="bg-white rounded-xl shadow-md p-3 sm:p-4 mb-4 sm:mb-6 flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+            <label className="text-sm text-gray-600 font-medium">Status:</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-full sm:w-auto min-w-[120px]"
             >
               <option value="all">All</option>
               <option value="pending">Pending</option>
@@ -148,46 +148,121 @@ const TutorBookings: React.FC = () => {
               <option value="cancelled">Cancelled</option>
             </select>
           </div>
+          <div className="text-xs sm:text-sm text-gray-500 w-full sm:w-auto">
+            {filteredBookings.length} booking{filteredBookings.length !== 1 ? 's' : ''} found
+          </div>
         </div>
 
         {filteredBookings.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-md p-8 text-center border border-gray-100">
+          <div className="bg-white rounded-xl shadow-md p-6 sm:p-8 text-center border border-gray-100">
             <div className="flex justify-center mb-4">
               <Calendar className="w-12 h-12 text-gray-400" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">No Bookings Found</h2>
-            <p className="text-gray-500">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">No Bookings Found</h2>
+            <p className="text-sm sm:text-base text-gray-500">
               There are no bookings matching your current filters.
             </p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {filteredBookings.map((booking) => (
-              <div key={booking._id} className="bg-white rounded-xl shadow-md p-6 border border-gray-100 transition hover:shadow-lg">
-                <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-800 mb-1">
-                      {booking.subject?.name || 'Unnamed Subject'}
-                    </h2>
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${getStatusBadgeClass(booking.status)}`}>
-                      {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                    </span>
+              <div key={booking._id} className="bg-white rounded-xl shadow-md p-4 sm:p-6 border border-gray-100 transition hover:shadow-lg">
+                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-4">
+                  <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-3">
+                      <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+                        {booking.subject?.name || 'Unnamed Subject'}
+                      </h2>
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium border self-start sm:self-center ${getStatusBadgeClass(booking.status)}`}>
+                        {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                      </span>
+                    </div>
+                    
+                    {/* Student Info */}
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
+                        {booking.student?.profileImage ? (
+                          <img 
+                            src={booking.student.profileImage} 
+                            alt={booking.student.name}
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        ) : (
+                          <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 text-sm sm:text-base">{booking.student?.name || 'Unknown Student'}</p>
+                        <p className="text-xs sm:text-sm text-gray-600">{booking.student?.email || 'No email'}</p>
+                      </div>
+                    </div>
+
+                    {/* Booking Details Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-primary-500" />
+                        <div>
+                          <p className="text-xs sm:text-sm text-gray-600">Start Time</p>
+                          <p className="font-medium text-gray-900 text-sm sm:text-base">{formatDate(booking.startTime)}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary-500" />
+                        <div>
+                          <p className="text-xs sm:text-sm text-gray-600">End Time</p>
+                          <p className="font-medium text-gray-900 text-sm sm:text-base">{formatDate(booking.endTime)}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+                        <div>
+                          <p className="text-xs sm:text-sm text-gray-600">Amount</p>
+                          <p className="font-medium text-gray-900 text-sm sm:text-base">Rs. {booking.amount || 0}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+                        <div>
+                          <p className="text-xs sm:text-sm text-gray-600">Payment Status</p>
+                          <p className="font-medium text-gray-900 text-sm sm:text-base capitalize">{booking.paymentStatus || 'pending'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Notes */}
+                    {booking.notes && (
+                      <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                        <p className="text-xs sm:text-sm text-gray-600 mb-1">Notes:</p>
+                        <p className="text-sm sm:text-base text-gray-800">{booking.notes}</p>
+                      </div>
+                    )}
+
+                    {/* Cancellation Reason */}
+                    {booking.cancellationReason && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                        <p className="text-xs sm:text-sm text-red-600 mb-1">Cancellation Reason:</p>
+                        <p className="text-sm sm:text-base text-red-800">{booking.cancellationReason}</p>
+                      </div>
+                    )}
                   </div>
                   
-                  {/* Action buttons based on status */}
-                  <div className="flex space-x-2">
+                  {/* Action buttons */}
+                  <div className="flex flex-col sm:flex-row lg:flex-col gap-2 sm:gap-3 lg:gap-2 w-full sm:w-auto lg:w-auto">
                     {booking.status === 'notified' && (
                       <>
                         <button
                           onClick={() => handleUpdateStatus(booking._id, 'confirmed')}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center"
+                          className="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center text-sm font-medium"
                         >
                           <Check className="w-4 h-4 mr-2" />
                           Confirm
                         </button>
                         <button
                           onClick={() => handleUpdateStatus(booking._id, 'cancelled')}
-                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center"
+                          className="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center justify-center text-sm font-medium"
                         >
                           <X className="w-4 h-4 mr-2" />
                           Decline
@@ -197,67 +272,31 @@ const TutorBookings: React.FC = () => {
                     {booking.status === 'confirmed' && (
                       <button
                         onClick={() => handleUpdateStatus(booking._id, 'completed')}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center"
+                        className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center text-sm font-medium"
                       >
                         <Check className="w-4 h-4 mr-2" />
-                        Mark Completed
+                        Mark Complete
                       </button>
+                    )}
+                    {booking.meetingLink && booking.status === 'confirmed' && (
+                      <a
+                        href={booking.meetingLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition flex items-center justify-center text-sm font-medium"
+                      >
+                        Join Meeting
+                      </a>
                     )}
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="flex items-start">
-                    <User className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-gray-500">Student</p>
-                      <p className="font-medium text-gray-800">
-                        {booking.student?.name || 'Unknown Student'}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <Calendar className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-gray-500">Start Time</p>
-                      <p className="font-medium text-gray-800">{formatDate(booking.startTime)}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <Clock className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-gray-500">End Time</p>
-                      <p className="font-medium text-gray-800">{formatDate(booking.endTime)}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <DollarSign className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-gray-500">Amount</p>
-                      <p className="font-medium text-gray-800">${booking.amount}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <Book className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-gray-500">Payment Status</p>
-                      <p className="font-medium text-gray-800">
-                        {booking.paymentStatus.charAt(0).toUpperCase() + booking.paymentStatus.slice(1)}
-                      </p>
-                    </div>
-                  </div>
+                
+                {/* Booking Timeline */}
+                <div className="border-t border-gray-100 pt-4 mt-4">
+                  <p className="text-xs sm:text-sm text-gray-500">
+                    Created: {formatDate(booking.createdAt)}
+                  </p>
                 </div>
-
-                {booking.notes && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">Notes:</p>
-                    <p className="text-gray-700">{booking.notes}</p>
-                  </div>
-                )}
               </div>
             ))}
           </div>

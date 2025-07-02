@@ -198,10 +198,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(price);
+    return `Rs. ${price.toLocaleString('en-IN')}`;
   };
 
   const getLearningMethodIcon = (method: LearningMethod) => {
