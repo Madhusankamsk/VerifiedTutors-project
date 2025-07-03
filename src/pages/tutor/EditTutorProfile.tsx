@@ -146,7 +146,9 @@ const EditTutorProfile: React.FC = () => {
               let teachingModes: any[] = [];
 
               if (hasNewStructure) {
-                selectedTopics = s.selectedTopics || [];
+                selectedTopics = (s.selectedTopics || []).map(topic => 
+                  typeof topic === 'string' ? topic : topic._id
+                );
                 teachingModes = s.teachingModes || [
                   { type: 'online', rate: 0, enabled: false },
                   { type: 'home-visit', rate: 0, enabled: false },
@@ -154,7 +156,9 @@ const EditTutorProfile: React.FC = () => {
                 ];
               } else if (hasLegacyStructure) {
                 // Convert legacy structure to new structure
-                selectedTopics = s.selectedTopics || (s as any).bestTopics || [];
+                selectedTopics = (s.selectedTopics || (s as any).bestTopics || []).map(topic => 
+                  typeof topic === 'string' ? topic : topic._id
+                );
                 const { individual = 0, group = 0, online = 0 } = (s as any).rates || {};
                 teachingModes = [
                   { type: 'online', rate: online, enabled: online > 0 },
