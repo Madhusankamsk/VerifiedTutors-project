@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTutor } from '../../contexts/TutorContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { Star, Users, DollarSign, Edit2, Trash2, Calendar, Clock, TrendingUp, Award, Bell } from 'lucide-react';
+import { Star, Users, DollarSign, Edit2, Trash2, Calendar, Clock, TrendingUp, Award } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -32,7 +32,7 @@ const TutorDashboard = () => {
     deleteProfile,
   } = useTutor();
   
-  const [notifiedBookings, setNotifiedBookings] = useState<Booking[]>([]);
+  const [pendingBookings, setPendingBookings] = useState<Booking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
   
   const handleDeleteProfile = async () => {
@@ -47,7 +47,7 @@ const TutorDashboard = () => {
   };
 
   useEffect(() => {
-    const fetchNotifiedBookings = async () => {
+    const fetchPendingBookings = async () => {
       try {
         setLoadingBookings(true);
         const token = localStorage.getItem('token');
@@ -55,17 +55,17 @@ const TutorDashboard = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        const filtered = response.data.filter((booking: Booking) => booking.status === 'notified');
-        setNotifiedBookings(filtered);
+        const filtered = response.data.filter((booking: Booking) => booking.status === 'pending');
+        setPendingBookings(filtered);
         setLoadingBookings(false);
       } catch (error) {
-        console.error('Error fetching notified bookings:', error);
+        console.error('Error fetching pending bookings:', error);
         setLoadingBookings(false);
       }
     };
 
     if (profile) {
-      fetchNotifiedBookings();
+      fetchPendingBookings();
     }
   }, [profile]);
 
@@ -231,32 +231,6 @@ const TutorDashboard = () => {
           </div>
         </div>
 
-        {/* Notified Bookings Alert */}
-        {notifiedBookings.length > 0 && (
-          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8 shadow-lg">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-start sm:items-center space-x-3">
-                <div className="p-2 bg-amber-100 rounded-lg">
-                  <Bell className="w-5 h-5 text-amber-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-amber-800">New Booking Requests</h3>
-                  <p className="text-amber-700 text-sm sm:text-base">
-                    You have {notifiedBookings.length} new booking request{notifiedBookings.length > 1 ? 's' : ''} waiting for your response.
-                  </p>
-                </div>
-              </div>
-              <Link
-                to="/tutor/bookings"
-                className="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-amber-600 text-white rounded-lg sm:rounded-xl hover:bg-amber-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 font-medium text-sm sm:text-base w-full sm:w-auto"
-              >
-                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                View Bookings
-              </Link>
-            </div>
-          </div>
-        )}
-
         {/* Recent Bookings */}
         <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 lg:p-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3">
@@ -276,9 +250,9 @@ const TutorDashboard = () => {
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary-500 border-t-transparent"></div>
             </div>
-          ) : notifiedBookings.length > 0 ? (
+          ) : pendingBookings.length > 0 ? (
             <div className="space-y-3 sm:space-y-4">
-              {notifiedBookings.slice(0, 3).map((booking) => (
+              {pendingBookings.slice(0, 3).map((booking) => (
                 <div key={booking._id} className="border border-gray-100 rounded-lg sm:rounded-xl p-3 sm:p-4 bg-gray-50/50">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
                     <div className="flex-1">
@@ -286,8 +260,8 @@ const TutorDashboard = () => {
                       <p className="text-xs sm:text-sm text-gray-600">{booking.student.name}</p>
                       <p className="text-xs sm:text-sm text-gray-500">{formatDate(booking.startTime)}</p>
                     </div>
-                    <span className="bg-purple-100 text-purple-800 px-2 sm:px-3 py-1 rounded-full text-xs font-medium self-start sm:self-center">
-                      {booking.status}
+                    <span className="bg-yellow-100 text-yellow-800 px-2 sm:px-3 py-1 rounded-full text-xs font-medium self-start sm:self-center">
+                      Pending
                     </span>
                   </div>
                 </div>
@@ -321,7 +295,32 @@ const TutorDashboard = () => {
                       {review.rating}/5
                     </span>
                   </div>
-                                     <p className="text-xs sm:text-sm text-gray-700 mb-2 line-clamp-3">{review.review}</p>
+                  
+                  {/* Subject and Topics */}
+                  <div className="mb-2">
+                    <p className="text-xs sm:text-sm font-medium text-gray-800 mb-1">
+                      {review.subject?.name || 'Subject'}
+                    </p>
+                    {review.topics && review.topics.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {review.topics.slice(0, 2).map((topic) => (
+                          <span 
+                            key={topic._id}
+                            className="inline-block px-1.5 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full border border-blue-200"
+                          >
+                            {topic.name}
+                          </span>
+                        ))}
+                        {review.topics.length > 2 && (
+                          <span className="text-xs text-gray-500">
+                            +{review.topics.length - 2} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <p className="text-xs sm:text-sm text-gray-700 mb-2 line-clamp-3">{review.review}</p>
                   <p className="text-xs text-gray-500">- {review.student?.name}</p>
                 </div>
               ))}

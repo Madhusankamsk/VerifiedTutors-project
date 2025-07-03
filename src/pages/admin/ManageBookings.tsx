@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
 import { toast } from 'react-hot-toast';
-import { Calendar, Clock, DollarSign, User, Book, Send, Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, DollarSign, User, Book, Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const ManageBookings = () => {
   const [statusFilter, setStatusFilter] = useState('all');
@@ -12,22 +12,12 @@ const ManageBookings = () => {
     bookingError: error, 
     bookingTotalPages: totalPages, 
     bookingCurrentPage: currentPage,
-    fetchBookings,
-    notifyTutorAboutBooking
+    fetchBookings
   } = useAdmin();
 
   useEffect(() => {
     fetchBookings(currentPage, statusFilter, sortBy);
   }, [currentPage, statusFilter, sortBy]);
-
-  const handleNotifyTutor = async (bookingId: string) => {
-    try {
-      await notifyTutorAboutBooking(bookingId);
-      toast.success('Tutor notified successfully');
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to notify tutor');
-    }
-  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -44,8 +34,6 @@ const ManageBookings = () => {
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'cancelled':
         return 'bg-red-100 text-red-800 border-red-200';
-      case 'notified':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -117,7 +105,6 @@ const ManageBookings = () => {
               <option value="confirmed">Confirmed</option>
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
-              <option value="notified">Notified</option>
             </select>
           </div>
 
@@ -159,15 +146,6 @@ const ManageBookings = () => {
                     </span>
                   </div>
                   
-                  {booking.status !== 'notified' && booking.status !== 'cancelled' && (
-                    <button
-                      onClick={() => handleNotifyTutor(booking._id)}
-                      className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition flex items-center"
-                    >
-                      <Send className="w-4 h-4 mr-2" />
-                      Notify Tutor
-                    </button>
-                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

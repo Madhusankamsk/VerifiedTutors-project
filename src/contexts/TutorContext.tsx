@@ -115,6 +115,16 @@ export interface TutorReview {
     name: string;
     profileImage?: string;
   };
+  subject: {
+    _id: string;
+    name: string;
+    category: string;
+  };
+  topics: {
+    _id: string;
+    name: string;
+    description?: string;
+  }[];
   rating: number;
   review: string;
   isVerified: boolean;
@@ -800,7 +810,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [profile?._id]);
 
-  const addReview = useCallback(async (tutorId: string, rating: number, review: string) => {
+  const addReview = useCallback(async (bookingId: string, rating: number, review: string) => {
     const token = localStorage.getItem('token');
     if (!token) {
       throw new Error('Authentication required');
@@ -809,7 +819,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const response = await axios.post(
         `${API_URL}/api/ratings`,
-        { tutorId, rating, review },
+        { bookingId, rating, review },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       return response.data;

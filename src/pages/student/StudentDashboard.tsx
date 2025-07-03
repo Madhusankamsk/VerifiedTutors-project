@@ -15,8 +15,8 @@ const StudentDashboard = () => {
   }, []);
 
   // Calculate stats
-  const upcomingBookings = bookings.filter(booking => 
-    ['pending', 'notified', 'confirmed'].includes(booking.status) && 
+  const upcomingBookings = bookings.filter(
+    booking => ['pending', 'confirmed'].includes(booking.status) &&
     new Date(booking.startTime) > new Date()
   );
   const completedBookings = bookings.filter(booking => booking.status === 'completed');

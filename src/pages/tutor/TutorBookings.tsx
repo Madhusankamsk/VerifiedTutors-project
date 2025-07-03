@@ -89,8 +89,6 @@ const TutorBookings: React.FC = () => {
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'cancelled':
         return 'bg-red-100 text-red-800 border-red-200';
-      case 'notified':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -142,7 +140,6 @@ const TutorBookings: React.FC = () => {
             >
               <option value="all">All</option>
               <option value="pending">Pending</option>
-              <option value="notified">Notified</option>
               <option value="confirmed">Confirmed</option>
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
@@ -251,7 +248,7 @@ const TutorBookings: React.FC = () => {
                   
                   {/* Action buttons */}
                   <div className="flex flex-col sm:flex-row lg:flex-col gap-2 sm:gap-3 lg:gap-2 w-full sm:w-auto lg:w-auto">
-                    {booking.status === 'notified' && (
+                    {booking.status === 'pending' && (
                       <>
                         <button
                           onClick={() => handleUpdateStatus(booking._id, 'confirmed')}
@@ -265,7 +262,7 @@ const TutorBookings: React.FC = () => {
                           className="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center justify-center text-sm font-medium"
                         >
                           <X className="w-4 h-4 mr-2" />
-                          Decline
+                          Reject
                         </button>
                       </>
                     )}

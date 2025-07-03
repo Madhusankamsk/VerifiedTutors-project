@@ -152,6 +152,16 @@ export interface TutorReview {
     name: string;
     profileImage?: string;
   };
+  subject: {
+    _id: string;
+    name: string;
+    category: string;
+  };
+  topics: {
+    _id: string;
+    name: string;
+    description?: string;
+  }[];
   rating: number;
   review: string;
   isVerified: boolean;

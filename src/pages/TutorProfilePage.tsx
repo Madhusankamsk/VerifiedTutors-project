@@ -177,6 +177,9 @@ const TutorProfilePage: React.FC = () => {
     if (!id) return;
     
     try {
+      // For now, we'll keep the old system for profile page reviews
+      // In a real implementation, you might want to show a list of completed bookings
+      // and let the student choose which one to review
       await addReview(id, rating, comment);
       toast.success('Review submitted successfully');
       setShowReviewForm(false);
@@ -200,7 +203,9 @@ const TutorProfilePage: React.FC = () => {
     user: {
       name: review.student.name,
       profileImage: review.student.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.student.name)}`
-    }
+    },
+    subject: review.subject,
+    topics: review.topics
   }));
 
   if (loading) {

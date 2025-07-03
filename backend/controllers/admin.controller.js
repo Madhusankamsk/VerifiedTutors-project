@@ -359,65 +359,6 @@ export const getAllBookings = async (req, res) => {
   }
 };
 
-// @desc    Notify tutor about booking
-// @route   POST /api/admin/bookings/:id/notify
-// @access  Private/Admin
-export const notifyTutorAboutBooking = async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id)
-      .populate('student', 'name email')
-      .populate({
-        path: 'tutor',
-        populate: { path: 'user', select: 'name email' }
-      })
-      .populate('subject', 'name');
-    
-    if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
-    }
-
-    // Update booking status to 'notified'
-    booking.status = 'notified';
-    await booking.save();
-
-    // Send email notification to tutor
-    try {
-      await sendEmail({
-        to: booking.tutor.user.email,
-        subject: 'New Tutoring Session Booking',
-        template: 'bookingNotification',
-        context: {
-          tutorName: booking.tutor.user.name,
-          studentName: booking.student.name,
-          subject: booking.subject.name,
-          startTime: new Date(booking.startTime).toLocaleString(),
-          endTime: new Date(booking.endTime).toLocaleString(),
-          amount: booking.amount,
-          notes: booking.notes || 'No additional notes',
-          dashboardUrl: `${process.env.FRONTEND_URL}/tutor/dashboard`
-        }
-      });
-    } catch (emailError) {
-      console.error('Failed to send notification email:', emailError);
-      return res.status(500).json({ 
-        message: 'Failed to send notification email',
-        error: process.env.NODE_ENV === 'development' ? emailError.message : undefined
-      });
-    }
-
-    res.json({
-      message: 'Tutor notified successfully',
-      booking
-    });
-  } catch (error) {
-    console.error('Error in notifyTutorAboutBooking:', error);
-    res.status(500).json({ 
-      message: 'Failed to notify tutor',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-};
-
 // @desc    Toggle tutor verification status
 // @route   PATCH /api/admin/tutors/:id/toggle-verification
 // @access  Private/Admin

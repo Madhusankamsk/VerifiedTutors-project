@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Rating } from './Rating';
 import { formatDistanceToNow } from 'date-fns';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Hash } from 'lucide-react';
 
 interface Review {
   id: string;
@@ -12,6 +12,14 @@ interface Review {
     name: string;
     profileImage?: string;
   };
+  subject?: {
+    name: string;
+    category: string;
+  };
+  topics?: {
+    name: string;
+    description?: string;
+  }[];
 }
 
 interface ReviewListProps {
@@ -87,6 +95,34 @@ export const ReviewList: React.FC<ReviewListProps> = ({
                         {formatDistanceToNow(new Date(review.createdAt), { addSuffix: true })}
                       </span>
                     </div>
+                    
+                    {/* Subject and Topics */}
+                    {review.subject && (
+                      <div className="mt-2 mb-1">
+                        <p className="text-sm font-medium text-gray-800">
+                          {review.subject.name}
+                        </p>
+                        {review.topics && review.topics.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {review.topics.slice(0, 3).map((topic, index) => (
+                              <span 
+                                key={index}
+                                className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full border border-blue-200 flex items-center"
+                              >
+                                <Hash className="w-3 h-3 mr-1" />
+                                {topic.name}
+                              </span>
+                            ))}
+                            {review.topics.length > 3 && (
+                              <span className="text-xs text-gray-500">
+                                +{review.topics.length - 3} more
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
                     <div className="mt-1">
                       <Rating rating={review.rating} readOnly size="sm" />
                     </div>

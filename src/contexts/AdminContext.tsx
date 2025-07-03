@@ -85,7 +85,7 @@ export interface Booking {
   };
   startTime: string;
   endTime: string;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'notified';
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   amount: number;
   paymentStatus: 'pending' | 'completed' | 'failed' | 'refunded';
   meetingLink?: string;
@@ -151,7 +151,6 @@ interface AdminContextType {
   bookingTotalPages: number;
   bookingCurrentPage: number;
   fetchBookings: (page: number, status: string, sortBy: string) => Promise<void>;
-  notifyTutorAboutBooking: (bookingId: string) => Promise<void>;
 }
 
 interface TutorFilters {
@@ -447,27 +446,6 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Notify tutor about a booking
-  const notifyTutorAboutBooking = async (bookingId: string) => {
-    try {
-      setBookingLoading(true);
-      setBookingError(null);
-      
-      await axios.post(`${API_URL}/api/admin/bookings/${bookingId}/notify`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      // Refresh bookings after notification
-      await fetchBookings(bookingCurrentPage, 'all', 'newest');
-      setBookingLoading(false);
-      return Promise.resolve();
-    } catch (error: any) {
-      setBookingError(error.response?.data?.message || 'Failed to notify tutor');
-      setBookingLoading(false);
-      return Promise.reject(error);
-    }
-  };
-
   useEffect(() => {
     if (user?.role === 'admin') {
       fetchDashboardStats();
@@ -507,8 +485,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     bookingError,
     bookingTotalPages,
     bookingCurrentPage,
-    fetchBookings,
-    notifyTutorAboutBooking
+    fetchBookings
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;

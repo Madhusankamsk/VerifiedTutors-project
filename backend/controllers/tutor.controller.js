@@ -940,6 +940,8 @@ export const getTutorReviews = async (req, res) => {
 
     const reviews = await Rating.find({ tutor: tutor._id })
       .populate('student', 'name email profileImage')
+      .populate('subject', 'name category')
+      .populate('topics', 'name description')
       .sort({ createdAt: -1 });
 
     const formattedReviews = reviews.map(review => ({
@@ -949,6 +951,16 @@ export const getTutorReviews = async (req, res) => {
         name: review.student.name,
         profileImage: review.student.profileImage
       },
+      subject: {
+        _id: review.subject._id,
+        name: review.subject.name,
+        category: review.subject.category
+      },
+      topics: review.topics.map(topic => ({
+        _id: topic._id,
+        name: topic.name,
+        description: topic.description
+      })),
       rating: review.rating,
       review: review.review,
       isVerified: review.isVerified,
@@ -1095,6 +1107,20 @@ export const updateBookingStatus = async (req, res) => {
     
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
+    }
+    
+    // Allow updating from 'pending' to 'confirmed' or 'cancelled'
+    // Allow updating from 'confirmed' to 'completed'
+    if (status === 'confirmed' && booking.status !== 'pending') {
+      return res.status(400).json({ message: 'Can only confirm pending bookings' });
+    }
+    
+    if (status === 'cancelled' && booking.status !== 'pending') {
+      return res.status(400).json({ message: 'Can only cancel pending bookings' });
+    }
+    
+    if (status === 'completed' && booking.status !== 'confirmed') {
+      return res.status(400).json({ message: 'Can only complete confirmed bookings' });
     }
     
     booking.status = status;

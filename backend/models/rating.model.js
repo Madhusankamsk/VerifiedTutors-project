@@ -11,6 +11,20 @@ const ratingSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  subject: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Subject',
+    required: true
+  },
+  topics: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Topic'
+  }],
+  booking: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Booking',
+    required: true
+  },
   rating: {
     type: Number,
     required: [true, 'Please add a rating'],
@@ -31,8 +45,8 @@ const ratingSchema = new mongoose.Schema({
   }
 });
 
-// Prevent user from submitting more than one review per tutor
-ratingSchema.index({ tutor: 1, student: 1 }, { unique: true });
+// Prevent user from submitting more than one review per booking
+ratingSchema.index({ booking: 1 }, { unique: true });
 
 const Rating = mongoose.model('Rating', ratingSchema);
 

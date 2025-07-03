@@ -1,5 +1,6 @@
 import Rating from '../models/rating.model.js';
 import Tutor from '../models/tutor.model.js';
+import Booking from '../models/booking.model.js';
 
 // @desc    Get all ratings for a tutor
 // @route   GET /api/ratings/tutor/:tutorId
@@ -8,6 +9,8 @@ export const getTutorRatings = async (req, res) => {
   try {
     const ratings = await Rating.find({ tutor: req.params.tutorId })
       .populate('student', 'name profileImage')
+      .populate('subject', 'name category')
+      .populate('topics', 'name description')
       .sort({ createdAt: -1 });
 
     res.json(ratings);
@@ -21,12 +24,12 @@ export const getTutorRatings = async (req, res) => {
 // @access  Private/Student
 export const createRating = async (req, res) => {
   try {
-    const { tutorId, rating, review } = req.body;
+    const { bookingId, rating, review } = req.body;
 
     // Validate input
-    if (!tutorId || !rating || !review) {
+    if (!bookingId || !rating || !review) {
       return res.status(400).json({ 
-        message: 'Please provide all required fields: tutorId, rating, and review' 
+        message: 'Please provide all required fields: bookingId, rating, and review' 
       });
     }
 
@@ -42,17 +45,26 @@ export const createRating = async (req, res) => {
       });
     }
 
-    // Check if tutor exists
-    const tutor = await Tutor.findById(tutorId);
-    if (!tutor) {
-      return res.status(404).json({ message: 'Tutor not found' });
+    // Check if booking exists and belongs to the student
+    const booking = await Booking.findById(bookingId)
+      .populate('tutor')
+      .populate('subject')
+      .populate('selectedTopics');
+    
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
     }
 
-    // Check if student has already rated this tutor
-    let existingRating = await Rating.findOne({
-      tutor: tutorId,
-      student: req.user._id
-    });
+    if (booking.student.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorized to review this booking' });
+    }
+
+    if (booking.status !== 'completed') {
+      return res.status(400).json({ message: 'Can only review completed bookings' });
+    }
+
+    // Check if student has already rated this booking
+    let existingRating = await Rating.findOne({ booking: bookingId });
 
     if (existingRating) {
       // Update the existing rating
@@ -62,37 +74,64 @@ export const createRating = async (req, res) => {
     } else {
       // Create new rating
       existingRating = await Rating.create({
-        tutor: tutorId,
+        tutor: booking.tutor._id,
         student: req.user._id,
+        subject: booking.subject._id,
+        topics: booking.selectedTopics.map(topic => topic._id),
+        booking: bookingId,
         rating,
         review: review.trim()
       });
     }
 
     // Update tutor's average rating
-    const tutorRatings = await Rating.find({ tutor: tutorId });
+    const tutorRatings = await Rating.find({ tutor: booking.tutor._id });
     const totalRatings = tutorRatings.length;
     const sumRatings = tutorRatings.reduce((acc, curr) => acc + curr.rating, 0);
     const averageRating = sumRatings / totalRatings;
 
-    tutor.rating = averageRating;
-    tutor.totalReviews = totalRatings;
-    await tutor.save();
+    booking.tutor.rating = averageRating;
+    booking.tutor.totalReviews = totalRatings;
+    await booking.tutor.save();
 
-    // Populate student info before sending response
+    // Populate the response
     const populatedRating = await Rating.findById(existingRating._id)
-      .populate('student', 'name profileImage');
+      .populate('student', 'name profileImage')
+      .populate('subject', 'name category')
+      .populate('topics', 'name description');
 
-    res.json({
-      message: existingRating.isNew ? 'Review submitted successfully' : 'Review updated successfully',
+    res.status(201).json({
+      success: true,
+      message: 'Rating submitted successfully',
       rating: populatedRating
     });
   } catch (error) {
-    console.error('Error creating/updating rating:', error);
-    res.status(400).json({ 
-      message: 'Failed to submit review',
+    console.error('Error creating rating:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to submit rating',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
+  }
+};
+
+// @desc    Get rating for a specific booking
+// @route   GET /api/ratings/booking/:bookingId
+// @access  Private/Student
+export const getBookingRating = async (req, res) => {
+  try {
+    const rating = await Rating.findOne({ booking: req.params.bookingId })
+      .populate('student', 'name profileImage')
+      .populate('subject', 'name category')
+      .populate('topics', 'name description');
+
+    if (!rating) {
+      return res.status(404).json({ message: 'Rating not found for this booking' });
+    }
+
+    res.json(rating);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -161,7 +200,7 @@ export const deleteRating = async (req, res) => {
 
     const tutor = await Tutor.findById(rating.tutor);
     tutor.rating = averageRating;
-    tutor.totalRatings = totalRatings;
+    tutor.totalReviews = totalRatings;
     await tutor.save();
 
     res.json({ message: 'Rating removed' });

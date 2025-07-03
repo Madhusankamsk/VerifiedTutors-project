@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useStudent } from '../../contexts/StudentContext';
-import { Calendar, Clock, DollarSign, User, Book, ChevronLeft, ChevronRight, Filter, Search, Video, Home, Users, Hash, Phone } from 'lucide-react';
+import { Calendar, Clock, DollarSign, User, Book, ChevronLeft, ChevronRight, Filter, Search, Video, Home, Users, Hash, Phone, Star } from 'lucide-react';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { Link } from 'react-router-dom';
+import BookingReviewForm from '../../components/booking/BookingReviewForm';
+import { toast } from 'react-hot-toast';
+import axios from 'axios';
+import { API_URL } from '../../config/constants';
 
 const StudentBookings = () => {
   const { bookings, loading, error, fetchBookings } = useStudent();
   const [statusFilter, setStatusFilter] = useState('all');
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -23,8 +29,6 @@ const StudentBookings = () => {
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'cancelled':
         return 'bg-red-100 text-red-800 border-red-200';
-      case 'notified':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -59,6 +63,39 @@ const StudentBookings = () => {
   const formatDuration = (duration?: number) => {
     if (!duration) return 'N/A';
     return `${duration} hour${duration > 1 ? 's' : ''}`;
+  };
+
+  const handleReviewClick = (booking: any) => {
+    setSelectedBooking(booking);
+    setShowReviewForm(true);
+  };
+
+  const handleSubmitReview = async (rating: number, review: string) => {
+    if (!selectedBooking) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${API_URL}/api/ratings`,
+        { 
+          bookingId: selectedBooking._id, 
+          rating, 
+          review 
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success('Review submitted successfully!');
+      setShowReviewForm(false);
+      setSelectedBooking(null);
+      
+      // Refresh bookings to update the UI
+      fetchBookings();
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to submit review';
+      toast.error(errorMessage);
+      console.error('Review submission error:', error);
+    }
   };
 
   const filteredBookings = statusFilter === 'all' 
@@ -107,7 +144,6 @@ const StudentBookings = () => {
             >
               <option value="all">All</option>
               <option value="pending">Pending</option>
-              <option value="notified">Notified</option>
               <option value="confirmed">Confirmed</option>
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
@@ -251,11 +287,33 @@ const StudentBookings = () => {
                     </a>
                   </div>
                 )}
+
+                {booking.status === 'completed' && (
+                  <div className="mt-4">
+                    <button
+                      onClick={() => handleReviewClick(booking)}
+                      className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition inline-block"
+                    >
+                      Leave a Review
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {showReviewForm && selectedBooking && (
+        <BookingReviewForm
+          isOpen={showReviewForm}
+          onClose={() => setShowReviewForm(false)}
+          onSubmit={handleSubmitReview}
+          subject={selectedBooking.subject}
+          topics={selectedBooking.selectedTopics || []}
+          tutorName={selectedBooking.tutor?.user?.name || 'Unknown Tutor'}
+        />
+      )}
     </div>
   );
 };
