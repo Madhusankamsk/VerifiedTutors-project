@@ -20,8 +20,7 @@ import {
   TutorProfileSubjects,
   TutorProfileEducation,
   TutorProfileExperience,
-  TutorProfileSidebar,
-  TutorReviewForm
+  TutorProfileSidebar
 } from '../components/tutor-profile';
 
 const TutorProfilePage: React.FC = () => {
@@ -33,12 +32,10 @@ const TutorProfilePage: React.FC = () => {
     error,
     reviews,
     fetchReviews,
-    addReview,
     createBooking
   } = useTutor();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<TutorProfile | null>(null);
-  const [showReviewForm, setShowReviewForm] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [activeTab, setActiveTab] = useState('about');
   const [selectedSubjectForBooking, setSelectedSubjectForBooking] = useState<string>('');
@@ -164,37 +161,6 @@ const TutorProfilePage: React.FC = () => {
     }
   };
 
-  const handleWriteReview = () => {
-    if (!isAuthenticated) {
-      toast.info('Please login to write a review');
-      navigate('/login', { state: { from: `/tutors/${id}` } });
-      return;
-    }
-    setShowReviewForm(true);
-  };
-
-  const handleSubmitReview = async (rating: number, comment: string) => {
-    if (!id) return;
-    
-    try {
-      // For now, we'll keep the old system for profile page reviews
-      // In a real implementation, you might want to show a list of completed bookings
-      // and let the student choose which one to review
-      await addReview(id, rating, comment);
-      toast.success('Review submitted successfully');
-      setShowReviewForm(false);
-      
-      // Refresh profile and reviews
-      const tutorProfile = await fetchTutorById(id);
-      setProfile(tutorProfile);
-      await fetchReviews(id);
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to submit review';
-      toast.error(errorMessage);
-      console.error('Review submission error:', error);
-    }
-  };
-
   const mappedReviews = reviews.map(review => ({
     id: review._id,
     rating: review.rating,
@@ -267,14 +233,12 @@ const TutorProfilePage: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 pb-6 sm:pb-8">
         {/* Header Section */}
-        <TutorProfileHeader profile={profile} />
+        <TutorProfileHeader profile={profile} onBookSession={handleBookSession} />
         
         {/* Tabs Navigation */}
         <TutorProfileTabs
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          onBookSession={handleBookSession}
-          onWriteReview={handleWriteReview}
         />
 
         {/* Main Content Area */}
@@ -301,13 +265,6 @@ const TutorProfilePage: React.FC = () => {
           <TutorProfileSidebar profile={profile} />
         </div>
       </div>
-
-      {/* Review Form Modal */}
-      <TutorReviewForm
-        isOpen={showReviewForm}
-        onClose={() => setShowReviewForm(false)}
-        onSubmit={handleSubmitReview}
-      />
 
       {/* Booking Modal */}
       {showBookingModal && profile && (

@@ -1,13 +1,14 @@
 import React from 'react';
-import { Star, MapPin, Users, Video, Home, CheckCircle } from 'lucide-react';
+import { Star, MapPin, Users, Video, Home, CheckCircle, Calendar } from 'lucide-react';
 import { TutorProfile } from '../../contexts/TutorContext';
 import { getRatesFromTeachingModes } from '../../utils/tutorUtils';
 
 interface TutorProfileHeaderProps {
   profile: TutorProfile;
+  onBookSession?: () => void;
 }
 
-const TutorProfileHeader: React.FC<TutorProfileHeaderProps> = ({ profile }) => {
+const TutorProfileHeader: React.FC<TutorProfileHeaderProps> = ({ profile, onBookSession }) => {
   return (
     <div className="bg-gradient-to-r from-primary-50 via-blue-50 to-indigo-50 rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
       <div className="p-6 sm:p-8">
@@ -98,6 +99,19 @@ const TutorProfileHeader: React.FC<TutorProfileHeaderProps> = ({ profile }) => {
                 </div>
               )}
             </div>
+
+            {/* Book Session Button */}
+            {onBookSession && (
+              <div className="flex justify-center md:justify-start mt-6">
+                <button 
+                  onClick={onBookSession}
+                  className="inline-flex items-center px-6 py-3 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  <Calendar className="h-5 w-5 mr-2" />
+                  Book Session
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
