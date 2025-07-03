@@ -54,7 +54,7 @@ const TutorProfileSubjects: React.FC<TutorProfileSubjectsProps> = ({ profile }) 
                             key={topicIndex}
                             className="px-2 sm:px-3 py-1 sm:py-1.5 bg-primary-50 text-primary-700 text-xs sm:text-sm rounded-full border border-primary-200"
                           >
-                            {topic}
+                            {typeof topic === 'string' ? topic : topic.name}
                           </span>
                         ))}
                       </div>

@@ -82,7 +82,9 @@ export const createBooking = async (req, res) => {
     }
     
     // Find tutor and subject to calculate amount
-    const tutor = await Tutor.findById(tutorId).populate('subjects.subject');
+    const tutor = await Tutor.findById(tutorId)
+      .populate('subjects.subject')
+      .populate('subjects.selectedTopics', 'name description');
     if (!tutor) {
       return res.status(404).json({ message: 'Tutor not found' });
     }

@@ -227,80 +227,93 @@ const TutorProfilePage: React.FC = () => {
   }
 
   return (
-    <TutorProfileBackground>
-      {/* Breadcrumb Navigation */}
-      <TutorProfileBreadcrumb tutorName={profile.user.name} />
+    <>
+      <TutorProfileBackground>
+        {/* Breadcrumb Navigation */}
+        <TutorProfileBreadcrumb tutorName={profile.user.name} />
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 pb-6 sm:pb-8">
-        {/* Header Section */}
-        <TutorProfileHeader profile={profile} onBookSession={handleBookSession} />
-        
-        {/* Tabs Navigation */}
-        <TutorProfileTabs
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 pb-6 sm:pb-8">
+          {/* Header Section */}
+          <TutorProfileHeader profile={profile} onBookSession={handleBookSession} />
+          
+          {/* Tabs Navigation */}
+          <TutorProfileTabs
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
 
-        {/* Main Content Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* Main Content Column */}
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            {/* Tab Content */}
-            {activeTab === 'about' && <TutorProfileAbout profile={profile} />}
-            {activeTab === 'subjects' && <TutorProfileSubjects profile={profile} />}
-            {activeTab === 'education' && <TutorProfileEducation profile={profile} />}
-            {activeTab === 'experience' && <TutorProfileExperience profile={profile} />}
-            {activeTab === 'reviews' && (
-              <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
-                <ReviewList
-                  reviews={mappedReviews}
-                  averageRating={profile.rating}
-                  totalReviews={profile.totalReviews}
-                />
-              </div>
-            )}
+          {/* Main Content Area */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            {/* Main Content Column */}
+            <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+              {/* Tab Content */}
+              {activeTab === 'about' && <TutorProfileAbout profile={profile} />}
+              {activeTab === 'subjects' && <TutorProfileSubjects profile={profile} />}
+              {activeTab === 'education' && <TutorProfileEducation profile={profile} />}
+              {activeTab === 'experience' && <TutorProfileExperience profile={profile} />}
+              {activeTab === 'reviews' && (
+                <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                  <ReviewList
+                    reviews={mappedReviews}
+                    averageRating={profile.rating}
+                    totalReviews={profile.totalReviews}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar */}
+            <TutorProfileSidebar profile={profile} />
           </div>
-
-          {/* Sidebar */}
-          <TutorProfileSidebar profile={profile} />
         </div>
-      </div>
+      </TutorProfileBackground>
 
-      {/* Booking Modal */}
+      {/* Booking Modal - Rendered outside TutorProfileBackground */}
       {showBookingModal && profile && (
         <BookingModal
           isOpen={showBookingModal}
           onClose={() => setShowBookingModal(false)}
           onSubmit={handleBookingSubmit}
           tutorAvailability={{
-            subject: profile.subjects[0]?.subject.name || '',
-            availability: profile.subjects[0]?.availability.reduce((acc, avail) => {
-              acc[avail.day] = avail.slots;
+            subject: profile!.subjects[0]?.subject.name || '',
+            availability: profile!.subjects[0]?.availability?.reduce((acc, avail) => {
+              acc[avail.day] = avail.slots || [];
               return acc;
-            }, {} as { [key: string]: { start: string; end: string; }[] })
+            }, {} as { [key: string]: { start: string; end: string; }[] }) || {}
           }}
           selectedSubject={selectedSubjectForBooking}
           availableMethods={{
-            online: profile.subjects[0]?.teachingModes.some(mode => mode.type === 'online' && mode.enabled) || false,
-            'home-visit': profile.subjects[0]?.teachingModes.some(mode => mode.type === 'home-visit' && mode.enabled) || false,
-            group: profile.subjects[0]?.teachingModes.some(mode => mode.type === 'group' && mode.enabled) || false
+            online: profile!.subjects[0]?.teachingModes?.some(mode => mode.type === 'online' && mode.enabled) || false,
+            'home-visit': profile!.subjects[0]?.teachingModes?.some(mode => mode.type === 'home-visit' && mode.enabled) || false,
+            group: profile!.subjects[0]?.teachingModes?.some(mode => mode.type === 'group' && mode.enabled) || false
           }}
-          subjects={profile.subjects.map(subj => ({
+          subjects={profile!.subjects.map(subj => ({
             _id: subj.subject._id,
             name: subj.subject.name,
-            selectedTopics: (subj.selectedTopics || []).map(topicId => ({
-              _id: topicId,
-              name: topicId, // Using ID as name for now - this should be fetched from backend
-              description: ''
-            })),
+            selectedTopics: (subj.selectedTopics || []).map(topic => {
+              // Handle both populated topic objects and string IDs
+              if (typeof topic === 'string') {
+                return {
+                  _id: topic,
+                  name: topic, // Fallback to ID if not populated
+                  description: ''
+                };
+              } else {
+                return {
+                  _id: topic._id,
+                  name: topic.name,
+                  description: topic.description || ''
+                };
+              }
+            }),
             teachingModes: subj.teachingModes || [],
             availability: subj.availability || [],
             rates: subj.rates
           }))}
-          tutorName={profile.user.name}
+          tutorName={profile!.user.name}
         />
       )}
-    </TutorProfileBackground>
+    </>
   );
 };
 

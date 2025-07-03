@@ -36,7 +36,7 @@ export interface TutorProfile {
   }[];
   subjects: {
     subject: Subject;
-    selectedTopics: string[];
+    selectedTopics: (string | { _id: string; name: string; description?: string })[];
     teachingModes: {
       type: 'online' | 'home-visit' | 'group';
       rate: number;
@@ -92,7 +92,7 @@ export interface TutorAvailability {
 
 export interface TutorSubject {
   subject: Subject;
-  selectedTopics: string[];
+  selectedTopics: (string | { _id: string; name: string; description?: string })[];
   teachingModes: {
     type: 'online' | 'home-visit' | 'group';
     rate: number;

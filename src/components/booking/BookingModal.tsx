@@ -83,7 +83,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
   const [selectedDay, setSelectedDay] = useState<string>('');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
   const [selectedDuration, setSelectedDuration] = useState<Duration>(1);
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [selectedTopic, setSelectedTopic] = useState<string>('');
   const [contactNumber, setContactNumber] = useState('');
   const [learningMethod, setLearningMethod] = useState<LearningMethod>('online');
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
@@ -103,7 +103,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
     if (selectedSubjectId && subjects.length > 0) {
       const subject = subjects.find(s => s._id === selectedSubjectId);
       setCurrentSubject(subject || null);
-      setSelectedTopics([]); // Reset topics when subject changes
+      setSelectedTopic(''); // Reset topic when subject changes
     }
   }, [selectedSubjectId, subjects]);
 
@@ -172,12 +172,8 @@ const BookingModal: React.FC<BookingModalProps> = ({
     }
   }, [currentSubject, selectedDuration, learningMethod]);
 
-  const handleTopicToggle = (topicId: string) => {
-    setSelectedTopics(prev => 
-      prev.includes(topicId) 
-        ? prev.filter(id => id !== topicId)
-        : [...prev, topicId]
-    );
+  const handleTopicSelect = (topicId: string) => {
+    setSelectedTopic(selectedTopic === topicId ? '' : topicId);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -187,7 +183,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
     
     onSubmit({
       subject: currentSubject.name,
-      topics: selectedTopics,
+      topics: selectedTopic ? [selectedTopic] : [],
       day: selectedDay,
       timeSlot: selectedTimeSlot,
       duration: selectedDuration,
@@ -276,32 +272,50 @@ const BookingModal: React.FC<BookingModalProps> = ({
             {currentSubject && currentSubject.selectedTopics.length > 0 && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Available Topics (Optional)
+                  Select a Topic (Optional)
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {currentSubject.selectedTopics.map((topic) => (
                     <button
                       key={topic._id}
                       type="button"
-                      onClick={() => handleTopicToggle(topic._id)}
-                      className={`p-3 text-left rounded-lg border transition-all ${
-                        selectedTopics.includes(topic._id)
-                          ? 'border-primary-500 bg-primary-50 text-primary-700'
-                          : 'border-gray-200 hover:border-primary-300 text-gray-700'
+                      onClick={() => handleTopicSelect(topic._id)}
+                      className={`p-4 text-left rounded-xl border-2 transition-all duration-200 transform hover:scale-105 ${
+                        selectedTopic === topic._id
+                          ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-lg shadow-primary-100'
+                          : 'border-gray-200 hover:border-primary-300 text-gray-700 hover:bg-gray-50'
                       }`}
                     >
-                      <div className="flex items-start gap-2">
-                        <Hash className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <div className="font-medium text-sm">{topic.name}</div>
+                      <div className="flex items-start gap-3">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                          selectedTopic === topic._id
+                            ? 'border-primary-500 bg-primary-500'
+                            : 'border-gray-300'
+                        }`}>
+                          {selectedTopic === topic._id && (
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-semibold text-sm mb-1">{topic.name}</div>
                           {topic.description && (
-                            <div className="text-xs text-gray-500 mt-1">{topic.description}</div>
+                            <div className="text-xs text-gray-500 leading-relaxed">{topic.description}</div>
                           )}
                         </div>
                       </div>
                     </button>
                   ))}
                 </div>
+                {selectedTopic && (
+                  <div className="mt-3 p-3 bg-primary-50 border border-primary-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Hash className="w-4 h-4 text-primary-600" />
+                      <span className="text-sm font-medium text-primary-700">
+                        Selected: {currentSubject.selectedTopics.find(t => t._id === selectedTopic)?.name}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

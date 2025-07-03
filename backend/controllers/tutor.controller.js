@@ -391,7 +391,8 @@ export const getTutor = async (req, res) => {
   try {
     const tutor = await Tutor.findById(req.params.id)
       .populate('user', 'name email profileImage')
-      .populate('subjects.subject', 'name category educationLevel');
+      .populate('subjects.subject', 'name category educationLevel')
+      .populate('subjects.selectedTopics', 'name description');
 
     if (!tutor) {
       return res.status(404).json({ message: 'Tutor not found' });
@@ -653,7 +654,8 @@ export const updateTutorProfile = async (req, res) => {
       { new: true, runValidators: true }
     )
     .populate('user', 'name email profileImage')
-    .populate('subjects.subject', 'name category educationLevel');
+    .populate('subjects.subject', 'name category educationLevel')
+    .populate('subjects.selectedTopics', 'name description');
 
     if (!updatedTutor) {
       return res.status(404).json({ message: 'Failed to update tutor profile' });
@@ -902,7 +904,8 @@ export const getTutorByUserId = async (req, res) => {
 
     const tutor = await Tutor.findOne({ user: req.user.id })
       .populate('user', 'name email profileImage')
-      .populate('subjects.subject', 'name category educationLevel');
+      .populate('subjects.subject', 'name category educationLevel')
+      .populate('subjects.selectedTopics', 'name description');
 
     if (!tutor) {
       // If user is a tutor but profile doesn't exist, create one
@@ -914,7 +917,8 @@ export const getTutorByUserId = async (req, res) => {
         
         const populatedTutor = await Tutor.findById(newTutor._id)
           .populate('user', 'name email profileImage')
-          .populate('subjects.subject', 'name category educationLevel');
+          .populate('subjects.subject', 'name category educationLevel')
+          .populate('subjects.selectedTopics', 'name description');
           
         return res.json(populatedTutor);
       }
