@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Star, Hash } from 'lucide-react';
 import { Rating } from '../Rating';
 
@@ -21,6 +21,10 @@ interface BookingReviewFormProps {
   subject: Subject;
   topics: Topic[];
   tutorName: string;
+  existingReview?: {
+    rating: number;
+    review: string;
+  };
 }
 
 const BookingReviewForm: React.FC<BookingReviewFormProps> = ({
@@ -29,18 +33,30 @@ const BookingReviewForm: React.FC<BookingReviewFormProps> = ({
   onSubmit,
   subject,
   topics,
-  tutorName
+  tutorName,
+  existingReview
 }) => {
   const [reviewData, setReviewData] = useState({
     rating: 5,
     review: ''
   });
 
+  // Initialize form with existing review data if available
+  useEffect(() => {
+    if (existingReview) {
+      setReviewData({
+        rating: existingReview.rating,
+        review: existingReview.review
+      });
+    } else {
+      setReviewData({ rating: 5, review: '' });
+    }
+  }, [existingReview, isOpen]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(reviewData.rating, reviewData.review);
-    // Reset form
-    setReviewData({ rating: 5, review: '' });
+    // Don't reset form here as it will be handled by the parent component
   };
 
   if (!isOpen) return null;
@@ -49,7 +65,9 @@ const BookingReviewForm: React.FC<BookingReviewFormProps> = ({
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl border border-gray-100 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-900">Rate Your Session</h3>
+          <h3 className="text-lg font-medium text-gray-900">
+            {existingReview ? 'Edit Your Review' : 'Rate Your Session'}
+          </h3>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 transition-colors"
@@ -138,7 +156,7 @@ const BookingReviewForm: React.FC<BookingReviewFormProps> = ({
               disabled={reviewData.rating < 1 || reviewData.review.length < 10}
               className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Submit Review
+              {existingReview ? 'Update Review' : 'Submit Review'}
             </button>
           </div>
         </form>

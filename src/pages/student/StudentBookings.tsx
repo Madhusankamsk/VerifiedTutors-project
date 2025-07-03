@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStudent } from '../../contexts/StudentContext';
-import { Calendar, Clock, DollarSign, User, Book, ChevronLeft, ChevronRight, Filter, Search, Video, Home, Users, Hash, Phone, Star } from 'lucide-react';
+import { Calendar, Clock, DollarSign, User, Book, ChevronLeft, ChevronRight, Filter, Search, Video, Home, Users, Hash, Phone, Star, Check } from 'lucide-react';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { Link } from 'react-router-dom';
 import BookingReviewForm from '../../components/booking/BookingReviewForm';
@@ -13,6 +13,7 @@ const StudentBookings = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [bookingReviews, setBookingReviews] = useState<{[key: string]: any}>({});
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -65,6 +66,44 @@ const StudentBookings = () => {
     return `${duration} hour${duration > 1 ? 's' : ''}`;
   };
 
+  // Check if a booking has a review
+  const checkBookingReview = async (bookingId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/ratings/booking/${bookingId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return null; // No review exists
+      }
+      console.error('Error checking booking review:', error);
+      return null;
+    }
+  };
+
+  // Load reviews for completed bookings
+  const loadBookingReviews = async () => {
+    const completedBookings = bookings.filter(booking => booking.status === 'completed');
+    const reviews: {[key: string]: any} = {};
+    
+    for (const booking of completedBookings) {
+      const review = await checkBookingReview(booking._id);
+      if (review) {
+        reviews[booking._id] = review;
+      }
+    }
+    
+    setBookingReviews(reviews);
+  };
+
+  useEffect(() => {
+    if (bookings.length > 0) {
+      loadBookingReviews();
+    }
+  }, [bookings]);
+
   const handleReviewClick = (booking: any) => {
     setSelectedBooking(booking);
     setShowReviewForm(true);
@@ -89,8 +128,9 @@ const StudentBookings = () => {
       setShowReviewForm(false);
       setSelectedBooking(null);
       
-      // Refresh bookings to update the UI
-      fetchBookings();
+      // Refresh bookings and reviews
+      await fetchBookings();
+      await loadBookingReviews();
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Failed to submit review';
       toast.error(errorMessage);
@@ -290,12 +330,38 @@ const StudentBookings = () => {
 
                 {booking.status === 'completed' && (
                   <div className="mt-4">
-                    <button
-                      onClick={() => handleReviewClick(booking)}
-                      className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition inline-block"
-                    >
-                      Leave a Review
-                    </button>
+                    {bookingReviews[booking._id] ? (
+                      <div 
+                        className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                        onClick={() => handleReviewClick(booking)}
+                        title="Click to edit your review"
+                      >
+                        <div className="flex items-center text-green-600">
+                          <Check className="w-4 h-4 mr-1" />
+                          <span className="text-sm font-medium">Review Submitted</span>
+                        </div>
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star 
+                              key={i} 
+                              className={`w-4 h-4 ${i < bookingReviews[booking._id].rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
+                            />
+                          ))}
+                          <span className="ml-1 text-sm text-gray-600">
+                            {bookingReviews[booking._id].rating}/5
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-500 ml-2">(Click to edit)</span>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleReviewClick(booking)}
+                        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition inline-flex items-center"
+                      >
+                        <Star className="w-4 h-4 mr-2" />
+                        Leave a Review
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -312,6 +378,10 @@ const StudentBookings = () => {
           subject={selectedBooking.subject}
           topics={selectedBooking.selectedTopics || []}
           tutorName={selectedBooking.tutor?.user?.name || 'Unknown Tutor'}
+          existingReview={bookingReviews[selectedBooking._id] ? {
+            rating: bookingReviews[selectedBooking._id].rating,
+            review: bookingReviews[selectedBooking._id].review
+          } : undefined}
         />
       )}
     </div>
