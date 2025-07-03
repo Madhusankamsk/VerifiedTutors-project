@@ -89,14 +89,15 @@ const TutorGrid: React.FC<TutorGridProps> = ({ tutors, loading = false }) => {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {[...Array(24)].map((_, index) => (
-          <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 w-full h-80 animate-pulse">
-            <div className="h-32 bg-gray-200 rounded-t-xl"></div>
+          <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 w-full h-88 animate-pulse">
+            <div className="h-36 bg-gray-200 rounded-t-xl"></div>
             <div className="p-4 space-y-3">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-5 bg-gray-200 rounded w-3/4"></div>
               <div className="h-3 bg-gray-200 rounded w-1/2"></div>
               <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/3"></div>
               <div className="h-8 bg-gray-200 rounded"></div>
             </div>
           </div>
@@ -115,7 +116,7 @@ const TutorGrid: React.FC<TutorGridProps> = ({ tutors, loading = false }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {tutors.map((tutor) => (
         <TutorCard key={tutor._id || tutor.id} tutor={transformTutor(tutor)} />
       ))}

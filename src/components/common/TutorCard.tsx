@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Star, CheckCircle, Book, Video, Home, Users, Heart } from 'lucide-react';
+import { Star, CheckCircle, Book, Video, Home, Users, Heart, MapPin } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useStudent } from '../../contexts/StudentContext';
 import { toast } from 'react-toastify';
@@ -137,9 +137,9 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group border border-gray-100 w-full h-80">
-      {/* Profile Image Section - Reduced height for more square shape */}
-      <div className="relative h-32 bg-gradient-to-br from-blue-50 to-blue-100">
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group border border-gray-100 w-full h-88">
+      {/* Profile Image Section */}
+      <div className="relative h-36 bg-gradient-to-br from-blue-50 to-blue-100">
         {tutor.profileImage ? (
           <img
             src={tutor.profileImage}
@@ -173,11 +173,11 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
         </button>
       </div>
 
-      {/* Content Section - More compact */}
-      <div className="p-4 flex flex-col h-48">
-        {/* Name and Rating - Compact */}
-        <div className="mb-2">
-          <h3 className="text-base font-semibold text-gray-900 mb-1 line-clamp-1 group-hover:text-primary-600 transition-colors">
+      {/* Content Section */}
+      <div className="p-4 flex flex-col flex-1">
+        {/* Name and Rating */}
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1 group-hover:text-primary-600 transition-colors">
             {tutor.name}
           </h3>
           <div className="flex items-center justify-between">
@@ -204,12 +204,22 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
           </div>
         </div>
 
-        {/* Subjects and Topics - More space allocated */}
-        <div className="mb-3 flex-1">
+        {/* Location */}
+        <div className="mb-4">
+          <div className="flex items-center text-gray-600">
+            <MapPin className="h-3 w-3 mr-1.5 text-gray-400 flex-shrink-0" />
+            <span className="text-sm line-clamp-1 font-medium">
+              {tutor.location || 'Location not specified'}
+            </span>
+          </div>
+        </div>
+
+        {/* Subjects and Topics */}
+        <div className="mb-4 flex-1">
           {/* Subject Names */}
           <div className="flex items-start text-gray-600 mb-2">
             <Book className="h-3 w-3 mr-1.5 text-gray-400 mt-0.5 flex-shrink-0" />
-            <span className="text-xs line-clamp-1 leading-relaxed font-medium">
+            <span className="text-sm line-clamp-1 leading-relaxed font-medium">
               {subjectNames.join(', ')}
             </span>
           </div>
@@ -218,7 +228,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
           {subjectTopics.length > 0 && (
             <div className="mt-2">
               <div className="flex flex-wrap gap-1">
-                {subjectTopics.slice(0, 4).map((topic, index) => (
+                {subjectTopics.slice(0, 3).map((topic, index) => (
                   <span
                     key={index}
                     className="px-1.5 py-0.5 bg-primary-50 text-primary-700 text-xs rounded border border-primary-200 truncate max-w-20 sm:max-w-24"
@@ -227,12 +237,12 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
                     {topic}
                   </span>
                 ))}
-                {subjectTopics.length > 4 && (
+                {subjectTopics.length > 3 && (
                   <span 
                     className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded border border-gray-200"
-                    title={`${subjectTopics.length - 4} more topics: ${subjectTopics.slice(4).join(', ')}`}
+                    title={`${subjectTopics.length - 3} more topics: ${subjectTopics.slice(3).join(', ')}`}
                   >
-                    +{subjectTopics.length - 4}
+                    +{subjectTopics.length - 3}
                   </span>
                 )}
               </div>
@@ -240,36 +250,36 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
           )}
         </div>
 
-        {/* Horizontal Pricing Section */}
+        {/* Pricing Section */}
         {(rates.online > 0 || rates.individual > 0 || rates.group > 0) && (
-          <div className="mb-3">
-            <div className="flex items-center justify-between text-xs">
+          <div className="mb-4">
+            <div className="flex items-center gap-4 text-xs">
               {rates.online > 0 && (
                 <div className="flex items-center">
                   <Video className="h-3 w-3 text-blue-600 mr-1" />
-                  <span className="text-gray-500">Rs. {rates.online}</span>
+                  <span className="text-gray-600 font-medium">Rs. {rates.online}</span>
                 </div>
               )}
               {rates.individual > 0 && (
                 <div className="flex items-center">
-                  <Home className="h-3 w-3 text-blue-600 mr-1" />
-                  <span className="text-gray-500">Rs. {rates.individual}</span>
+                  <Home className="h-3 w-3 text-green-600 mr-1" />
+                  <span className="text-gray-600 font-medium">Rs. {rates.individual}</span>
                 </div>
               )}
               {rates.group > 0 && (
                 <div className="flex items-center">
-                  <Users className="h-3 w-3 text-blue-600 mr-1" />
-                  <span className="text-gray-500">Rs. {rates.group}</span>
+                  <Users className="h-3 w-3 text-purple-600 mr-1" />
+                  <span className="text-gray-600 font-medium">Rs. {rates.group}</span>
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* View Profile Button - Compact */}
+        {/* View Profile Button */}
         <Link
           to={`/tutors/${tutor.id}`}
-          className="block w-full py-2 text-center bg-primary-600 text-white rounded-lg text-xs font-medium hover:bg-primary-700 transition-colors"
+          className="block w-full py-3 text-center bg-primary-600 text-white rounded-lg text-sm font-semibold hover:bg-primary-700 transition-colors mt-auto shadow-sm hover:shadow-md"
         >
           View Profile
         </Link>

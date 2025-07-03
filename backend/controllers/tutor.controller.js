@@ -358,7 +358,7 @@ export const getTutors = async (req, res) => {
         availableLocations: tutors[0].availableLocations,
         subjects: tutors[0].subjects.map(s => ({
           name: s.subject?.name,
-          topics: s.subject?.topics,
+          selectedTopicsCount: s.selectedTopics?.length || 0,
           bestTopics: s.bestTopics,
           rates: s.rates
         }))

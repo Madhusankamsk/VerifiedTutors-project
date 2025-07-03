@@ -32,21 +32,7 @@ interface Filters {
   femaleOnly: boolean;
 }
 
-interface TransformedTutor {
-  id: string;
-  name: string;
-  profileImage?: string;
-  subjects: string[];
-  location: string;
-  rating: number;
-  reviewCount: number;
-  verified: boolean;
-  hourlyRate: {
-    online: number;
-    homeVisit: number;
-    group: number;
-  };
-}
+// TransformedTutor interface removed as TutorGrid handles its own transformation
 
 const TutorListingPage: React.FC = () => {
   const { searchTutors } = useTutor();
@@ -353,29 +339,13 @@ const TutorListingPage: React.FC = () => {
     }));
   };
 
-  const transformTutors = (tutors: TutorProfile[]): TransformedTutor[] => {
-    return tutors.map((tutor) => ({
-      id: tutor._id,
-      name: tutor.user?.name || 'Unknown Tutor',
-      profileImage: tutor.user?.profileImage,
-      subjects: tutor.subjects?.map(s => s.subject?.name).filter(Boolean) || [],
-      location: tutor.availableLocations || 'Not specified',
-      rating: tutor.rating || 0,
-      reviewCount: tutor.totalReviews || 0,
-      verified: tutor.isVerified || false,
-      hourlyRate: {
-        online: tutor.subjects?.[0]?.rates?.online || 0,
-        homeVisit: tutor.subjects?.[0]?.rates?.individual || 0,
-        group: tutor.subjects?.[0]?.rates?.group || 0
-      }
-    }));
-  };
+  // Remove the transformTutors function as TutorGrid handles its own transformation
 
   if (error) {
     return <ErrorState error={error} onRetry={() => fetchTutors(false)} />;
   }
 
-  const transformedTutors = transformTutors(tutors);
+  // Pass raw tutor data to TutorGrid which handles its own transformation
 
   return (
     <div className="bg-gradient-to-b from-gray-50 via-white to-gray-100">
@@ -426,7 +396,7 @@ const TutorListingPage: React.FC = () => {
         ) : (
           <>
             <TutorGrid
-              tutors={transformedTutors}
+              tutors={tutors}
               loading={loading}
             />
             
