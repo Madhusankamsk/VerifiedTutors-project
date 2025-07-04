@@ -2,8 +2,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTutor, TutorProfile } from '../contexts/TutorContext';
 import { useSubjects } from '../contexts/SubjectContext';
 import TutorFilters, { FilterState } from '../components/filter/TutorFilters';
-import SubjectBubbles from '../components/filter/SubjectBubbles';
-import SubjectTopics from '../components/filter/SubjectTopics';
 import { useScrollToTop } from '../hooks/useScrollToTop';
 import {
   BreadcrumbNav,
@@ -31,8 +29,6 @@ interface Filters {
   search: string;
   femaleOnly: boolean;
 }
-
-// TransformedTutor interface removed as TutorGrid handles its own transformation
 
 const TutorListingPage: React.FC = () => {
   const { searchTutors } = useTutor();
@@ -198,43 +194,26 @@ const TutorListingPage: React.FC = () => {
     console.log("Filter change with current filters:", filters);
     console.log("Current search query:", filters.search);
     
-    // Check if this is a clear all operation (all filters are reset to initial state)
-    const isClearAll = !newFilters.teachingMode && 
+    // Check if this is a clear all operation - more comprehensive check
+    const isClearAll = !newFilters.selectedSubject && 
+                      !newFilters.selectedTopic && 
+                      !newFilters.teachingMode && 
                       !newFilters.location && 
-                      newFilters.extraFilters.minRating === 0 && 
-                      newFilters.extraFilters.priceRange[0] === 0 && 
-                      newFilters.extraFilters.priceRange[1] === 1000 && 
-                      !newFilters.extraFilters.femaleOnly;
+                      !newFilters.extraFilters.femaleOnly &&
+                      newFilters.extraFilters.minRating === 0 &&
+                      newFilters.extraFilters.priceRange[0] === 0 &&
+                      newFilters.extraFilters.priceRange[1] === 1000;
+    
+    console.log("Filter change detected - isClearAll:", isClearAll, "newFilters:", newFilters);
     
     if (isClearAll) {
-      // Reset everything including search
-      setTopicName(''); // Clear topic name
-      const resetFilters = {
-        selectedSubject: null,
-        selectedTopic: null,
-        rating: 0,
-        price: { min: 0, max: 1000 },
-        location: '',
-        teachingMode: '',
-        page: 1,
-        limit: 24,
-        sortBy: 'rating',
-        sortOrder: 'desc',
-        availability: 'all',
-        experience: 'all',
-        search: '',
-        femaleOnly: false
-      } as Filters;
-      
-      console.log("Clearing all filters and search:", resetFilters);
-      setFilters(resetFilters);
-      setSearchQuery('');
-      setTotalTutors(0);
+      // Use the existing resetFilters function for consistency
+      resetFilters();
     } else {
       // Normal filter update - preserve search and subject selection
       const updatedFilters = {
-        selectedSubject: filters.selectedSubject,
-        selectedTopic: filters.selectedTopic,
+        selectedSubject: newFilters.selectedSubject,
+        selectedTopic: newFilters.selectedTopic,
         rating: newFilters.extraFilters.minRating,
         price: {
           min: newFilters.extraFilters.priceRange[0],
@@ -259,7 +238,13 @@ const TutorListingPage: React.FC = () => {
   };
 
   const resetFilters = () => {
+    // Clear all related state
     setTopicName(''); // Clear topic name
+    setSearchQuery(''); // Clear search query
+    setActiveFilters([]); // Clear active filters
+    setTotalTutors(0); // Reset total count
+    
+    // Reset all filters to initial state
     const resetFilters = {
       selectedSubject: null,
       selectedTopic: null,
@@ -278,9 +263,8 @@ const TutorListingPage: React.FC = () => {
     } as Filters;
     
     setFilters(resetFilters);
-    setSearchQuery('');
-    setActiveFilters([]);
-    setTotalTutors(0);
+    
+    console.log("All filters and search cleared:", resetFilters);
   };
 
   const handleSearchSubmit = () => {
@@ -303,49 +287,33 @@ const TutorListingPage: React.FC = () => {
     }));
   };
 
-  const handleSubjectSelect = (subjectId: string | null) => {
-    setTopicName(''); // Clear topic name when subject changes
-    setFilters(prev => ({
-      ...prev,
-      selectedSubject: subjectId,
-      selectedTopic: null,
-      page: 1
-    }));
-  };
-
-  const handleTopicSelect = async (topic: string | null) => {
-    if (topic) {
+  // Update topic name when topic changes
+  useEffect(() => {
+    if (filters.selectedTopic) {
       // Fetch topic name when a topic is selected
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/${topic}`);
-        if (response.ok) {
-          const topicData = await response.json();
-          setTopicName(topicData.name);
-        } else {
+      const fetchTopicName = async () => {
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/${filters.selectedTopic}`);
+          if (response.ok) {
+            const topicData = await response.json();
+            setTopicName(topicData.name);
+          } else {
+            setTopicName('');
+          }
+        } catch (error) {
+          console.error('Error fetching topic name:', error);
           setTopicName('');
         }
-      } catch (error) {
-        console.error('Error fetching topic name:', error);
-        setTopicName('');
-      }
+      };
+      fetchTopicName();
     } else {
       setTopicName('');
     }
-    
-    setFilters(prev => ({
-      ...prev,
-      selectedTopic: topic,
-      page: 1
-    }));
-  };
-
-  // Remove the transformTutors function as TutorGrid handles its own transformation
+  }, [filters.selectedTopic]);
 
   if (error) {
     return <ErrorState error={error} onRetry={() => fetchTutors(false)} />;
   }
-
-  // Pass raw tutor data to TutorGrid which handles its own transformation
 
   return (
     <div className="bg-gradient-to-b from-gray-50 via-white to-gray-100">
@@ -363,21 +331,7 @@ const TutorListingPage: React.FC = () => {
           onSearchClear={handleSearchClear}
         />
 
-        {/* Subject Bubbles - Show at top without container */}
-        <SubjectBubbles
-          selectedSubject={filters.selectedSubject}
-          onSubjectSelect={handleSubjectSelect}
-          showBubbles={!filters.selectedSubject}
-        />
-
-        {/* Subject Topics - Show when subject is selected */}
-        <SubjectTopics
-          selectedSubject={filters.selectedSubject}
-          selectedTopic={filters.selectedTopic}
-          onTopicSelect={handleTopicSelect}
-        />
-
-        {/* Filters Section - Without container */}
+        {/* Integrated Filters Section */}
         <div className="mb-6">
           <TutorFilters onFilterChange={handleFilterChange} />
         </div>
