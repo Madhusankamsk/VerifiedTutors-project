@@ -122,8 +122,14 @@ export const createBooking = async (req, res) => {
     
     if (tutorSubject.teachingModes && tutorSubject.teachingModes.length > 0) {
       // Use new teaching modes structure
+      // Map backend learning method to database teaching mode type
+      let teachingModeType = learningMethod;
+      if (learningMethod === 'individual') {
+        teachingModeType = 'home-visit';
+      }
+      
       const teachingMode = tutorSubject.teachingModes.find(
-        mode => mode.type === learningMethod && mode.enabled
+        mode => mode.type === teachingModeType && mode.enabled
       );
       
       if (teachingMode) {

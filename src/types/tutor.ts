@@ -67,7 +67,7 @@ export interface Document {
 
 // Teaching mode interface
 export interface TeachingMode {
-  type: 'online' | 'home-visit' | 'group';
+  type: 'online' | 'home-visit';
   rate: number;
   enabled: boolean;
 }
@@ -82,7 +82,6 @@ export interface TutorSubject {
   bestTopics?: string[];
   rates?: {
     individual: number;
-    group: number;
     online: number;
   };
 }

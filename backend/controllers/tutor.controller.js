@@ -21,6 +21,7 @@ export const getTutors = async (req, res) => {
       priceRange,
       femaleOnly,
       search,
+      verified,
       page = 1,
       limit = 24,
       sortBy = 'rating',
@@ -37,6 +38,21 @@ export const getTutors = async (req, res) => {
     
     // Import Topic model once
     const Topic = (await import('../models/topic.model.js')).default;
+
+    // Filter by verification status - only show verified tutors by default
+    if (verified === 'all') {
+      // Show all tutors (for admin purposes)
+      // Don't add any verification filter
+    } else if (verified === 'unverified') {
+      // Show only unverified tutors
+      query.isVerified = false;
+    } else {
+      // Default: show only verified tutors
+      query.isVerified = true;
+    }
+
+    // Only show active tutors (not suspended or inactive)
+    query.status = 'active';
 
     // Search functionality
     if (search) {
@@ -194,11 +210,6 @@ export const getTutors = async (req, res) => {
           { 'subjects.teachingModes': { $elemMatch: { type: 'home-visit', enabled: true, rate: { $gt: 0 } } } },
           { 'subjects.rates.individual': { $gt: 0 } } // Legacy support
         );
-      } else if (teachingMode === 'GROUP') {
-        teachingModeConditions.push(
-          { 'subjects.teachingModes': { $elemMatch: { type: 'group', enabled: true, rate: { $gt: 0 } } } },
-          { 'subjects.rates.group': { $gt: 0 } } // Legacy support
-        );
       }
     }
 
@@ -222,8 +233,7 @@ export const getTutors = async (req, res) => {
           priceConditions.push(
             { 'subjects.teachingModes': { $elemMatch: { enabled: true, rate: { $gte: minPrice } } } },
             { 'subjects.rates.online': { $gte: minPrice } }, // Legacy support
-            { 'subjects.rates.individual': { $gte: minPrice } }, // Legacy support
-            { 'subjects.rates.group': { $gte: minPrice } } // Legacy support
+            { 'subjects.rates.individual': { $gte: minPrice } } // Legacy support
           );
         }
         
@@ -231,8 +241,7 @@ export const getTutors = async (req, res) => {
           priceConditions.push(
             { 'subjects.teachingModes': { $elemMatch: { enabled: true, rate: { $lte: maxPrice } } } },
             { 'subjects.rates.online': { $lte: maxPrice } }, // Legacy support
-            { 'subjects.rates.individual': { $lte: maxPrice } }, // Legacy support
-            { 'subjects.rates.group': { $lte: maxPrice } } // Legacy support
+            { 'subjects.rates.individual': { $lte: maxPrice } } // Legacy support
           );
         }
         
@@ -278,10 +287,9 @@ export const getTutors = async (req, res) => {
         break;
       case 'price':
         // For price sorting, we'll sort by the minimum rate across all teaching modes
-        // We'll use the online rate as the primary sort, then individual, then group
+        // We'll use the online rate as the primary sort, then individual
         sortOptions['subjects.rates.online'] = sortOrder === 'desc' ? -1 : 1;
         sortOptions['subjects.rates.individual'] = sortOrder === 'desc' ? -1 : 1;
-        sortOptions['subjects.rates.group'] = sortOrder === 'desc' ? -1 : 1;
         // Fallback to rating if no rates available
         sortOptions.rating = sortOrder === 'desc' ? -1 : 1;
         break;

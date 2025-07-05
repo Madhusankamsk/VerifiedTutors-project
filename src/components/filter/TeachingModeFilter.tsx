@@ -8,7 +8,6 @@ interface TeachingModeFilterProps {
 const teachingModes = [
   { value: 'ONLINE', label: 'Online' },
   { value: 'INDIVIDUAL', label: 'Individual' },
-  { value: 'GROUP', label: 'Group' },
 ];
 
 const TeachingModeFilter: React.FC<TeachingModeFilterProps> = ({

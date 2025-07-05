@@ -18,8 +18,7 @@ export const MEDIUM_OPTIONS = [
 
 export const TEACHING_MODES = [
   'ONLINE',
-  'INDIVIDUAL',
-  'GROUP'
+  'INDIVIDUAL'
 ];
 
 export const BOOKING_STATUS = {

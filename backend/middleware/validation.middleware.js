@@ -95,8 +95,8 @@ export const validateTutorProfile = (req, res, next) => {
         // New structure: teachingModes
         teachingModes: Joi.array().items(
           Joi.object({
-            type: Joi.string().valid('online', 'home-visit', 'group').required().messages({
-              'any.only': 'Teaching mode must be online, home-visit, or group',
+            type: Joi.string().valid('online', 'home-visit').required().messages({
+              'any.only': 'Teaching mode must be online or home-visit',
               'any.required': 'Teaching mode type is required'
             }),
             rate: Joi.number().min(0).required().messages({

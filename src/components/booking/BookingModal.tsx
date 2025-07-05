@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Clock, Calendar, Video, Home, Users, BookOpen, DollarSign, Hash } from 'lucide-react';
+import { X, Clock, Calendar, Video, Home, BookOpen, DollarSign, Hash } from 'lucide-react';
 
 interface TimeSlot {
   start: string;
@@ -17,7 +17,7 @@ interface Subject {
   name: string;
   selectedTopics: Topic[];
   teachingModes: {
-    type: 'online' | 'home-visit' | 'group';
+    type: 'online' | 'home-visit';
     rate: number;
     enabled: boolean;
   }[];
@@ -28,7 +28,6 @@ interface Subject {
   // Legacy rates for backward compatibility
   rates?: {
     individual: number;
-    group: number;
     online: number;
   };
 }
@@ -40,7 +39,7 @@ interface TutorAvailability {
   };
 }
 
-type LearningMethod = 'online' | 'home-visit' | 'group';
+type LearningMethod = 'online' | 'home-visit';
 type Duration = 1 | 2 | 3;
 
 interface BookingModalProps {
@@ -61,7 +60,6 @@ interface BookingModalProps {
   availableMethods?: {
     online: boolean;
     'home-visit': boolean;
-    group: boolean;
   };
   subjects?: Subject[];
   tutorName?: string;
@@ -76,7 +74,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
   onSubmit,
   tutorAvailability,
   selectedSubject,
-  availableMethods = { online: true, 'home-visit': true, group: true },
+  availableMethods = { online: true, 'home-visit': true },
   subjects = [],
   tutorName = 'Tutor'
 }) => {
@@ -136,8 +134,6 @@ const BookingModal: React.FC<BookingModalProps> = ({
       setLearningMethod('online');
     } else if (availableMethods['home-visit']) {
       setLearningMethod('home-visit');
-    } else if (availableMethods.group) {
-      setLearningMethod('group');
     }
   }, [availableMethods]);
 
@@ -161,9 +157,6 @@ const BookingModal: React.FC<BookingModalProps> = ({
             break;
           case 'home-visit':
             rate = currentSubject.rates.individual;
-            break;
-          case 'group':
-            rate = currentSubject.rates.group;
             break;
         }
       }
@@ -203,8 +196,6 @@ const BookingModal: React.FC<BookingModalProps> = ({
         return <Video className="w-4 h-4" />;
       case 'home-visit':
         return <Home className="w-4 h-4" />;
-      case 'group':
-        return <Users className="w-4 h-4" />;
     }
   };
 
@@ -214,8 +205,6 @@ const BookingModal: React.FC<BookingModalProps> = ({
         return 'Online';
       case 'home-visit':
         return 'Home Visit';
-      case 'group':
-        return 'Group';
     }
   };
 
@@ -348,7 +337,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Learning Method
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {Object.entries(availableMethods).map(([method, isAvailable]) => 
                   isAvailable && (
                     <button

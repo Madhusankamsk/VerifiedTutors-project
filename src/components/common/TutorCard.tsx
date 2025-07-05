@@ -156,8 +156,8 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
         
         {/* Verified Badge */}
         {tutor.verified && (
-          <div className="absolute top-2 right-2 bg-green-400 rounded-full p-0.5 shadow-sm">
-            <CheckCircle className="h-2.5 w-2.5 text-white" />
+          <div className="absolute top-2 right-2 bg-green-500 rounded-full p-1 shadow-lg border-2 border-white">
+            <CheckCircle className="h-3 w-3 text-white" />
           </div>
         )}
         
@@ -199,7 +199,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
               </span>
             </div>
             {tutor.verified && (
-              <span className="text-xs bg-green-400 text-white px-1.5 py-0.5 rounded-full font-medium">Verified</span>
+              <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-medium shadow-sm">Verified</span>
             )}
           </div>
         </div>

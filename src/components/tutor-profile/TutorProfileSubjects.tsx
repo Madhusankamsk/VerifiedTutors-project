@@ -10,14 +10,12 @@ interface TutorProfileSubjectsProps {
 const TutorProfileSubjects: React.FC<TutorProfileSubjectsProps> = ({ profile }) => {
   const TEACHING_MODE_LABELS = {
     'online': 'Online',
-    'home-visit': 'Home Visit',
-    'group': 'Group'
+    'home-visit': 'Home Visit'
   };
 
   const TEACHING_MODE_ICONS = {
     'online': Video,
-    'home-visit': Home,
-    'group': Users
+    'home-visit': Home
   };
 
   const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -66,39 +64,41 @@ const TutorProfileSubjects: React.FC<TutorProfileSubjectsProps> = ({ profile }) 
                 <div className="mb-6 sm:mb-8">
                   <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-3 sm:mb-4">Teaching Modes & Rates:</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                    {subjectData.teachingModes.map((mode, modeIndex) => {
-                      const IconComponent = TEACHING_MODE_ICONS[mode.type];
-                      return (
-                        <div
-                          key={modeIndex}
-                          className={`p-3 sm:p-4 lg:p-5 rounded-lg border-2 ${
-                            mode.enabled && mode.rate > 0
-                              ? 'border-primary-200 bg-primary-50'
-                              : 'border-gray-200 bg-gray-50'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between mb-2 sm:mb-3">
-                            <div className="flex items-center">
-                              <IconComponent className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600 mr-1.5 sm:mr-2" />
-                              <span className="text-xs sm:text-sm font-medium text-gray-700">
-                                {TEACHING_MODE_LABELS[mode.type]}
-                              </span>
+                    {subjectData.teachingModes
+                      .filter(mode => mode.type === 'online' || mode.type === 'home-visit')
+                      .map((mode, modeIndex) => {
+                        const IconComponent = TEACHING_MODE_ICONS[mode.type as 'online' | 'home-visit'];
+                        return (
+                          <div
+                            key={modeIndex}
+                            className={`p-3 sm:p-4 lg:p-5 rounded-lg border-2 ${
+                              mode.enabled && mode.rate > 0
+                                ? 'border-primary-200 bg-primary-50'
+                                : 'border-gray-200 bg-gray-50'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-2 sm:mb-3">
+                              <div className="flex items-center">
+                                <IconComponent className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600 mr-1.5 sm:mr-2" />
+                                <span className="text-xs sm:text-sm font-medium text-gray-700">
+                                  {TEACHING_MODE_LABELS[mode.type as 'online' | 'home-visit']}
+                                </span>
+                              </div>
+                              {mode.enabled && mode.rate > 0 && (
+                                <span className="text-xs bg-green-100 text-green-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
+                                  Available
+                                </span>
+                              )}
                             </div>
-                            {mode.enabled && mode.rate > 0 && (
-                              <span className="text-xs bg-green-100 text-green-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
-                                Available
-                              </span>
+                            <div className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900">
+                              Rs. {mode.rate}/hr
+                            </div>
+                            {!mode.enabled && mode.rate === 0 && (
+                              <div className="text-xs text-gray-500 mt-1">Not available</div>
                             )}
                           </div>
-                          <div className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900">
-                            Rs. {mode.rate}/hr
-                          </div>
-                          {!mode.enabled && mode.rate === 0 && (
-                            <div className="text-xs text-gray-500 mt-1">Not available</div>
-                          )}
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
                   </div>
                 </div>
 
