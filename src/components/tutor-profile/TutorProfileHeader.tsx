@@ -89,15 +89,6 @@ const TutorProfileHeader: React.FC<TutorProfileHeaderProps> = ({ profile, onBook
                   <span>Home Visit</span>
                 </div>
               )}
-              {profile.subjects.some(subject => {
-                const rates = getRatesFromTeachingModes(subject.teachingModes);
-                return rates.group > 0;
-              }) && (
-                <div className="inline-flex items-center px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-sm border border-purple-100">
-                  <Users className="h-4 w-4 mr-1.5" />
-                  <span>Group</span>
-                </div>
-              )}
             </div>
 
             {/* Book Session Button */}

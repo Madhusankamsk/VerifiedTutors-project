@@ -53,7 +53,6 @@ export interface TutorProfile {
     bestTopics?: string[];
     rates?: {
       individual: number;
-      group: number;
       online: number;
     };
   }[]; // Note: Array with max length 1

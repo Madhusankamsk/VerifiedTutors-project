@@ -256,17 +256,65 @@ export const updateGoogleUserRole = async (req, res) => {
     const { role } = req.body;
     const userId = req.user._id;
 
+    console.log(`🔄 Updating Google user role: ${userId} to ${role}`);
+
     const user = await User.findById(userId);
     if (!user) {
+      console.log(`❌ User not found: ${userId}`);
       return res.status(404).json({ message: 'User not found' });
     }
 
     if (user.socialProvider !== 'google') {
+      console.log(`❌ Not a Google user: ${userId}`);
       return res.status(400).json({ message: 'This endpoint is only for Google users' });
     }
 
     user.role = role;
     await user.save();
+    console.log(`✅ Google user role updated successfully: ${userId} -> ${role}`);
+
+    // If user is a tutor, create a tutor profile
+    if (user.role === 'tutor') {
+      console.log(`👨‍🏫 Creating tutor profile for Google user: ${user._id}`);
+      await Tutor.create({
+        user: user._id,
+        phone: '', // Google users don't have phone initially
+      });
+      console.log(`✅ Tutor profile created for Google user`);
+    }
+
+    // Send role confirmation notifications
+    console.log(`📧 Sending role confirmation notifications to: ${user.email}`);
+    try {
+      const loginUrl = `${process.env.FRONTEND_URL}/login`;
+      
+      // Send email notification
+      console.log(`📧 Sending role confirmation email to: ${user.email}`);
+      const emailResult = await sendEmail({
+        to: user.email,
+        template: user.role === 'tutor' ? 'tutorRegistration' : 'studentRegistration',
+        context: {
+          name: user.name,
+          loginUrl,
+          email: user.email
+        }
+      });
+
+      if (emailResult.success) {
+        console.log(`✅ Role confirmation email sent successfully to ${user.email}`);
+      } else {
+        console.log(`❌ Role confirmation email failed: ${emailResult.reason}`);
+      }
+
+      // Note: SMS not sent for Google users since we don't have phone number
+      console.log(`📱 No phone number available for Google user, skipping SMS notification`);
+      
+    } catch (notificationError) {
+      console.error(`❌ Failed to send role confirmation notifications:`, notificationError);
+      // Don't fail the role update if notifications fail
+    }
+
+    console.log(`🎉 Google user role update completed successfully: ${user.email} -> ${role}`);
 
     res.json({
       user: {
@@ -279,6 +327,7 @@ export const updateGoogleUserRole = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error(`❌ Google user role update error:`, error);
     res.status(400).json({ message: error.message });
   }
 };

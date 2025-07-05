@@ -33,7 +33,6 @@ interface TransformedTutor {
   hourlyRate?: {
     online: number;
     homeVisit: number;
-    group: number;
   };
 }
 
@@ -55,21 +54,19 @@ const TutorGrid: React.FC<TutorGridProps> = ({ tutors, loading = false }) => {
     })) || [];
 
     // Get rates from new structure or fallback to legacy
-    let hourlyRate: { online: number; homeVisit: number; group: number; } | undefined = undefined;
+    let hourlyRate: { online: number; homeVisit: number;} | undefined = undefined;
     if (tutor.subjects && tutor.subjects.length > 0) {
       const subject = tutor.subjects[0];
       if (subject.teachingModes) {
         const rates = getRatesFromTeachingModes(subject.teachingModes);
         hourlyRate = {
           online: rates.online,
-          homeVisit: rates.individual,
-          group: rates.group
+          homeVisit: rates.individual
         };
       } else if (subject.rates) {
         hourlyRate = {
           online: subject.rates.online || 0,
           homeVisit: subject.rates.individual || 0,
-          group: subject.rates.group || 0
         };
       }
     }

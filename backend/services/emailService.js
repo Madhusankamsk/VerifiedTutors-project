@@ -123,6 +123,60 @@ const emailTemplates = {
     `
   }),
 
+  googleRegistration: (context) => ({
+    subject: 'Welcome to VerifiedTutors - Google Account Created',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #4285f4 0%, #34a853 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="margin: 0; font-size: 24px;">Welcome to VerifiedTutors!</h1>
+          <p style="margin: 10px 0 0 0; opacity: 0.9;">Your Google account is ready</p>
+        </div>
+        
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          <h2 style="color: #333; margin-bottom: 20px;">Hello ${context.name},</h2>
+          
+          <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+            Welcome to VerifiedTutors! Your account has been successfully created using your Google account (${context.email}).
+          </p>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #333; margin-bottom: 15px;">Next Steps:</h3>
+            <ul style="color: #666; line-height: 1.8; margin: 0; padding-left: 20px;">
+              <li>Complete your profile by selecting your role (Student or Tutor)</li>
+              <li>If you're a tutor, complete your verification process</li>
+              <li>If you're a student, start browsing tutors</li>
+              <li>Set up your preferences and availability</li>
+            </ul>
+          </div>
+          
+          <div style="background: #e3f2fd; border: 1px solid #bbdefb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #1976d2; margin-bottom: 10px;">🔐 Account Security:</h3>
+            <p style="color: #1976d2; margin: 0; font-size: 14px;">
+              Your account is secured through Google authentication. You can sign in anytime using your Google account.
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${context.loginUrl}" style="background: #4285f4; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: bold;">
+              Complete Your Profile
+            </a>
+          </div>
+          
+          <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+            We're excited to have you join our community of learners and educators!
+          </p>
+          
+          <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px;">
+            <p style="color: #999; font-size: 14px; margin: 0;">
+              Questions? Contact us at 
+              <a href="mailto:support@verifiedtutors.com" style="color: #4285f4;">support@verifiedtutors.com</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    `
+  }),
+
   // Verification templates
   tutorApproved: (context) => ({
     subject: 'Congratulations! Your Tutor Profile is Approved',

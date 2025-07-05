@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Star, CheckCircle, Book, Video, Home, Users, Heart, MapPin } from 'lucide-react';
+import { Star, CheckCircle, Book, Video, Home, Heart, MapPin } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useStudent } from '../../contexts/StudentContext';
 import { toast } from 'react-toastify';
@@ -40,7 +40,6 @@ interface TutorCardProps {
     hourlyRate?: {
       online: number;
       homeVisit: number;
-      group: number;
     };
   };
 }
@@ -60,7 +59,6 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
         return {
           online: subject.rates.online || 0,
           individual: subject.rates.individual || 0,
-          group: subject.rates.group || 0
         };
       }
     }
@@ -69,10 +67,9 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
       return {
         online: tutor.hourlyRate.online || 0,
         individual: tutor.hourlyRate.homeVisit || 0,
-        group: tutor.hourlyRate.group || 0
       };
     }
-    return { online: 0, individual: 0, group: 0 };
+    return { online: 0, individual: 0 };
   };
 
   const rates = getRates();
@@ -251,7 +248,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
         </div>
 
         {/* Pricing Section */}
-        {(rates.online > 0 || rates.individual > 0 || rates.group > 0) && (
+        {(rates.online > 0 || rates.individual  > 0) && (
           <div className="mb-4">
             <div className="flex items-center gap-4 text-xs">
               {rates.online > 0 && (
@@ -264,12 +261,6 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
                 <div className="flex items-center">
                   <Home className="h-3 w-3 text-green-600 mr-1" />
                   <span className="text-gray-600 font-medium">Rs. {rates.individual}</span>
-                </div>
-              )}
-              {rates.group > 0 && (
-                <div className="flex items-center">
-                  <Users className="h-3 w-3 text-purple-600 mr-1" />
-                  <span className="text-gray-600 font-medium">Rs. {rates.group}</span>
                 </div>
               )}
             </div>

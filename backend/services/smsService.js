@@ -32,6 +32,10 @@ const smsTemplates = {
     body: `Welcome to VerifiedTutors! Your student account is ready. Start learning at ${context.loginUrl}`
   }),
 
+  googleRegistration: (context) => ({
+    body: `Welcome to VerifiedTutors! Your Google account (${context.email}) is ready. Complete your profile at ${context.loginUrl} to get started.`
+  }),
+
   // Verification templates
   tutorApproved: (context) => ({
     body: `🎉 Congratulations! Your tutor profile has been approved. You can now start accepting students and earning money. Login at ${context.loginUrl}`
