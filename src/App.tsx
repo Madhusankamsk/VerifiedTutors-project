@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { UNSAFE_NavigationContext as NavigationContext } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import { TutorProvider } from './contexts/TutorContext';
 import { AdminProvider } from './contexts/AdminContext';
 import { SubjectProvider } from './contexts/SubjectContext';
@@ -33,6 +34,7 @@ import BlogPostPage from './pages/BlogPostPage';
 import NotFoundPage from './pages/NotFoundPage';
 import CoursesPage from './pages/CoursesPage';
 import AuthCallback from './pages/auth/AuthCallback';
+import NotificationsPage from './pages/NotificationsPage';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -57,107 +59,110 @@ const App = () => {
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ScrollToTop />
       <AuthProvider>
-        <SubjectProvider>
-          <TutorProvider>
-            <AdminProvider>
-              <BlogProvider>
-                <RatingProvider>
-                  <StudentProvider>
-                    <Toaster position="top-right" />
-                    <ToastContainer
-                      position="top-right"
-                      autoClose={5000}
-                      hideProgressBar={false}
-                      newestOnTop
-                      closeOnClick
-                      rtl={false}
-                      pauseOnFocusLoss
-                      draggable
-                      pauseOnHover
-                    />
-                    <Routes>
-                      {/* Public Routes */}
-                      <Route path="/" element={<MainLayout />}>
-                        <Route index element={<HomePage />} />
-                        <Route path="login" element={
-                          <PublicRoute>
-                            <LoginPage />
-                          </PublicRoute>
-                        } />
-                        <Route path="register" element={
-                          <PublicRoute>
-                            <RegisterPage />
-                          </PublicRoute>
-                        } />
-                        <Route path="tutors" element={<TutorListingPage />} />
-                        <Route path="tutors/:id" element={<TutorProfilePage />} />
-                        <Route path="subjects/:subjectId" element={<SubjectTopicsPage />} />
-                        {/* <Route path="courses" element={<CoursesPage />} />
-                        <Route path="blogs" element={<BlogListPage />} />
-                        <Route path="blogs/:id" element={<BlogPostPage />} /> */}
-                      </Route>
+        <NotificationProvider>
+          <SubjectProvider>
+            <TutorProvider>
+              <AdminProvider>
+                <BlogProvider>
+                  <RatingProvider>
+                    <StudentProvider>
+                      <Toaster position="top-right" />
+                      <ToastContainer
+                        position="top-right"
+                        autoClose={5000}
+                        hideProgressBar={false}
+                        newestOnTop
+                        closeOnClick
+                        rtl={false}
+                        pauseOnFocusLoss
+                        draggable
+                        pauseOnHover
+                      />
+                      <Routes>
+                        {/* Public Routes */}
+                        <Route path="/" element={<MainLayout />}>
+                          <Route index element={<HomePage />} />
+                          <Route path="login" element={
+                            <PublicRoute>
+                              <LoginPage />
+                            </PublicRoute>
+                          } />
+                          <Route path="register" element={
+                            <PublicRoute>
+                              <RegisterPage />
+                            </PublicRoute>
+                          } />
+                          <Route path="tutors" element={<TutorListingPage />} />
+                          <Route path="tutors/:id" element={<TutorProfilePage />} />
+                          <Route path="subjects/:subjectId" element={<SubjectTopicsPage />} />
+                          <Route path="notifications" element={<NotificationsPage />} />
+                          {/* <Route path="courses" element={<CoursesPage />} />
+                          <Route path="blogs" element={<BlogListPage />} />
+                          <Route path="blogs/:id" element={<BlogPostPage />} /> */}
+                        </Route>
 
-                      {/* Admin Routes */}
-                      <Route 
-                        path="/admin" 
-                        element={
-                          <RoleRoute role="admin">
-                            <AdminLayout />
-                          </RoleRoute>
-                        }
-                      >
-                        <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                        <Route path="dashboard" element={<AdminDashboard />} />
-                        <Route path="tutors" element={<ManageTutors />} />
-                        <Route path="subjects" element={<ManageSubjects />} />
-                        <Route path="bookings" element={<ManageBookings />} />
-                      </Route>
+                        {/* Admin Routes */}
+                        <Route 
+                          path="/admin" 
+                          element={
+                            <RoleRoute role="admin">
+                              <AdminLayout />
+                            </RoleRoute>
+                          }
+                        >
+                          <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                          <Route path="dashboard" element={<AdminDashboard />} />
+                          <Route path="tutors" element={<ManageTutors />} />
+                          <Route path="subjects" element={<ManageSubjects />} />
+                          <Route path="bookings" element={<ManageBookings />} />
+                        </Route>
 
-                      {/* Tutor Routes */}
-                      <Route 
-                        path="/tutor" 
-                        element={
-                          <RoleRoute role="tutor">
-                            <TutorLayout />
-                          </RoleRoute>
-                        }
-                      >
-                        <Route index element={<Navigate to="/tutor/dashboard" replace />} />
-                        <Route path="dashboard" element={<TutorDashboard />} />
-                        <Route path="profile" element={<EditTutorProfile />} />
-                        <Route path="bookings" element={<TutorBookings />} />
-                        <Route path="blogs" element={<ManageBlogs />} />
-                        {/* <Route path="blogs/create" element={<CreateEditBlog />} />
-                        <Route path="blogs/edit/:id" element={<CreateEditBlog />} /> */}
-                      </Route>
+                        {/* Tutor Routes */}
+                        <Route 
+                          path="/tutor" 
+                          element={
+                            <RoleRoute role="tutor">
+                              <TutorLayout />
+                            </RoleRoute>
+                          }
+                        >
+                          <Route index element={<Navigate to="/tutor/dashboard" replace />} />
+                          <Route path="dashboard" element={<TutorDashboard />} />
+                          <Route path="profile" element={<EditTutorProfile />} />
+                          <Route path="bookings" element={<TutorBookings />} />
+                          <Route path="blogs" element={<ManageBlogs />} />
+                          {/* <Route path="blogs/create" element={<CreateEditBlog />} />
+                          <Route path="blogs/edit/:id" element={<CreateEditBlog />} /> */}
+                        </Route>
 
-                      {/* Student Routes */}
-                      <Route 
-                        path="/student" 
-                        element={
-                          <RoleRoute role="student">
-                            <StudentLayout />
-                          </RoleRoute>
-                        }
-                      >
-                        <Route index element={<Navigate to="/student/dashboard" replace />} />
-                        <Route path="dashboard" element={<StudentDashboard />} />
-                        <Route path="bookings" element={<StudentBookings />} />
-                        <Route path="favorites" element={<FavoriteTutors />} />
-                      </Route>
+                        {/* Student Routes */}
+                        <Route 
+                          path="/student" 
+                          element={
+                            <RoleRoute role="student">
+                              <StudentLayout />
+                            </RoleRoute>
+                          }
+                        >
+                          <Route index element={<Navigate to="/student/dashboard" replace />} />
+                          <Route path="dashboard" element={<StudentDashboard />} />
+                          <Route path="bookings" element={<StudentBookings />} />
+                          <Route path="favorites" element={<FavoriteTutors />} />
+                        </Route>
 
-                      {/* Auth Callback Route */}
-                      <Route path="/auth/callback" element={<AuthCallback />} />
+                        {/* Auth Callback Route */}
+                        <Route path="/auth/callback" element={<AuthCallback />} />
 
-                      {/* 404 Route */}
-                      <Route path="*" element={<NotFoundPage />} />
-                    </Routes>
-                  </StudentProvider>
-                </RatingProvider>
-              </BlogProvider>
-            </AdminProvider>
-          </TutorProvider>
-        </SubjectProvider>
+                        {/* 404 Route */}
+                        <Route path="*" element={<NotFoundPage />} />
+                      </Routes>
+                    </StudentProvider>
+                  </RatingProvider>
+                </BlogProvider>
+              </AdminProvider>
+            </TutorProvider>
+          </SubjectProvider>
+        </NotificationProvider>
       </AuthProvider>
     </Router>
   );

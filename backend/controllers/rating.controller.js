@@ -72,12 +72,36 @@ export const createRating = async (req, res) => {
       existingRating.review = review.trim();
       await existingRating.save();
     } else {
+      // Use topics from the booking automatically
+      const topicsFromBooking = booking.selectedTopics ? booking.selectedTopics.map(topic => topic._id) : [];
+      
+      if (topicsFromBooking.length === 0) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'No topics found for this booking. Cannot submit review without topics.' 
+        });
+      }
+
+      // Check if student has already reviewed these specific topics for this tutor
+      const existingTopicRating = await Rating.findOne({ 
+        tutor: booking.tutor._id, 
+        student: req.user._id,
+        topics: { $in: topicsFromBooking }
+      });
+
+      if (existingTopicRating) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'You have already reviewed these topics for this tutor. You can only submit one review per topic combination.' 
+        });
+      }
+
       // Create new rating
       existingRating = await Rating.create({
         tutor: booking.tutor._id,
         student: req.user._id,
         subject: booking.subject._id,
-        topics: booking.selectedTopics.map(topic => topic._id),
+        topics: topicsFromBooking,
         booking: bookingId,
         rating,
         review: review.trim()
@@ -90,9 +114,11 @@ export const createRating = async (req, res) => {
     const sumRatings = tutorRatings.reduce((acc, curr) => acc + curr.rating, 0);
     const averageRating = sumRatings / totalRatings;
 
-    booking.tutor.rating = averageRating;
-    booking.tutor.totalReviews = totalRatings;
-    await booking.tutor.save();
+    // Update tutor's rating in the Tutor model
+    await Tutor.findByIdAndUpdate(booking.tutor._id, {
+      rating: averageRating,
+      totalReviews: totalRatings
+    });
 
     // Populate the response
     const populatedRating = await Rating.findById(existingRating._id)
@@ -107,6 +133,23 @@ export const createRating = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating rating:', error);
+    
+    // Handle duplicate key error specifically
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      if (field === 'booking') {
+        return res.status(400).json({ 
+          success: false,
+          message: 'You have already reviewed this booking' 
+        });
+      } else if (error.message.includes('tutor_1_student_1_topics_1')) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'You have already reviewed these topics for this tutor. You can only submit one review per topic combination.' 
+        });
+      }
+    }
+    
     res.status(500).json({ 
       success: false,
       message: 'Failed to submit rating',

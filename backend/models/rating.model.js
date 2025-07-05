@@ -18,7 +18,8 @@ const ratingSchema = new mongoose.Schema({
   },
   topics: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Topic'
+    ref: 'Topic',
+    required: true
   }],
   booking: {
     type: mongoose.Schema.Types.ObjectId,
@@ -47,6 +48,9 @@ const ratingSchema = new mongoose.Schema({
 
 // Prevent user from submitting more than one review per booking
 ratingSchema.index({ booking: 1 }, { unique: true });
+
+// Allow multiple reviews per tutor but prevent duplicate reviews for same tutor-topic combination
+ratingSchema.index({ tutor: 1, student: 1, topics: 1 }, { unique: true });
 
 const Rating = mongoose.model('Rating', ratingSchema);
 

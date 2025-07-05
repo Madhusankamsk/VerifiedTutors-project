@@ -14,12 +14,12 @@ export const createBooking = async (req, res) => {
     const {
       tutorId,
       subjectId,
-      topicId,
-      date,
-      time,
+      startTime,
+      endTime,
       duration,
-      teachingMode,
-      amount,
+      learningMethod,
+      contactNumber,
+      selectedTopics,
       notes
     } = req.body;
 
@@ -35,12 +35,29 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({ message: 'Cannot book with unverified tutor' });
     }
 
-    // Validate subject and topic
+    // Validate subject
     const subject = await Subject.findById(subjectId);
-    const topic = await Topic.findById(topicId);
+    if (!subject) {
+      return res.status(400).json({ message: 'Invalid subject' });
+    }
 
-    if (!subject || !topic) {
-      return res.status(400).json({ message: 'Invalid subject or topic' });
+    // Get the first topic if selectedTopics array is provided
+    let topicId = null;
+    if (selectedTopics && selectedTopics.length > 0) {
+      topicId = selectedTopics[0]; // Use the first selected topic
+    }
+
+    // Map learning method to backend format
+    const teachingMode = learningMethod === 'home-visit' ? 'individual' : learningMethod;
+
+    // Calculate amount based on duration and tutor's rate
+    let amount = 0;
+    const tutorSubject = tutor.subjects.find(subj => subj.subject.toString() === subjectId);
+    if (tutorSubject) {
+      const teachingModeData = tutorSubject.teachingModes.find(mode => mode.type === teachingMode);
+      if (teachingModeData) {
+        amount = teachingModeData.rate * duration;
+      }
     }
 
     // Create booking
@@ -49,8 +66,8 @@ export const createBooking = async (req, res) => {
       tutor: tutorId,
       subject: subjectId,
       topic: topicId,
-      date,
-      time,
+      date: startTime,
+      time: startTime,
       duration,
       teachingMode,
       amount,
@@ -75,8 +92,8 @@ export const createBooking = async (req, res) => {
     // Send notifications
     try {
       const dashboardUrl = `${process.env.FRONTEND_URL}/dashboard`;
-      const formattedDate = new Date(date).toLocaleDateString();
-      const formattedTime = time;
+      const formattedDate = new Date(startTime).toLocaleDateString();
+      const formattedTime = new Date(startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       // Send email to student
       await sendEmail({
@@ -86,7 +103,7 @@ export const createBooking = async (req, res) => {
           studentName: populatedBooking.student.name,
           tutorName: populatedBooking.tutor.user.name,
           subject: populatedBooking.subject.name,
-          topic: populatedBooking.topic.name,
+          topic: populatedBooking.topic ? populatedBooking.topic.name : 'General',
           date: formattedDate,
           time: formattedTime,
           duration: duration,
@@ -104,7 +121,7 @@ export const createBooking = async (req, res) => {
           studentName: populatedBooking.student.name,
           tutorName: populatedBooking.tutor.user.name,
           subject: populatedBooking.subject.name,
-          topic: populatedBooking.topic.name,
+          topic: populatedBooking.topic ? populatedBooking.topic.name : 'General',
           date: formattedDate,
           time: formattedTime,
           duration: duration,
@@ -123,7 +140,7 @@ export const createBooking = async (req, res) => {
             studentName: populatedBooking.student.name,
             tutorName: populatedBooking.tutor.user.name,
             subject: populatedBooking.subject.name,
-            topic: populatedBooking.topic.name,
+            topic: populatedBooking.topic ? populatedBooking.topic.name : 'General',
             date: formattedDate,
             time: formattedTime,
             duration: duration,
@@ -142,7 +159,7 @@ export const createBooking = async (req, res) => {
             studentName: populatedBooking.student.name,
             tutorName: populatedBooking.tutor.user.name,
             subject: populatedBooking.subject.name,
-            topic: populatedBooking.topic.name,
+            topic: populatedBooking.topic ? populatedBooking.topic.name : 'General',
             date: formattedDate,
             time: formattedTime,
             duration: duration,
@@ -151,6 +168,8 @@ export const createBooking = async (req, res) => {
           }
         });
       }
+
+      console.log('Booking notifications sent successfully');
     } catch (notificationError) {
       console.error('Failed to send booking notifications:', notificationError);
       // Don't fail the booking if notifications fail

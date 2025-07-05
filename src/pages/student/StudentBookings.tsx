@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useStudent } from '../../contexts/StudentContext';
-import { Calendar, Clock, DollarSign, User, Book, ChevronLeft, ChevronRight, Filter, Search, Video, Home, Users, Hash, Phone, Star, Check } from 'lucide-react';
+import { Calendar, Clock, DollarSign, User, Book, ChevronLeft, ChevronRight, Filter, Search, Video, Home, Users, Hash, Phone, Star, Check, MessageSquare } from 'lucide-react';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { Link } from 'react-router-dom';
 import BookingReviewForm from '../../components/booking/BookingReviewForm';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { API_URL } from '../../config/constants';
+import { useNotifications } from '../../contexts/NotificationContext';
+import TutorReviewForm from '../../components/tutor-profile/TutorReviewForm';
 
 const StudentBookings = () => {
   const { bookings, loading, error, fetchBookings } = useStudent();
@@ -14,6 +16,7 @@ const StudentBookings = () => {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [bookingReviews, setBookingReviews] = useState<{[key: string]: any}>({});
+  const { addNotification } = useNotifications();
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -109,32 +112,46 @@ const StudentBookings = () => {
     setShowReviewForm(true);
   };
 
-  const handleSubmitReview = async (rating: number, review: string) => {
+  const handleReviewSubmit = async (rating: number, review: string) => {
     if (!selectedBooking) return;
     
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
+      const response = await axios.post(
         `${API_URL}/api/ratings`,
         { 
           bookingId: selectedBooking._id, 
           rating, 
-          review 
+          review
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
-      toast.success('Review submitted successfully!');
-      setShowReviewForm(false);
-      setSelectedBooking(null);
-      
-      // Refresh bookings and reviews
-      await fetchBookings();
-      await loadBookingReviews();
+
+      if (response.data.success) {
+        // Show success notification
+        addNotification({
+          type: 'success',
+          title: 'Review Submitted',
+          message: 'Your review has been submitted successfully!'
+        });
+
+        // Close the review modal
+        setShowReviewForm(false);
+        setSelectedBooking(null);
+
+        // Refresh bookings to show the new review
+        await fetchBookings();
+        await loadBookingReviews();
+      }
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to submit review';
-      toast.error(errorMessage);
-      console.error('Review submission error:', error);
+      console.error('Error submitting review:', error);
+      
+      // Show error notification
+      addNotification({
+        type: 'error',
+        title: 'Review Submission Failed',
+        message: error.response?.data?.message || 'Failed to submit review. Please try again.'
+      });
     }
   };
 
@@ -374,7 +391,7 @@ const StudentBookings = () => {
         <BookingReviewForm
           isOpen={showReviewForm}
           onClose={() => setShowReviewForm(false)}
-          onSubmit={handleSubmitReview}
+          onSubmit={handleReviewSubmit}
           subject={selectedBooking.subject}
           topics={selectedBooking.selectedTopics || []}
           tutorName={selectedBooking.tutor?.user?.name || 'Unknown Tutor'}

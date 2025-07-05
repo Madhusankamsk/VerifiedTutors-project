@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTutor, TutorProfile } from '../contexts/TutorContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotifications } from '../contexts/NotificationContext';
+import { createBooking } from '../services/api';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { User, X } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -39,6 +41,7 @@ const TutorProfilePage: React.FC = () => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [activeTab, setActiveTab] = useState('about');
   const [selectedSubjectForBooking, setSelectedSubjectForBooking] = useState<string>('');
+  const { addNotification } = useNotifications();
 
   // Scroll to top when tutor ID changes
   useScrollToTop([id]);
@@ -138,7 +141,7 @@ const TutorProfilePage: React.FC = () => {
       const backendLearningMethod = data.learningMethod === 'home-visit' ? 'individual' : data.learningMethod;
       
       // Create booking
-      await createBooking({
+      const bookingResult = await createBooking({
         tutorId: id,
         subjectId: selectedSubjectForBooking,
         startTime: startTimeObj,
@@ -150,6 +153,17 @@ const TutorProfilePage: React.FC = () => {
         duration: data.duration
       });
       
+      // Add notification for successful booking
+      addNotification({
+        type: 'success',
+        title: 'Booking Confirmed!',
+        message: `Your ${data.duration}-hour session for ${selectedSubject.subject.name} has been booked successfully.`,
+        action: {
+          label: 'View Bookings',
+          url: '/student/bookings'
+        }
+      });
+      
       toast.success(`${data.duration}-hour session for ${selectedSubject.subject.name} booked successfully!`);
       setShowBookingModal(false);
       
@@ -157,6 +171,14 @@ const TutorProfilePage: React.FC = () => {
       navigate('/student/bookings');
     } catch (error: any) {
       console.error('Booking error:', error);
+      
+      // Add error notification
+      addNotification({
+        type: 'error',
+        title: 'Booking Failed',
+        message: error.response?.data?.message || 'Failed to book session. Please try again.',
+      });
+      
       toast.error(error.response?.data?.message || 'Failed to book session. Please try again.');
     }
   };
@@ -284,32 +306,31 @@ const TutorProfilePage: React.FC = () => {
           selectedSubject={selectedSubjectForBooking}
           availableMethods={{
             online: profile!.subjects[0]?.teachingModes?.some(mode => mode.type === 'online' && mode.enabled) || false,
-            'home-visit': profile!.subjects[0]?.teachingModes?.some(mode => mode.type === 'home-visit' && mode.enabled) || false,
-            group: profile!.subjects[0]?.teachingModes?.some(mode => mode.type === 'group' && mode.enabled) || false
+            'home-visit': profile!.subjects[0]?.teachingModes?.some(mode => mode.type === 'home-visit' && mode.enabled) || false
           }}
-          subjects={profile!.subjects.map(subj => ({
-            _id: subj.subject._id,
-            name: subj.subject.name,
-            selectedTopics: (subj.selectedTopics || []).map(topic => {
-              // Handle both populated topic objects and string IDs
-              if (typeof topic === 'string') {
-                return {
-                  _id: topic,
-                  name: topic, // Fallback to ID if not populated
-                  description: ''
-                };
-              } else {
-                return {
-                  _id: topic._id,
-                  name: topic.name,
-                  description: topic.description || ''
-                };
-              }
-            }),
-            teachingModes: subj.teachingModes || [],
-            availability: subj.availability || [],
-            rates: subj.rates
-          }))}
+                      subjects={profile!.subjects.map(subj => ({
+              _id: subj.subject._id,
+              name: subj.subject.name,
+              selectedTopics: (subj.selectedTopics || []).map(topic => {
+                // Handle both populated topic objects and string IDs
+                if (typeof topic === 'string') {
+                  return {
+                    _id: topic,
+                    name: topic, // Fallback to ID if not populated
+                    description: ''
+                  };
+                } else {
+                  return {
+                    _id: topic._id,
+                    name: topic.name,
+                    description: topic.description || ''
+                  };
+                }
+              }),
+              teachingModes: (subj.teachingModes || []).filter(mode => mode.type !== 'group') as { type: 'online' | 'home-visit'; rate: number; enabled: boolean; }[],
+              availability: subj.availability || [],
+              rates: subj.rates
+            }))}
           tutorName={profile!.user.name}
         />
       )}

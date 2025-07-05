@@ -90,7 +90,7 @@ const BookingReviewForm: React.FC<BookingReviewFormProps> = ({
               <div className="mt-2">
                 <p className="text-sm text-blue-800 mb-1 flex items-center">
                   <Hash className="w-3 h-3 mr-1" />
-                  <span className="font-medium">Topics covered:</span>
+                  <span className="font-medium">Topics covered in this session:</span>
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {topics.map((topic) => (
@@ -132,7 +132,7 @@ const BookingReviewForm: React.FC<BookingReviewFormProps> = ({
               onChange={(e) =>
                 setReviewData({ ...reviewData, review: e.target.value })
               }
-              placeholder="Share your experience with this tutor for this specific session..."
+              placeholder="Share your experience with this tutor for the topics covered in this session..."
               required
               minLength={10}
             />

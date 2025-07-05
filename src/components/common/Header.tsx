@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '../../contexts/NotificationContext';
+import NotificationItem from './NotificationItem';
 import { ChevronDown, User, LogOut, Bell, Menu, X, ChevronRight, Home } from 'lucide-react';
 import logo from '../../assets/logo.png';
 
@@ -17,11 +19,16 @@ const Header: React.FC<HeaderProps> = ({
   dashboardTitle 
 }) => {
   const { user, logout, isAuthenticated } = useAuth();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
+  
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const toggleProfileMenu = () => {
@@ -45,11 +52,17 @@ const Header: React.FC<HeaderProps> = ({
   // Close mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setIsNotificationsOpen(false);
+      }
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
         setIsMobileMenuOpen(false);
       }
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -125,7 +138,7 @@ const Header: React.FC<HeaderProps> = ({
                 className={`${isDashboardLayout ? 'h-10' : 'h-12'} w-auto transition-all duration-300 hover:opacity-90`}
               />
             </Link>
-            
+
             {/* Breadcrumb for dashboard pages or custom title */}
             {/* {isDashboardPage && (
               <div className="hidden md:flex items-center space-x-2 text-sm">
@@ -188,13 +201,15 @@ const Header: React.FC<HeaderProps> = ({
                 )}
 
                 {/* Notifications */}
-                <div className="relative">
+                <div className="relative" ref={notificationsRef}>
                   <button
                     onClick={toggleNotifications}
                     className="relative p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-200"
                   >
                     <Bell className="h-5 w-5" />
-                    <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
+                    )}
                   </button>
 
                   {/* Notifications Dropdown */}
@@ -205,21 +220,39 @@ const Header: React.FC<HeaderProps> = ({
                         <div className="px-4 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white rounded-t-2xl">
                           <div className="flex items-center justify-between">
                             <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
-                            <button className="text-xs text-primary-600 hover:text-primary-700 font-medium">
-                              Mark all as read
-                            </button>
+                            {notifications.length > 0 && (
+                              <button 
+                                onClick={markAllAsRead}
+                                className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                              >
+                                Mark all as read
+                              </button>
+                            )}
                           </div>
                         </div>
 
                         {/* Notifications List */}
                         <div className="py-2 max-h-64 overflow-y-auto">
-                          <div className="px-4 py-6 text-center">
-                            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
-                              <Bell className="h-6 w-6 text-gray-400" />
+                          {notifications.length > 0 ? (
+                            <div className="space-y-1">
+                              {notifications.map((notification) => (
+                                <NotificationItem
+                                  key={notification.id}
+                                  notification={notification}
+                                  onMarkAsRead={markAsRead}
+                                  onRemove={removeNotification}
+                                />
+                              ))}
                             </div>
-                            <p className="text-sm font-medium text-gray-900 mb-1">No new notifications</p>
-                            <p className="text-xs text-gray-500">We'll notify you when something new arrives</p>
-                          </div>
+                          ) : (
+                            <div className="px-4 py-6 text-center">
+                              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
+                                <Bell className="h-6 w-6 text-gray-400" />
+                              </div>
+                              <p className="text-sm font-medium text-gray-900 mb-1">No new notifications</p>
+                              <p className="text-xs text-gray-500">We'll notify you when something new arrives</p>
+                            </div>
+                          )}
                         </div>
 
                         {/* Footer */}
@@ -237,7 +270,7 @@ const Header: React.FC<HeaderProps> = ({
                 </div>
 
                 {/* Profile Dropdown */}
-                <div className="relative">
+                <div className="relative" ref={profileMenuRef}>
                   <button
                     onClick={toggleProfileMenu}
                     className="flex items-center space-x-3 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 p-2 hover:bg-gray-50 transition-all duration-200"
