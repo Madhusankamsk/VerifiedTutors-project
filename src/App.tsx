@@ -27,6 +27,7 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import TutorListingPage from './pages/TutorListingPage';
 import TutorProfilePage from './pages/TutorProfilePage';
+import SubjectTopicsPage from './pages/SubjectTopicsPage';
 import BlogListPage from './pages/BlogListPage';
 import BlogPostPage from './pages/BlogPostPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -90,6 +91,7 @@ const App = () => {
                         } />
                         <Route path="tutors" element={<TutorListingPage />} />
                         <Route path="tutors/:id" element={<TutorProfilePage />} />
+                        <Route path="subjects/:subjectId" element={<SubjectTopicsPage />} />
                         {/* <Route path="courses" element={<CoursesPage />} />
                         <Route path="blogs" element={<BlogListPage />} />
                         <Route path="blogs/:id" element={<BlogPostPage />} /> */}

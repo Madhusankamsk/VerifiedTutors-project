@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTutor, TutorProfile } from '../contexts/TutorContext';
 import { useSubjects } from '../contexts/SubjectContext';
-import TutorFilters, { FilterState } from '../components/filter/TutorFilters';
+import SimplifiedTutorFilters, { SimplifiedFilterState } from '../components/filter/SimplifiedTutorFilters';
 import { useScrollToTop } from '../hooks/useScrollToTop';
+import { useSearchParams, Link } from 'react-router-dom';
+import { BookOpen, Users, ArrowRight, Star } from 'lucide-react';
 import {
   BreadcrumbNav,
   PageHeader,
@@ -33,6 +35,44 @@ interface Filters {
 const TutorListingPage: React.FC = () => {
   const { searchTutors } = useTutor();
   const { subjects } = useSubjects();
+  const [searchParams] = useSearchParams();
+  
+  // Get subject and topic from URL parameters
+  const urlSubject = searchParams.get('subject');
+  const urlTopic = searchParams.get('topic');
+  
+  // State for subject tutor counts
+  const [subjectTutorCounts, setSubjectTutorCounts] = useState<{[key: string]: number}>({});
+  const [loadingCounts, setLoadingCounts] = useState(false);
+  
+  // Subject icons mapping for visual variety
+  const getSubjectIcon = (subjectName: string) => {
+    const icons = {
+      'Mathematics': '🔢',
+      'Physics': '⚡',
+      'Chemistry': '🧪',
+      'Biology': '🧬',
+      'English': '📚',
+      'Sinhala': '🇱🇰',
+      'History': '📜',
+      'Geography': '🌍',
+      'Computer Science': '💻',
+      'Economics': '💰',
+      'Business Studies': '🏢',
+      'Accounting': '📊',
+      'Literature': '📖',
+      'Art': '🎨',
+      'Music': '🎵',
+      'Physical Education': '⚽',
+      'Religious Studies': '🙏',
+      'Agriculture': '🌾',
+      'Technology': '🔧',
+      'Psychology': '🧠'
+    };
+    
+    return icons[subjectName as keyof typeof icons] || '📚';
+  };
+  
   const [filters, setFilters] = useState<Filters>({
     selectedSubject: null,
     selectedTopic: null,
@@ -60,6 +100,65 @@ const TutorListingPage: React.FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const observerTarget = useRef<HTMLDivElement>(null);
   const [topicName, setTopicName] = useState<string>('');
+
+  // Set subject and topic from URL parameters on component mount
+  useEffect(() => {
+    if (urlSubject) {
+      const subject = subjects.find(s => s.name === urlSubject);
+      if (subject) {
+        setFilters(prev => ({ ...prev, selectedSubject: subject._id }));
+      }
+    }
+  }, [urlSubject, subjects]);
+
+  // Set topic from URL parameters
+  useEffect(() => {
+    if (urlTopic && filters.selectedSubject) {
+      // Fetch topics for the subject and find the matching topic
+      const fetchTopicId = async () => {
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/subject/${filters.selectedSubject}`);
+          if (response.ok) {
+            const topics = await response.json();
+            const topic = topics.find((t: any) => t.name === urlTopic);
+            if (topic) {
+              setFilters(prev => ({ ...prev, selectedTopic: topic._id }));
+              setTopicName(topic.name);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching topic:', error);
+        }
+      };
+      fetchTopicId();
+    }
+  }, [urlTopic, filters.selectedSubject]);
+
+  // Fetch tutor counts for all subjects
+  useEffect(() => {
+    const fetchTutorCounts = async () => {
+      if (subjects && subjects.length > 0) {
+        try {
+          setLoadingCounts(true);
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/subjects/tutor-counts`);
+          if (response.ok) {
+            const counts = await response.json();
+            const countsMap: {[key: string]: number} = {};
+            counts.forEach((item: any) => {
+              countsMap[item.subjectId] = item.tutorCount;
+            });
+            setSubjectTutorCounts(countsMap);
+          }
+        } catch (error) {
+          console.error('Error fetching tutor counts:', error);
+        } finally {
+          setLoadingCounts(false);
+        }
+      }
+    };
+
+    fetchTutorCounts();
+  }, [subjects]);
 
   // Scroll to top when filters change (but not for load more)
   useScrollToTop([filters.selectedSubject, filters.selectedTopic, filters.rating, filters.price, filters.location, 
@@ -89,22 +188,14 @@ const TutorListingPage: React.FC = () => {
         searchParams.page = targetPage;
       }
 
-      // Convert subject and topic filters to the format expected by the API
-      if (filters.selectedSubject) {
-        const subject = subjects.find(s => s._id === filters.selectedSubject);
-        if (subject) {
-          searchParams.subject = subject.name;
-        }
+      // Only apply subject and topic filters if URL parameters are present
+      // If no URL parameters, show all tutors (no subject/topic filtering)
+      if (urlSubject) {
+        searchParams.subject = urlSubject;
       }
 
-      if (filters.selectedTopic) {
-        // Use the stored topic name if available, otherwise use the topic ID
-        if (topicName) {
-          searchParams.topic = topicName;
-        } else {
-          // Fallback to using the topic ID
-          searchParams.topic = filters.selectedTopic;
-        }
+      if (urlTopic) {
+        searchParams.topic = urlTopic;
       }
 
       // Convert teaching mode to the format expected by the API
@@ -150,15 +241,16 @@ const TutorListingPage: React.FC = () => {
   useEffect(() => {
     console.log('Non-search filters changed, fetching tutors with filters:', filters);
     fetchTutors(false);
-  }, [filters.selectedSubject, filters.selectedTopic, filters.rating, filters.price, filters.location, 
+  }, [filters.rating, filters.price, filters.location, 
       filters.teachingMode, filters.sortBy, filters.sortOrder, 
-      filters.availability, filters.experience, filters.search, filters.femaleOnly]);
+      filters.availability, filters.experience, filters.search, filters.femaleOnly, urlSubject, urlTopic]);
 
   // Update active filters whenever filters change
   useEffect(() => {
     const newActiveFilters: string[] = [];
-    if (filters.selectedSubject) newActiveFilters.push('subject');
-    if (filters.selectedTopic) newActiveFilters.push('topic');
+    // Only add subject/topic to active filters if URL parameters are present
+    if (urlSubject) newActiveFilters.push('subject');
+    if (urlTopic) newActiveFilters.push('topic');
     if (filters.location) newActiveFilters.push('location');
     if (filters.rating > 0) newActiveFilters.push('rating');
     if (filters.price.min > 0 || filters.price.max < 10000) newActiveFilters.push('price');
@@ -166,7 +258,7 @@ const TutorListingPage: React.FC = () => {
     if (filters.search) newActiveFilters.push('search');
     if (filters.femaleOnly) newActiveFilters.push('femaleOnly');
     setActiveFilters(newActiveFilters);
-  }, [filters]);
+  }, [filters, urlSubject, urlTopic]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -190,16 +282,14 @@ const TutorListingPage: React.FC = () => {
     };
   }, [hasMore, loadingMore, loading, fetchTutors]);
 
-  const handleFilterChange = (newFilters: FilterState) => {
+  const handleFilterChange = (newFilters: SimplifiedFilterState) => {
     console.log("Filter change with current filters:", filters);
     console.log("Current search query:", filters.search);
     
-    // Check if this is a clear all operation - more comprehensive check
-    const isClearAll = !newFilters.selectedSubject && 
-                      !newFilters.selectedTopic && 
-                      !newFilters.teachingMode && 
+    // Check if this is a clear all operation
+    const isClearAll = !newFilters.teachingMode && 
                       !newFilters.location && 
-                      !newFilters.extraFilters.femaleOnly &&
+                      newFilters.extraFilters.femaleOnly === false &&
                       newFilters.extraFilters.minRating === 0 &&
                       newFilters.extraFilters.priceRange[0] === 0 &&
                       newFilters.extraFilters.priceRange[1] === 1000;
@@ -210,10 +300,10 @@ const TutorListingPage: React.FC = () => {
       // Use the existing resetFilters function for consistency
       resetFilters();
     } else {
-      // Normal filter update - preserve search and subject selection
+      // Normal filter update - preserve search and URL subject/topic
       const updatedFilters = {
-        selectedSubject: newFilters.selectedSubject,
-        selectedTopic: newFilters.selectedTopic,
+        selectedSubject: urlSubject ? (subjects.find(s => s.name === urlSubject)?._id || null) : null,
+        selectedTopic: null, // Will be set by URL effect
         rating: newFilters.extraFilters.minRating,
         price: {
           min: newFilters.extraFilters.priceRange[0],
@@ -238,16 +328,16 @@ const TutorListingPage: React.FC = () => {
   };
 
   const resetFilters = () => {
-    // Clear all related state
+    // Clear all related state except subject and topic from URL
     setTopicName(''); // Clear topic name
     setSearchQuery(''); // Clear search query
     setActiveFilters([]); // Clear active filters
     setTotalTutors(0); // Reset total count
     
-    // Reset all filters to initial state
+    // Reset all filters to initial state, but preserve URL subject/topic
     const resetFilters = {
-      selectedSubject: null,
-      selectedTopic: null,
+      selectedSubject: urlSubject ? (subjects.find(s => s.name === urlSubject)?._id || null) : null,
+      selectedTopic: null, // Will be set by URL effect
       rating: 0,
       price: { min: 0, max: 1000 },
       location: '',
@@ -264,7 +354,7 @@ const TutorListingPage: React.FC = () => {
     
     setFilters(resetFilters);
     
-    console.log("All filters and search cleared:", resetFilters);
+    console.log("Filters cleared (preserving URL subject/topic):", resetFilters);
   };
 
   const handleSearchSubmit = () => {
@@ -323,8 +413,14 @@ const TutorListingPage: React.FC = () => {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <PageHeader
-          title="Find Your Perfect Tutor"
-          description="Discover qualified tutors in your area or online"
+          title={urlSubject && urlTopic ? `Tutors for ${urlSubject} - ${urlTopic}` : 
+                urlSubject ? `Tutors for ${urlSubject}` : 
+                "All Verified Tutors"}
+          description={urlSubject && urlTopic ? 
+            `Find verified tutors specializing in ${urlTopic} under ${urlSubject}` :
+            urlSubject ? 
+            `Find verified tutors for ${urlSubject}` :
+            "Browse all verified tutors across all subjects and topics"}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onSearchSubmit={handleSearchSubmit}
@@ -345,7 +441,11 @@ const TutorListingPage: React.FC = () => {
 
         {/* Integrated Filters Section */}
         <div className="mb-6">
-          <TutorFilters onFilterChange={handleFilterChange} />
+          <SimplifiedTutorFilters 
+            onFilterChange={handleFilterChange} 
+            urlSubject={urlSubject}
+            urlTopic={urlTopic}
+          />
         </div>
 
         <ResultsHeader
@@ -379,6 +479,119 @@ const TutorListingPage: React.FC = () => {
             )}
           </>
         )}
+
+        {/* Other Subjects Section */}
+        <div className="mt-16">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Explore Other Subjects</h2>
+            <p className="text-gray-600">Find tutors for different subjects and topics</p>
+          </div>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {subjects.slice(0, 12).map((subject) => (
+              <Link
+                key={subject._id}
+                to={`/subjects/${subject._id}`}
+                className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 hover:border-primary-200 hover:scale-105 transform text-center"
+              >
+                <div className="text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">
+                  {getSubjectIcon(subject.name)}
+                </div>
+                <h3 className="font-semibold text-gray-900 text-sm group-hover:text-primary-700 transition-colors duration-300">
+                  {subject.name}
+                </h3>
+                <div className="flex items-center justify-center gap-1 mt-1">
+                  <Users className="h-3 w-3 text-primary-600" />
+                  <span className="text-xs text-primary-600 font-medium">
+                    {subjectTutorCounts[subject._id] || 0} tutors
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+          
+          <div className="text-center mt-6">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium"
+            >
+              Browse All Subjects
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Featured Tutors Section */}
+        <div className="mt-16">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Featured Tutors</h2>
+            <p className="text-gray-600">Discover top-rated tutors across all subjects</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {tutors.slice(0, 6).map((tutor) => (
+              <div key={tutor._id} className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    {tutor.user.profileImage ? (
+                      <img 
+                        src={tutor.user.profileImage} 
+                        alt={tutor.user.name}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-primary-600 font-semibold text-lg">
+                        {tutor.user.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 text-sm truncate">
+                      {tutor.user.name}
+                    </h3>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                      <span className="text-xs text-gray-600">
+                        {tutor.rating.toFixed(1)} ({tutor.totalReviews} reviews)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Users className="h-3 w-3 text-primary-600" />
+                      <span className="text-xs text-primary-600">
+                        {tutor.totalStudents} students
+                      </span>
+                    </div>
+                    {tutor.subjects && tutor.subjects.length > 0 && (
+                      <div className="mt-2">
+                        <span className="text-xs text-gray-500">
+                          {tutor.subjects[0].subject.name}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <Link
+                    to={`/tutors/${tutor._id}`}
+                    className="text-primary-600 hover:text-primary-700 transition-colors"
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="text-center mt-6">
+            <Link
+              to="/tutors"
+              className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+            >
+              View All Tutors
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

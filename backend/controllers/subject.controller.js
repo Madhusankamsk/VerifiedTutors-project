@@ -1,4 +1,5 @@
 import Subject from '../models/subject.model.js';
+import Tutor from '../models/tutor.model.js'; // Added import for Tutor
 
 // @desc    Get all subjects
 // @route   GET /api/subjects
@@ -136,5 +137,58 @@ export const toggleSubjectStatus = async (req, res) => {
     res.json(subject);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+}; 
+
+// @desc    Get tutor count for a subject
+// @route   GET /api/subjects/:id/tutor-count
+// @access  Public
+export const getSubjectTutorCount = async (req, res) => {
+  try {
+    const subjectId = req.params.id;
+    
+    // Count tutors who teach this subject and are verified and active
+    const tutorCount = await Tutor.countDocuments({
+      'subjects.subject': subjectId,
+      isVerified: true,
+      status: 'active'
+    });
+
+    res.json({ tutorCount });
+  } catch (error) {
+    console.error('Error getting subject tutor count:', error);
+    res.status(500).json({ message: 'Error getting tutor count' });
+  }
+};
+
+// @desc    Get tutor count for all subjects
+// @route   GET /api/subjects/tutor-counts
+// @access  Public
+export const getAllSubjectsTutorCounts = async (req, res) => {
+  try {
+    // Get all active subjects
+    const subjects = await Subject.find({ isActive: true }).sort({ name: 1 });
+    
+    // Get tutor counts for each subject
+    const subjectCounts = await Promise.all(
+      subjects.map(async (subject) => {
+        const tutorCount = await Tutor.countDocuments({
+          'subjects.subject': subject._id,
+          isVerified: true,
+          status: 'active'
+        });
+        
+        return {
+          subjectId: subject._id,
+          subjectName: subject.name,
+          tutorCount
+        };
+      })
+    );
+
+    res.json(subjectCounts);
+  } catch (error) {
+    console.error('Error getting all subjects tutor counts:', error);
+    res.status(500).json({ message: 'Error getting tutor counts' });
   }
 }; 

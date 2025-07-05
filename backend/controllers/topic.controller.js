@@ -1,5 +1,6 @@
 import Topic from '../models/topic.model.js';
 import Subject from '../models/subject.model.js';
+import Tutor from '../models/tutor.model.js';
 
 // Get all topics
 export const getTopics = async (req, res) => {
@@ -138,5 +139,64 @@ export const deleteTopic = async (req, res) => {
   } catch (error) {
     console.error('Error deleting topic:', error);
     res.status(500).json({ message: 'Error deleting topic' });
+  }
+}; 
+
+// @desc    Get tutor count for a topic
+// @route   GET /api/topics/:id/tutor-count
+// @access  Public
+export const getTopicTutorCount = async (req, res) => {
+  try {
+    const topicId = req.params.id;
+    
+    // Count tutors who teach this topic and are verified and active
+    const tutorCount = await Tutor.countDocuments({
+      'subjects.selectedTopics': topicId,
+      isVerified: true,
+      status: 'active'
+    });
+
+    res.json({ tutorCount });
+  } catch (error) {
+    console.error('Error getting topic tutor count:', error);
+    res.status(500).json({ message: 'Error getting tutor count' });
+  }
+};
+
+// @desc    Get tutor counts for topics by subject
+// @route   GET /api/topics/subject/:subjectId/tutor-counts
+// @access  Public
+export const getTopicsTutorCountsBySubject = async (req, res) => {
+  try {
+    const { subjectId } = req.params;
+    
+    // Get all active topics for this subject
+    const topics = await Topic.find({ 
+      subject: subjectId, 
+      isActive: true 
+    }).sort({ name: 1 });
+    
+    // Get tutor counts for each topic
+    const topicCounts = await Promise.all(
+      topics.map(async (topic) => {
+        const tutorCount = await Tutor.countDocuments({
+          'subjects.selectedTopics': topic._id,
+          isVerified: true,
+          status: 'active'
+        });
+        
+        return {
+          topicId: topic._id,
+          topicName: topic.name,
+          topicDescription: topic.description,
+          tutorCount
+        };
+      })
+    );
+
+    res.json(topicCounts);
+  } catch (error) {
+    console.error('Error getting topics tutor counts:', error);
+    res.status(500).json({ message: 'Error getting tutor counts' });
   }
 }; 

@@ -2,10 +2,11 @@ import express from 'express';
 import {
   getTopics,
   getTopicsBySubject,
-  getTopicById,
   createTopic,
   updateTopic,
-  deleteTopic
+  deleteTopic,
+  getTopicTutorCount,
+  getTopicsTutorCountsBySubject
 } from '../controllers/topic.controller.js';
 import { protect, admin } from '../middleware/auth.middleware.js';
 
@@ -14,7 +15,8 @@ const router = express.Router();
 // Public routes
 router.get('/', getTopics);
 router.get('/subject/:subjectId', getTopicsBySubject);
-router.get('/:id', getTopicById);
+router.get('/subject/:subjectId/tutor-counts', getTopicsTutorCountsBySubject);
+router.get('/:id/tutor-count', getTopicTutorCount);
 
 // Protected routes (admin only)
 router.post('/', protect, admin, createTopic);
