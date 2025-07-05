@@ -1,11 +1,25 @@
 import express from 'express';
-import { createBooking, getStudentBookings } from '../controllers/student.controller.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import {
+  createBooking,
+  getBookings,
+  getBooking,
+  updateBookingStatus,
+  deleteBooking,
+  sendBookingReminder
+} from '../controllers/booking.controller.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Student booking routes
-router.post('/', protect, authorize('student'), createBooking);
-router.get('/', protect, authorize('student'), getStudentBookings);
+// All routes are protected
+router.use(protect);
+
+// Booking routes
+router.post('/', createBooking);
+router.get('/', getBookings);
+router.get('/:id', getBooking);
+router.patch('/:id/status', updateBookingStatus);
+router.delete('/:id', deleteBooking);
+router.post('/:id/reminder', sendBookingReminder);
 
 export default router; 

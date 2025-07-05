@@ -3,6 +3,7 @@ import User from '../models/user.model.js';
 import Subject from '../models/subject.model.js';
 import Booking from '../models/booking.model.js';
 import { sendEmail } from '../services/emailService.js';
+import { sendSMS } from '../services/smsService.js';
 
 // @desc    Get all tutors
 // @route   GET /api/admin/tutors
@@ -170,15 +171,21 @@ export const getDashboardStats = async (req, res) => {
 // @access  Private/Admin
 export const approveTutor = async (req, res) => {
   try {
+    console.log(`👨‍🏫 Tutor approval attempt: ${req.params.id}`);
+    
     const tutor = await Tutor.findById(req.params.id).populate('user', 'email name');
     
     if (!tutor) {
+      console.log(`❌ Tutor approval failed: Tutor not found - ${req.params.id}`);
       return res.status(404).json({ message: 'Tutor not found' });
     }
 
     if (tutor.isVerified) {
+      console.log(`❌ Tutor approval failed: Already verified - ${tutor.user.email}`);
       return res.status(400).json({ message: 'Tutor is already verified' });
     }
+
+    console.log(`✅ Approving tutor: ${tutor.user.email}`);
 
     // Update tutor verification status
     tutor.isVerified = true;
@@ -194,29 +201,62 @@ export const approveTutor = async (req, res) => {
     };
 
     await tutor.save();
+    console.log(`✅ Tutor verification status updated successfully`);
 
-    // Send approval email to tutor
+    // Send approval notifications
+    console.log(`📧 Sending approval notifications to: ${tutor.user.email}`);
     try {
-      await sendEmail({
+      const loginUrl = `${process.env.FRONTEND_URL}/login`;
+      
+      // Send email notification
+      console.log(`📧 Sending approval email to: ${tutor.user.email}`);
+      const emailResult = await sendEmail({
         to: tutor.user.email,
-        subject: 'Tutor Profile Approved',
         template: 'tutorApproved',
         context: {
           name: tutor.user.name,
-          loginUrl: `${process.env.FRONTEND_URL}/login`
+          loginUrl
         }
       });
-    } catch (emailError) {
-      console.error('Failed to send approval email:', emailError);
-      // Don't fail the verification if email fails
+
+      if (emailResult.success) {
+        console.log(`✅ Approval email sent successfully to ${tutor.user.email}`);
+      } else {
+        console.log(`❌ Approval email failed: ${emailResult.reason}`);
+      }
+
+      // Send SMS notification if phone number exists
+      if (tutor.phone) {
+        console.log(`📱 Sending approval SMS to: ${tutor.phone}`);
+        const smsResult = await sendSMS({
+          to: tutor.phone,
+          template: 'tutorApproved',
+          context: {
+            name: tutor.user.name,
+            loginUrl
+          }
+        });
+
+        if (smsResult.success) {
+          console.log(`✅ Approval SMS sent successfully to ${tutor.phone}`);
+        } else {
+          console.log(`❌ Approval SMS failed: ${smsResult.reason}`);
+        }
+      } else {
+        console.log(`📱 No phone number available, skipping SMS notification`);
+      }
+    } catch (notificationError) {
+      console.error(`❌ Failed to send approval notifications:`, notificationError);
+      // Don't fail the verification if notifications fail
     }
 
+    console.log(`🎉 Tutor approval completed successfully: ${tutor.user.email}`);
     res.json({
       message: 'Tutor approved successfully',
       tutor
     });
   } catch (error) {
-    console.error('Error in approveTutor:', error);
+    console.error(`❌ Tutor approval error:`, error.message);
     res.status(500).json({ 
       message: 'Failed to approve tutor',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -231,15 +271,22 @@ export const rejectTutor = async (req, res) => {
   try {
     const { reason } = req.body;
     
+    console.log(`👨‍🏫 Tutor rejection attempt: ${req.params.id}`);
+    console.log(`📝 Rejection reason: ${reason}`);
+    
     if (!reason) {
+      console.log(`❌ Tutor rejection failed: No reason provided`);
       return res.status(400).json({ message: 'Rejection reason is required' });
     }
 
     const tutor = await Tutor.findById(req.params.id).populate('user', 'email name');
     
     if (!tutor) {
+      console.log(`❌ Tutor rejection failed: Tutor not found - ${req.params.id}`);
       return res.status(404).json({ message: 'Tutor not found' });
     }
+
+    console.log(`✅ Rejecting tutor: ${tutor.user.email}`);
 
     // Update tutor verification status
     tutor.isVerified = false;
@@ -256,24 +303,65 @@ export const rejectTutor = async (req, res) => {
     };
 
     await tutor.save();
+    console.log(`✅ Tutor rejection status updated successfully`);
 
-    // Send rejection email to tutor
-    await sendEmail({
-      to: tutor.user.email,
-      subject: 'Tutor Profile Rejected',
-      template: 'tutorRejected',
-      context: {
-        name: tutor.user.name,
-        reason: reason,
-        supportEmail: process.env.SUPPORT_EMAIL
+    // Send rejection notifications
+    console.log(`📧 Sending rejection notifications to: ${tutor.user.email}`);
+    try {
+      const loginUrl = `${process.env.FRONTEND_URL}/login`;
+      
+      // Send email notification
+      console.log(`📧 Sending rejection email to: ${tutor.user.email}`);
+      const emailResult = await sendEmail({
+        to: tutor.user.email,
+        template: 'tutorRejected',
+        context: {
+          name: tutor.user.name,
+          reason: reason,
+          supportEmail: process.env.SUPPORT_EMAIL,
+          loginUrl
+        }
+      });
+
+      if (emailResult.success) {
+        console.log(`✅ Rejection email sent successfully to ${tutor.user.email}`);
+      } else {
+        console.log(`❌ Rejection email failed: ${emailResult.reason}`);
       }
-    });
 
+      // Send SMS notification if phone number exists
+      if (tutor.phone) {
+        console.log(`📱 Sending rejection SMS to: ${tutor.phone}`);
+        const smsResult = await sendSMS({
+          to: tutor.phone,
+          template: 'tutorRejected',
+          context: {
+            name: tutor.user.name,
+            reason: reason,
+            loginUrl
+          }
+        });
+
+        if (smsResult.success) {
+          console.log(`✅ Rejection SMS sent successfully to ${tutor.phone}`);
+        } else {
+          console.log(`❌ Rejection SMS failed: ${smsResult.reason}`);
+        }
+      } else {
+        console.log(`📱 No phone number available, skipping SMS notification`);
+      }
+    } catch (notificationError) {
+      console.error(`❌ Failed to send rejection notifications:`, notificationError);
+      // Don't fail the rejection if notifications fail
+    }
+
+    console.log(`🎉 Tutor rejection completed successfully: ${tutor.user.email}`);
     res.json({
       message: 'Tutor rejected successfully',
       tutor
     });
   } catch (error) {
+    console.error(`❌ Tutor rejection error:`, error.message);
     res.status(500).json({ message: error.message });
   }
 };

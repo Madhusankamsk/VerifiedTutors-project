@@ -2,6 +2,8 @@ import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
 import Tutor from '../models/tutor.model.js';
 import passport from 'passport';
+import { sendEmail } from '../services/emailService.js';
+import { sendSMS } from '../services/smsService.js';
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -14,15 +16,20 @@ const generateToken = (id) => {
 // @route   POST /api/auth/register
 // @access  Public
 export const registerUser = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, phone } = req.body;
 
   try {
+    console.log(`👤 User registration attempt: ${email} (${role})`);
+    
     // Check if user already exists
     const userExists = await User.findOne({ email });
 
     if (userExists) {
+      console.log(`❌ Registration failed: User already exists - ${email}`);
       return res.status(400).json({ message: 'User already exists' });
     }
+
+    console.log(`✅ Creating new user account: ${email}`);
 
     // Create user
     const user = await User.create({
@@ -32,16 +39,70 @@ export const registerUser = async (req, res) => {
       role: ['admin', 'tutor', 'student'].includes(role) ? role : 'student',
     });
 
+    console.log(`✅ User account created successfully: ${user._id}`);
+
     // If user is a tutor, create a tutor profile
     if (user.role === 'tutor') {
+      console.log(`👨‍🏫 Creating tutor profile for: ${user._id}`);
       await Tutor.create({
         user: user._id,
+        phone: phone || '',
       });
+      console.log(`✅ Tutor profile created successfully`);
     }
 
     // Generate token
     const token = generateToken(user._id);
+    console.log(`🔑 JWT token generated for user: ${user._id}`);
 
+    // Send welcome notifications
+    console.log(`📧 Sending welcome notifications to: ${email}`);
+    try {
+      const loginUrl = `${process.env.FRONTEND_URL}/login`;
+      
+      // Send email notification
+      console.log(`📧 Sending registration email to: ${email}`);
+      const emailResult = await sendEmail({
+        to: user.email,
+        template: user.role === 'tutor' ? 'tutorRegistration' : 'studentRegistration',
+        context: {
+          name: user.name,
+          loginUrl
+        }
+      });
+
+      if (emailResult.success) {
+        console.log(`✅ Registration email sent successfully to ${email}`);
+      } else {
+        console.log(`❌ Registration email failed: ${emailResult.reason}`);
+      }
+
+      // Send SMS notification if phone number is provided
+      if (phone) {
+        console.log(`📱 Sending registration SMS to: ${phone}`);
+        const smsResult = await sendSMS({
+          to: phone,
+          template: user.role === 'tutor' ? 'tutorRegistration' : 'studentRegistration',
+          context: {
+            name: user.name,
+            loginUrl
+          }
+        });
+
+        if (smsResult.success) {
+          console.log(`✅ Registration SMS sent successfully to ${phone}`);
+        } else {
+          console.log(`❌ Registration SMS failed: ${smsResult.reason}`);
+        }
+      } else {
+        console.log(`📱 No phone number provided, skipping SMS notification`);
+      }
+    } catch (notificationError) {
+      console.error(`❌ Failed to send welcome notifications:`, notificationError);
+      // Don't fail the registration if notifications fail
+    }
+
+    console.log(`🎉 User registration completed successfully: ${email}`);
     res.status(201).json({
       token,
       user: {
@@ -53,6 +114,7 @@ export const registerUser = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error(`❌ User registration error:`, error.message);
     res.status(400).json({ message: error.message });
   }
 };
@@ -218,5 +280,124 @@ export const updateGoogleUserRole = async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Request password reset
+// @route   POST /api/auth/forgot-password
+// @access  Public
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Generate reset token
+    const resetToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET || 'your_jwt_secret',
+      { expiresIn: '1h' }
+    );
+
+    // Create reset URL
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    // Send password reset notification
+    try {
+      await sendEmail({
+        to: user.email,
+        template: 'passwordReset',
+        context: {
+          name: user.name,
+          resetUrl
+        }
+      });
+
+      // Send SMS if phone number exists
+      if (user.phone) {
+        await sendSMS({
+          to: user.phone,
+          template: 'passwordReset',
+          context: {
+            name: user.name,
+            resetUrl
+          }
+        });
+      }
+    } catch (notificationError) {
+      console.error('Failed to send password reset notification:', notificationError);
+      return res.status(500).json({ message: 'Failed to send password reset notification' });
+    }
+
+    res.json({ message: 'Password reset email sent' });
+  } catch (error) {
+    console.error('Error in forgotPassword:', error);
+    res.status(500).json({ message: 'Failed to process password reset request' });
+  }
+};
+
+// @desc    Reset password
+// @route   POST /api/auth/reset-password
+// @access  Public
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({ message: 'Token and password are required' });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+
+    // Update password
+    user.password = password;
+    await user.save();
+
+    res.json({ message: 'Password reset successfully' });
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+    
+    console.error('Error in resetPassword:', error);
+    res.status(500).json({ message: 'Failed to reset password' });
+  }
+};
+
+// @desc    Change password
+// @route   POST /api/auth/change-password
+// @access  Private
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    const user = await User.findById(req.user._id).select('+password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check current password
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Error in changePassword:', error);
+    res.status(500).json({ message: 'Failed to change password' });
   }
 };
