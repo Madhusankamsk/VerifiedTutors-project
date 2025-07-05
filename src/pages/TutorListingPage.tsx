@@ -290,8 +290,8 @@ const TutorListingPage: React.FC = () => {
     const isClearAll = !newFilters.teachingMode && 
                       !newFilters.location && 
                       newFilters.extraFilters.femaleOnly === false &&
-                      newFilters.extraFilters.minRating === 0 &&
-                      newFilters.extraFilters.priceRange[0] === 0 &&
+                      newFilters.extraFilters.minRating === 0 && 
+                      newFilters.extraFilters.priceRange[0] === 0 && 
                       newFilters.extraFilters.priceRange[1] === 1000;
     
     console.log("Filter change detected - isClearAll:", isClearAll, "newFilters:", newFilters);
@@ -382,18 +382,18 @@ const TutorListingPage: React.FC = () => {
     if (filters.selectedTopic) {
       // Fetch topic name when a topic is selected
       const fetchTopicName = async () => {
-        try {
+      try {
           const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/${filters.selectedTopic}`);
-          if (response.ok) {
-            const topicData = await response.json();
-            setTopicName(topicData.name);
-          } else {
-            setTopicName('');
-          }
-        } catch (error) {
-          console.error('Error fetching topic name:', error);
+        if (response.ok) {
+          const topicData = await response.json();
+          setTopicName(topicData.name);
+        } else {
           setTopicName('');
         }
+      } catch (error) {
+        console.error('Error fetching topic name:', error);
+        setTopicName('');
+      }
       };
       fetchTopicName();
     } else {

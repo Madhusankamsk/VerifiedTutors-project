@@ -237,38 +237,38 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
                   {subject.teachingModes
                     .filter(mode => mode.type === 'online' || mode.type === 'home-visit')
                     .map((mode) => (
-                      <div key={mode.type} className="bg-white rounded-xl p-3 sm:p-4 border border-gray-200">
-                        <div className="flex items-center justify-between mb-3">
-                          <label className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={mode.enabled}
-                              onChange={(e) => updateTeachingMode(subject._id, mode.type, { enabled: e.target.checked })}
-                              className="w-3 h-3 sm:w-4 sm:h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                            />
-                            <span className="ml-2 text-xs sm:text-sm font-medium text-gray-700">
-                              {TEACHING_MODE_LABELS[mode.type]}
-                            </span>
-                          </label>
-                        </div>
-                        {mode.enabled && (
-                          <div className="relative">
-                            <div className="flex items-center bg-gray-50 rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
-                              <span className="text-xs sm:text-sm text-gray-500 pl-2 sm:pl-3">Rs.</span>
-                              <input
-                                type="number"
-                                value={mode.rate}
-                                onChange={(e) => updateTeachingMode(subject._id, mode.type, { rate: Number(e.target.value) })}
-                                placeholder="0"
-                                min="0"
-                                className="flex-1 p-1.5 sm:p-2 bg-transparent border-0 focus:ring-0 focus:outline-none text-xs sm:text-sm min-w-0"
-                              />
-                              <span className="text-xs sm:text-sm text-gray-500 pr-2 sm:pr-3 whitespace-nowrap">/hour</span>
-                            </div>
-                          </div>
-                        )}
+                    <div key={mode.type} className="bg-white rounded-xl p-3 sm:p-4 border border-gray-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={mode.enabled}
+                            onChange={(e) => updateTeachingMode(subject._id, mode.type, { enabled: e.target.checked })}
+                            className="w-3 h-3 sm:w-4 sm:h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                          />
+                          <span className="ml-2 text-xs sm:text-sm font-medium text-gray-700">
+                            {TEACHING_MODE_LABELS[mode.type]}
+                          </span>
+                        </label>
                       </div>
-                    ))}
+                      {mode.enabled && (
+                        <div className="relative">
+                          <div className="flex items-center bg-gray-50 rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
+                            <span className="text-xs sm:text-sm text-gray-500 pl-2 sm:pl-3">Rs.</span>
+                            <input
+                              type="number"
+                              value={mode.rate}
+                              onChange={(e) => updateTeachingMode(subject._id, mode.type, { rate: Number(e.target.value) })}
+                              placeholder="0"
+                              min="0"
+                              className="flex-1 p-1.5 sm:p-2 bg-transparent border-0 focus:ring-0 focus:outline-none text-xs sm:text-sm min-w-0"
+                            />
+                            <span className="text-xs sm:text-sm text-gray-500 pr-2 sm:pr-3 whitespace-nowrap">/hour</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
 

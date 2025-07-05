@@ -308,29 +308,29 @@ const TutorProfilePage: React.FC = () => {
             online: profile!.subjects[0]?.teachingModes?.some(mode => mode.type === 'online' && mode.enabled) || false,
             'home-visit': profile!.subjects[0]?.teachingModes?.some(mode => mode.type === 'home-visit' && mode.enabled) || false
           }}
-                      subjects={profile!.subjects.map(subj => ({
-              _id: subj.subject._id,
-              name: subj.subject.name,
-              selectedTopics: (subj.selectedTopics || []).map(topic => {
-                // Handle both populated topic objects and string IDs
-                if (typeof topic === 'string') {
-                  return {
-                    _id: topic,
-                    name: topic, // Fallback to ID if not populated
-                    description: ''
-                  };
-                } else {
-                  return {
-                    _id: topic._id,
-                    name: topic.name,
-                    description: topic.description || ''
-                  };
-                }
-              }),
+          subjects={profile!.subjects.map(subj => ({
+            _id: subj.subject._id,
+            name: subj.subject.name,
+            selectedTopics: (subj.selectedTopics || []).map(topic => {
+              // Handle both populated topic objects and string IDs
+              if (typeof topic === 'string') {
+                return {
+                  _id: topic,
+                  name: topic, // Fallback to ID if not populated
+                  description: ''
+                };
+              } else {
+                return {
+                  _id: topic._id,
+                  name: topic.name,
+                  description: topic.description || ''
+                };
+              }
+            }),
               teachingModes: (subj.teachingModes || []).filter(mode => mode.type !== 'group') as { type: 'online' | 'home-visit'; rate: number; enabled: boolean; }[],
-              availability: subj.availability || [],
-              rates: subj.rates
-            }))}
+            availability: subj.availability || [],
+            rates: subj.rates
+          }))}
           tutorName={profile!.user.name}
         />
       )}

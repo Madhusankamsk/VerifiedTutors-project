@@ -36,7 +36,7 @@ const __dirname = path.dirname(__filename);
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://100.81.203.23:3000'],
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://100.81.203.23:3000', 'https://verifiedtutors-project.onrender.com', 'https://verifiedtutors-project-frontend.onrender.com'],
   credentials: true,
 }));
 app.use(express.json());
