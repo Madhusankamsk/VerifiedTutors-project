@@ -207,7 +207,7 @@ const TutorProfilePage: React.FC = () => {
       profileImage: review.student.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.student.name)}`
     },
     subject: review.subject,
-    topics: review.topics
+    topics: review.topics || []
   }));
 
   if (loading) {

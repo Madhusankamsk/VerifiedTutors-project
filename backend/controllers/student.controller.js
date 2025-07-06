@@ -169,9 +169,17 @@ export const createBooking = async (req, res) => {
     let validTopics = [];
     if (selectedTopics && selectedTopics.length > 0) {
       const tutorTopics = tutorSubject.selectedTopics || [];
-      validTopics = selectedTopics.filter(topicId => 
-        tutorTopics.includes(topicId)
-      );
+      validTopics = selectedTopics.filter(topicId => {
+        // Handle both string IDs and populated objects
+        return tutorTopics.some(tutorTopic => {
+          if (typeof tutorTopic === 'string') {
+            return tutorTopic === topicId;
+          } else if (tutorTopic._id) {
+            return tutorTopic._id.toString() === topicId;
+          }
+          return false;
+        });
+      });
     }
     
     // Extract contact number from notes if provided there

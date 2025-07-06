@@ -136,12 +136,12 @@ const StudentBookings = () => {
         });
 
         // Close the review modal
-      setShowReviewForm(false);
-      setSelectedBooking(null);
-      
+        setShowReviewForm(false);
+        setSelectedBooking(null);
+        
         // Refresh bookings to show the new review
-      await fetchBookings();
-      await loadBookingReviews();
+        await fetchBookings();
+        await loadBookingReviews();
       }
     } catch (error: any) {
       console.error('Error submitting review:', error);
