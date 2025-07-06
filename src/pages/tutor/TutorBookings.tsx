@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
-import { Calendar, Clock, DollarSign, User, Book, Check, X, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, DollarSign, User, Book, Check, X, AlertCircle, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
 import { API_URL } from '../../config/constants';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
@@ -19,6 +19,11 @@ interface Booking {
     name: string;
     category: string;
   };
+  selectedTopics?: {
+    _id: string;
+    name: string;
+    description?: string;
+  }[];
   startTime: string;
   endTime: string;
   status: string;
@@ -228,6 +233,26 @@ const TutorBookings: React.FC = () => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Selected Topics */}
+                    {booking.selectedTopics && booking.selectedTopics.length > 0 && (
+                      <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Hash className="w-4 h-4 text-blue-600" />
+                          <p className="text-sm font-medium text-blue-800">Selected Topics</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {booking.selectedTopics.map((topic) => (
+                            <span 
+                              key={topic._id}
+                              className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full border border-blue-200"
+                            >
+                              {topic.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Notes */}
                     {booking.notes && (

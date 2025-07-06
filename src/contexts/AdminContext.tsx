@@ -83,6 +83,11 @@ export interface Booking {
     name: string;
     category: string;
   };
+  selectedTopics?: {
+    _id: string;
+    name: string;
+    description?: string;
+  }[];
   startTime: string;
   endTime: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';

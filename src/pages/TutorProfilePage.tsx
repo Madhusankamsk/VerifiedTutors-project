@@ -130,8 +130,22 @@ const TutorProfilePage: React.FC = () => {
       // Prepare notes with contact number and selected topics
       let notes = `Contact number: ${data.contactNumber}`;
       if (data.topics.length > 0) {
-        // Since selectedTopics are stored as topic IDs, we'll use the IDs directly for now
-        notes += `\nSelected topics: ${data.topics.join(', ')}`;
+        // Get topic names from the selected subject
+        const topicNames = data.topics.map(topicId => {
+          const topic = selectedSubject.selectedTopics.find(t => {
+            // Handle both populated topic objects and string IDs
+            if (typeof t === 'string') {
+              return t === topicId;
+            } else {
+              return t._id === topicId;
+            }
+          });
+          if (topic) {
+            return typeof topic === 'string' ? topic : topic.name;
+          }
+          return topicId;
+        });
+        notes += `\nSelected topics: ${topicNames.join(', ')}`;
       }
       notes += `\nDuration: ${data.duration} hour${data.duration > 1 ? 's' : ''}`;
       notes += `\nTotal price: Rs. ${data.totalPrice}`;

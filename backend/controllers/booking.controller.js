@@ -81,6 +81,7 @@ export const createBooking = async (req, res) => {
       .populate('tutor', 'user')
       .populate('subject', 'name')
       .populate('topic', 'name')
+      .populate('selectedTopics', 'name description')
       .populate({
         path: 'tutor',
         populate: {
@@ -213,6 +214,7 @@ export const getBookings = async (req, res) => {
       .populate('tutor', 'user')
       .populate('subject', 'name')
       .populate('topic', 'name')
+      .populate('selectedTopics', 'name description')
       .populate({
         path: 'tutor',
         populate: {
@@ -239,6 +241,7 @@ export const getBooking = async (req, res) => {
       .populate('tutor', 'user')
       .populate('subject', 'name')
       .populate('topic', 'name')
+      .populate('selectedTopics', 'name description')
       .populate({
         path: 'tutor',
         populate: {

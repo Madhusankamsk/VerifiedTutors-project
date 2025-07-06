@@ -1084,6 +1084,7 @@ export const getTutorBookings = async (req, res) => {
     const bookings = await Booking.find({ tutor: tutor._id })
       .populate('student', 'name email profileImage')
       .populate('subject', 'name category')
+      .populate('selectedTopics', 'name description')
       .sort({ createdAt: -1 });
 
     res.json(bookings);
@@ -1140,7 +1141,8 @@ export const updateBookingStatus = async (req, res) => {
     
     const updatedBooking = await Booking.findById(req.params.id)
       .populate('student', 'name email profileImage')
-      .populate('subject', 'name category');
+      .populate('subject', 'name category')
+      .populate('selectedTopics', 'name description');
     
     res.json(updatedBooking);
   } catch (error) {

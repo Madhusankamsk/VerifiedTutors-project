@@ -428,6 +428,7 @@ export const getAllBookings = async (req, res) => {
         populate: { path: 'user', select: 'name email profileImage' }
       })
       .populate('subject', 'name category')
+      .populate('selectedTopics', 'name description')
       .sort(sort)
       .skip((page - 1) * limit)
       .limit(limit);

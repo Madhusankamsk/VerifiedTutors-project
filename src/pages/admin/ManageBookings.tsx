@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
 import { toast } from 'react-hot-toast';
-import { Calendar, Clock, DollarSign, User, Book, Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, DollarSign, User, Book, Filter, Search, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
 
 const ManageBookings = () => {
   const [statusFilter, setStatusFilter] = useState('all');
@@ -203,6 +203,26 @@ const ManageBookings = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Selected Topics */}
+                {booking.selectedTopics && booking.selectedTopics.length > 0 && (
+                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Hash className="w-4 h-4 text-blue-600" />
+                      <p className="text-sm font-medium text-blue-800">Selected Topics</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {booking.selectedTopics.map((topic) => (
+                        <span 
+                          key={topic._id}
+                          className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full border border-blue-200"
+                        >
+                          {topic.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {booking.notes && (
                   <div className="mt-4 p-3 bg-gray-50 rounded-lg">
