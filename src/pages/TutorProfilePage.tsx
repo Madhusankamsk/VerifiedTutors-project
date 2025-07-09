@@ -212,28 +212,41 @@ const TutorProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
-        <LoadingSpinner size="large" />
+      <div className="min-h-screen bg-white relative overflow-hidden flex items-center justify-center">
+        {/* Floating Background Elements */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-sky-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+        
+        <div className="relative z-10">
+          <LoadingSpinner size="large" />
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-white rounded-xl shadow-lg border border-red-100 p-6">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <X className="h-6 w-6 text-red-600" />
+      <div className="min-h-screen bg-white relative overflow-hidden flex items-center justify-center">
+        {/* Floating Background Elements */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-red-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-pink-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        
+        <div className="relative z-10 px-4">
+          <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-red-100 p-6">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <X className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Profile</h3>
+              <p className="text-red-600 text-sm mb-4">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-red-600 text-white px-6 py-2.5 rounded-xl hover:bg-red-700 transition-colors font-medium"
+              >
+                Try Again
+              </button>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Profile</h3>
-            <p className="text-red-600 text-sm mb-4">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              Try Again
-            </button>
           </div>
         </div>
       </div>
@@ -242,20 +255,26 @@ const TutorProfilePage: React.FC = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <User className="h-6 w-6 text-gray-600" />
+      <div className="min-h-screen bg-white relative overflow-hidden flex items-center justify-center">
+        {/* Floating Background Elements */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gray-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-slate-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        
+        <div className="relative z-10 px-4">
+          <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 p-6">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <User className="h-6 w-6 text-gray-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Tutor Not Found</h3>
+              <p className="text-gray-600 text-sm mb-4">The tutor profile you're looking for doesn't exist.</p>
+              <button
+                onClick={() => navigate('/tutors')}
+                className="bg-blue-600 text-white px-6 py-2.5 rounded-xl hover:bg-blue-700 transition-colors font-medium"
+              >
+                Browse Tutors
+              </button>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Tutor Not Found</h3>
-            <p className="text-gray-600 text-sm mb-4">The tutor profile you're looking for doesn't exist.</p>
-            <button
-              onClick={() => navigate('/tutors')}
-              className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              Browse Tutors
-            </button>
           </div>
         </div>
       </div>
@@ -263,12 +282,19 @@ const TutorProfilePage: React.FC = () => {
   }
 
   return (
-    <>
-      <TutorProfileBackground>
+    <div className="min-h-screen bg-white relative overflow-hidden">
+      {/* Floating Background Elements */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-sky-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+      <div className="absolute top-1/2 left-0 w-64 h-64 bg-cyan-100 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-blob animation-delay-6000"></div>
+      <div className="absolute bottom-1/4 right-0 w-80 h-80 bg-blue-50 rounded-full mix-blend-multiply filter blur-3xl opacity-25 animate-blob animation-delay-8000"></div>
+
+      <div className="relative z-10">
         {/* Breadcrumb Navigation */}
         <TutorProfileBreadcrumb tutorName={profile.user.name} />
 
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 pb-6 sm:pb-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 pb-6 sm:pb-8 lg:pb-12">
           {/* Header Section */}
           <TutorProfileHeader profile={profile} onBookSession={handleBookSession} />
           
@@ -278,8 +304,8 @@ const TutorProfilePage: React.FC = () => {
             onTabChange={setActiveTab}
           />
 
-          {/* Main Content Area */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* Main Content Area - Mobile Responsive */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {/* Main Content Column */}
             <div className="lg:col-span-2 space-y-4 sm:space-y-6">
               {/* Tab Content */}
@@ -288,7 +314,7 @@ const TutorProfilePage: React.FC = () => {
               {activeTab === 'education' && <TutorProfileEducation profile={profile} />}
               {activeTab === 'experience' && <TutorProfileExperience profile={profile} />}
               {activeTab === 'reviews' && (
-                <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
                   <ReviewList
                     reviews={mappedReviews}
                     averageRating={profile.rating}
@@ -299,12 +325,14 @@ const TutorProfilePage: React.FC = () => {
             </div>
 
             {/* Sidebar */}
-            <TutorProfileSidebar profile={profile} />
+            <div className="order-first lg:order-last">
+              <TutorProfileSidebar profile={profile} />
+            </div>
           </div>
         </div>
-      </TutorProfileBackground>
+      </div>
 
-      {/* Booking Modal - Rendered outside TutorProfileBackground */}
+      {/* Booking Modal - Rendered outside main content */}
       {showBookingModal && profile && (
         <BookingModal
           isOpen={showBookingModal}
@@ -348,7 +376,7 @@ const TutorProfilePage: React.FC = () => {
           tutorName={profile!.user.name}
         />
       )}
-    </>
+    </div>
   );
 };
 

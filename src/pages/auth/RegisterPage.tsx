@@ -164,9 +164,9 @@ const RegisterPage: React.FC = () => {
           <div
             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
               currentStep > index + 1
-                ? 'bg-primary-600 text-white shadow-lg'
+                ? 'bg-blue-600 text-white shadow-lg'
                 : currentStep === index + 1
-                ? 'bg-primary-600 text-white shadow-lg ring-4 ring-primary-100'
+                ? 'bg-blue-600 text-white shadow-lg ring-4 ring-blue-100'
                 : 'bg-gray-100 text-gray-400'
             }`}
           >
@@ -181,7 +181,7 @@ const RegisterPage: React.FC = () => {
           {index < totalSteps - 1 && (
             <div
               className={`w-16 h-1 transition-all duration-300 ${
-                currentStep > index + 1 ? 'bg-primary-600' : 'bg-gray-200'
+                currentStep > index + 1 ? 'bg-blue-600' : 'bg-gray-200'
               }`}
             />
           )}
@@ -194,147 +194,161 @@ const RegisterPage: React.FC = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Full Name
-              </label>
-              <div className="relative rounded-xl shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="name"
-                  type="text"
-                  autoComplete="name"
-                  {...register('name')}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                  placeholder="John Doe"
-                />
-              </div>
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600 animate-fade-in">{errors.name.message}</p>
-              )}
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Personal Information</h3>
+              <p className="text-sm text-gray-600">Let's start with your basic details</p>
             </div>
             
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email address
-              </label>
-              <div className="relative rounded-xl shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                  Full Name
+                </label>
+                <div className="relative rounded-xl shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="name"
+                    type="text"
+                    autoComplete="name"
+                    {...register('name')}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
+                    placeholder="John Doe"
+                  />
                 </div>
-                <input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  {...register('email')}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                  placeholder="you@example.com"
-                />
+                {errors.name && (
+                  <p className="mt-2 text-sm text-red-600 animate-fade-in">{errors.name.message}</p>
+                )}
               </div>
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600 animate-fade-in">{errors.email.message}</p>
-              )}
+              
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email address
+                </label>
+                <div className="relative rounded-xl shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    {...register('email')}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
+                    placeholder="you@example.com"
+                  />
+                </div>
+                {errors.email && (
+                  <p className="mt-2 text-sm text-red-600 animate-fade-in">{errors.email.message}</p>
+                )}
+              </div>
             </div>
           </div>
         );
       case 2:
         return (
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
-              <div className="relative rounded-xl shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="password"
-                  type="password"
-                  autoComplete="new-password"
-                  {...register('password')}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                  placeholder="••••••••"
-                />
-              </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600 animate-fade-in">{errors.password.message}</p>
-              )}
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Secure Your Account</h3>
+              <p className="text-sm text-gray-600">Create a strong password for your account</p>
             </div>
             
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                Confirm Password
-              </label>
-              <div className="relative rounded-xl shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
+                <div className="relative rounded-xl shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="password"
+                    type="password"
+                    autoComplete="new-password"
+                    {...register('password')}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
+                    placeholder="••••••••"
+                  />
                 </div>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  {...register('confirmPassword')}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                  placeholder="••••••••"
-                />
+                {errors.password && (
+                  <p className="mt-2 text-sm text-red-600 animate-fade-in">{errors.password.message}</p>
+                )}
               </div>
-              {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600 animate-fade-in">{errors.confirmPassword.message}</p>
-              )}
+              
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                  Confirm Password
+                </label>
+                <div className="relative rounded-xl shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    {...register('confirmPassword')}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
+                    placeholder="••••••••"
+                  />
+                </div>
+                {errors.confirmPassword && (
+                  <p className="mt-2 text-sm text-red-600 animate-fade-in">{errors.confirmPassword.message}</p>
+                )}
+              </div>
             </div>
           </div>
         );
       case 3:
         return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                I want to join as
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <div 
-                  className={`border-2 rounded-xl p-6 cursor-pointer text-center transition-all duration-300 hover:shadow-lg ${
-                    selectedRole === 'student' 
-                      ? 'border-primary-500 bg-primary-50 shadow-md' 
-                      : 'border-gray-200 hover:border-primary-200 hover:bg-gray-50'
-                  }`}
-                  onClick={() => setValue('role', 'student')}
-                >
-                  <input 
-                    type="radio" 
-                    id="role-student" 
-                    value="student" 
-                    {...register('role')} 
-                    className="sr-only"
-                  />
-                  <BookOpen className="w-8 h-8 mx-auto mb-3 text-primary-600" />
-                  <span className="block font-medium text-gray-900 text-lg">Student</span>
-                  <span className="text-sm text-gray-500 mt-1">Looking for tutors</span>
-                </div>
-                
-                <div 
-                  className={`border-2 rounded-xl p-6 cursor-pointer text-center transition-all duration-300 hover:shadow-lg ${
-                    selectedRole === 'tutor' 
-                      ? 'border-primary-500 bg-primary-50 shadow-md' 
-                      : 'border-gray-200 hover:border-primary-200 hover:bg-gray-50'
-                  }`}
-                  onClick={() => setValue('role', 'tutor')}
-                >
-                  <input 
-                    type="radio" 
-                    id="role-tutor" 
-                    value="tutor" 
-                    {...register('role')} 
-                    className="sr-only"
-                  />
-                  <GraduationCap className="w-8 h-8 mx-auto mb-3 text-primary-600" />
-                  <span className="block font-medium text-gray-900 text-lg">Tutor</span>
-                  <span className="text-sm text-gray-500 mt-1">Offer tutoring services</span>
-                </div>
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Choose Your Role</h3>
+              <p className="text-sm text-gray-600">Select how you'd like to use VerifiedTutors</p>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div 
+                className={`border-2 rounded-xl p-6 cursor-pointer text-center transition-all duration-300 hover:shadow-lg backdrop-blur-sm ${
+                  selectedRole === 'student' 
+                    ? 'border-blue-500 bg-blue-50/80 shadow-md ring-2 ring-blue-200' 
+                    : 'border-gray-200 hover:border-blue-200 hover:bg-gray-50/80'
+                }`}
+                onClick={() => setValue('role', 'student')}
+              >
+                <input 
+                  type="radio" 
+                  id="role-student" 
+                  value="student" 
+                  {...register('role')} 
+                  className="sr-only"
+                />
+                <BookOpen className="w-10 h-10 mx-auto mb-4 text-blue-600" />
+                <span className="block font-semibold text-gray-900 text-lg mb-1">Student</span>
+                <span className="text-sm text-gray-500">Looking for qualified tutors</span>
+              </div>
+              
+              <div 
+                className={`border-2 rounded-xl p-6 cursor-pointer text-center transition-all duration-300 hover:shadow-lg backdrop-blur-sm ${
+                  selectedRole === 'tutor' 
+                    ? 'border-blue-500 bg-blue-50/80 shadow-md ring-2 ring-blue-200' 
+                    : 'border-gray-200 hover:border-blue-200 hover:bg-gray-50/80'
+                }`}
+                onClick={() => setValue('role', 'tutor')}
+              >
+                <input 
+                  type="radio" 
+                  id="role-tutor" 
+                  value="tutor" 
+                  {...register('role')} 
+                  className="sr-only"
+                />
+                <GraduationCap className="w-10 h-10 mx-auto mb-4 text-blue-600" />
+                <span className="block font-semibold text-gray-900 text-lg mb-1">Tutor</span>
+                <span className="text-sm text-gray-500">Offer tutoring services</span>
               </div>
             </div>
           </div>
@@ -345,117 +359,140 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden py-8">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
       
       {/* Decorative Elements */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-primary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-      <div className="absolute top-0 right-0 w-96 h-96 bg-secondary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-sky-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
 
-      <div className="max-w-md w-full space-y-8 relative">
-        <div className="text-center">
-          <h2 className="mt-6 text-4xl font-extrabold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent tracking-tight">
+      <div className="max-w-lg w-full relative z-10 px-4">
+        {/* Header Section */}
+        <div className="text-center mb-8">
+          <h2 className="text-4xl font-extrabold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent tracking-tight mb-3">
             Create your account
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="text-sm text-gray-600">
             Already have an account?{' '}
-            <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500 transition-colors duration-200">
+            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
               Sign in
             </Link>
           </p>
         </div>
         
+        {/* Error Message */}
         {error && (
-          <div className="bg-red-50/80 backdrop-blur-sm p-4 rounded-xl flex items-start border border-red-200 shadow-sm animate-fade-in">
+          <div className="bg-red-50/80 backdrop-blur-sm p-4 rounded-xl flex items-start border border-red-200 shadow-sm animate-fade-in mb-6">
             <AlertCircle className="h-5 w-5 text-red-400 mr-3 mt-0.5 flex-shrink-0" />
             <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
         
-        <div className="space-y-4">
+        {/* Social Login Section */}
+        <div className="mb-6">
           <button
             onClick={() => handleSocialLogin('google')}
             disabled={isSubmitting}
-            className="w-full flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 hover:shadow-md transform hover:-translate-y-0.5"
+            className="w-full flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl shadow-sm bg-white/80 backdrop-blur-sm text-sm font-medium text-gray-700 hover:bg-gray-50/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 hover:shadow-md transform hover:-translate-y-0.5"
           >
             <Chrome className="h-5 w-5 mr-2 text-red-500" />
             Continue with Google
           </button>
         </div>
         
-        <div className="relative">
+        {/* Divider */}
+        <div className="relative mb-8">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-500">
+            <span className="px-4 bg-white text-gray-500">
               Or continue with email
             </span>
           </div>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          {renderStepIndicator()}
-          {renderStepContent()}
-
-          <div className="flex justify-between pt-4">
-            {currentStep > 1 && (
-              <button
-                type="button"
-                onClick={prevStep}
-                className="flex items-center px-4 py-2.5 border border-gray-200 rounded-xl shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 hover:shadow-md transform hover:-translate-y-0.5"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </button>
-            )}
+        {/* Main Form Container */}
+        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            {/* Step Indicator */}
+            <div className="mb-8">
+              {renderStepIndicator()}
+            </div>
             
-            {currentStep < totalSteps ? (
-              <button
-                type="button"
-                onClick={nextStep}
-                className="ml-auto flex items-center px-6 py-2.5 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg"
-              >
-                Next
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="ml-auto flex items-center px-6 py-2.5 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed transform hover:-translate-y-0.5 hover:shadow-lg"
-              >
-                {isSubmitting ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Creating Account...
-                  </span>
-                ) : (
-                  <span className="flex items-center">
-                    Create Account
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </span>
-                )}
-              </button>
-            )}
-          </div>
-          
-          <p className="text-xs text-center text-gray-500">
-            By signing up, you agree to our{' '}
-            <Link to="/terms" className="text-primary-600 hover:text-primary-500 transition-colors duration-200">
-              Terms of Service
-            </Link>
-            {' '}and{' '}
-            <Link to="/privacy" className="text-primary-600 hover:text-primary-500 transition-colors duration-200">
-              Privacy Policy
-            </Link>
-          </p>
-        </form>
+            {/* Content Area with Fixed Height */}
+            <div className="min-h-[280px] flex flex-col justify-between">
+              {/* Step Content */}
+              <div className="flex-grow">
+                {renderStepContent()}
+              </div>
+              
+              {/* Navigation Buttons */}
+              <div className="flex justify-between items-center pt-8 mt-auto">
+                <div className="flex-1">
+                  {currentStep > 1 && (
+                    <button
+                      type="button"
+                      onClick={prevStep}
+                      className="flex items-center px-4 py-2.5 border border-gray-200 rounded-xl shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 hover:shadow-md transform hover:-translate-y-0.5 backdrop-blur-sm"
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Back
+                    </button>
+                  )}
+                </div>
+                
+                <div className="flex-1 flex justify-end">
+                  {currentStep < totalSteps ? (
+                    <button
+                      type="button"
+                      onClick={nextStep}
+                      className="flex items-center px-6 py-2.5 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg"
+                    >
+                      Next
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="flex items-center px-6 py-2.5 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed transform hover:-translate-y-0.5 hover:shadow-lg"
+                    >
+                      {isSubmitting ? (
+                        <span className="flex items-center">
+                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Creating Account...
+                        </span>
+                      ) : (
+                        <span className="flex items-center">
+                          Create Account
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </span>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        
+        {/* Footer Text */}
+        <p className="text-xs text-center text-gray-500 mt-6">
+          By signing up, you agree to our{' '}
+          <Link to="/terms" className="text-blue-600 hover:text-blue-500 transition-colors duration-200">
+            Terms of Service
+          </Link>
+          {' '}and{' '}
+          <Link to="/privacy" className="text-blue-600 hover:text-blue-500 transition-colors duration-200">
+            Privacy Policy
+          </Link>
+        </p>
       </div>
     </div>
   );

@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useSubjects } from '../../contexts/SubjectContext';
 import TeachingModeFilter from './TeachingModeFilter';
 import LocationFilter from './LocationFilter';
-import { X, Filter } from 'lucide-react';
+import { X, Filter, ChevronDown } from 'lucide-react';
 
 export interface SimplifiedFilterState {
   teachingMode: string;
   location: string;
+  selectedSubject: string;
+  selectedTopic: string;
   extraFilters: {
     minRating: number;
     priceRange: [number, number];
@@ -23,6 +26,8 @@ interface SimplifiedTutorFiltersProps {
 const initialFilterState: SimplifiedFilterState = {
   teachingMode: '',
   location: '',
+  selectedSubject: '',
+  selectedTopic: '',
   extraFilters: {
     minRating: 0,
     priceRange: [0, 1000],
@@ -35,8 +40,61 @@ const SimplifiedTutorFilters: React.FC<SimplifiedTutorFiltersProps> = ({
   urlSubject, 
   urlTopic 
 }) => {
+  const { subjects, topics, fetchTopics, getTopicsBySubject } = useSubjects();
   const [filters, setFilters] = useState<SimplifiedFilterState>(initialFilterState);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [availableTopics, setAvailableTopics] = useState<any[]>([]);
+
+  // Fetch topics when subject changes
+  useEffect(() => {
+    if (filters.selectedSubject) {
+      fetchTopics(filters.selectedSubject);
+    } else {
+      setAvailableTopics([]);
+    }
+  }, [filters.selectedSubject, fetchTopics]);
+
+  // Update available topics when topics change
+  useEffect(() => {
+    if (filters.selectedSubject) {
+      const subjectTopics = getTopicsBySubject(filters.selectedSubject);
+      setAvailableTopics(subjectTopics);
+    } else {
+      setAvailableTopics([]);
+    }
+  }, [topics, filters.selectedSubject, getTopicsBySubject]);
+
+  // Clear topic when subject changes
+  useEffect(() => {
+    if (filters.selectedSubject) {
+      // Only clear topic if it's not compatible with the new subject
+      const subjectTopics = getTopicsBySubject(filters.selectedSubject);
+      const topicExists = subjectTopics.some(topic => topic._id === filters.selectedTopic);
+      if (!topicExists && filters.selectedTopic) {
+        const newFilters = { ...filters, selectedTopic: '' };
+        setFilters(newFilters);
+        onFilterChange(newFilters);
+      }
+    } else {
+      if (filters.selectedTopic) {
+        const newFilters = { ...filters, selectedTopic: '' };
+        setFilters(newFilters);
+        onFilterChange(newFilters);
+      }
+    }
+  }, [filters.selectedSubject]);
+
+  const handleSubjectSelect = (subjectId: string) => {
+    const newFilters = { ...filters, selectedSubject: subjectId, selectedTopic: '' };
+    setFilters(newFilters);
+    onFilterChange(newFilters);
+  };
+
+  const handleTopicSelect = (topicId: string) => {
+    const newFilters = { ...filters, selectedTopic: topicId };
+    setFilters(newFilters);
+    onFilterChange(newFilters);
+  };
 
   const handleTeachingModeSelect = (mode: string) => {
     const newMode = mode || '';
@@ -74,6 +132,28 @@ const SimplifiedTutorFilters: React.FC<SimplifiedTutorFiltersProps> = ({
   const renderFilterTags = () => {
     const tags = [];
 
+    if (filters.selectedSubject) {
+      const subject = subjects.find(s => s._id === filters.selectedSubject);
+      if (subject) {
+        tags.push({
+          key: 'subject',
+          label: `Subject: ${subject.name}`,
+          onRemove: () => handleSubjectSelect('')
+        });
+      }
+    }
+
+    if (filters.selectedTopic) {
+      const topic = availableTopics.find(t => t._id === filters.selectedTopic);
+      if (topic) {
+        tags.push({
+          key: 'topic',
+          label: `Topic: ${topic.name}`,
+          onRemove: () => handleTopicSelect('')
+        });
+      }
+    }
+
     if (filters.extraFilters.femaleOnly) {
       tags.push({
         key: 'gender',
@@ -107,7 +187,11 @@ const SimplifiedTutorFilters: React.FC<SimplifiedTutorFiltersProps> = ({
   const hasActiveFilters = 
     filters.teachingMode || 
     filters.location || 
+    filters.selectedSubject ||
+    filters.selectedTopic ||
     filters.extraFilters.femaleOnly;
+
+  const hasNoUrlFilters = !urlSubject && !urlTopic;
 
   const teachingModes = [
     { value: 'ONLINE', label: 'Online' },
@@ -141,6 +225,63 @@ const SimplifiedTutorFilters: React.FC<SimplifiedTutorFiltersProps> = ({
                   <span>Topic: {urlTopic}</span>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Subject and Topic Dropdowns - Show when no URL filters or when active filters exist */}
+        {(hasNoUrlFilters || hasActiveFilters) && (
+          <div className="mb-4 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between mb-2.5">
+              <h3 className="text-xs font-medium text-gray-700">Select Subject & Topic</h3>
+              {hasActiveFilters && (
+                <button
+                  onClick={handleClearAll}
+                  className="text-xs text-red-600 hover:text-red-700 font-medium transition-colors px-2 py-1 rounded hover:bg-red-50"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Subject Dropdown */}
+              <div className="relative">
+                <select
+                  value={filters.selectedSubject}
+                  onChange={(e) => handleSubjectSelect(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+                >
+                  <option value="">Select Subject</option>
+                  {subjects.map((subject) => (
+                    <option key={subject._id} value={subject._id}>
+                      {subject.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              </div>
+
+              {/* Topic Dropdown */}
+              <div className="relative">
+                <select
+                  value={filters.selectedTopic}
+                  onChange={(e) => handleTopicSelect(e.target.value)}
+                  disabled={!filters.selectedSubject || availableTopics.length === 0}
+                  className={`w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none ${
+                    !filters.selectedSubject || availableTopics.length === 0
+                      ? 'cursor-not-allowed bg-gray-50 text-gray-400'
+                      : 'cursor-pointer'
+                  }`}
+                >
+                  <option value="">Select Topic</option>
+                  {availableTopics.map((topic) => (
+                    <option key={topic._id} value={topic._id}>
+                      {topic.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              </div>
             </div>
           </div>
         )}
@@ -274,6 +415,52 @@ const SimplifiedTutorFilters: React.FC<SimplifiedTutorFiltersProps> = ({
                         <span>Topic: {urlTopic}</span>
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* Subject and Topic Dropdowns - Mobile */}
+              {(hasNoUrlFilters || hasActiveFilters) && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-gray-700">Select Subject & Topic</h3>
+                  
+                  {/* Subject Dropdown */}
+                  <div className="relative">
+                    <select
+                      value={filters.selectedSubject}
+                      onChange={(e) => handleSubjectSelect(e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+                    >
+                      <option value="">Select Subject</option>
+                      {subjects.map((subject) => (
+                        <option key={subject._id} value={subject._id}>
+                          {subject.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  </div>
+
+                  {/* Topic Dropdown */}
+                  <div className="relative">
+                    <select
+                      value={filters.selectedTopic}
+                      onChange={(e) => handleTopicSelect(e.target.value)}
+                      disabled={!filters.selectedSubject || availableTopics.length === 0}
+                      className={`w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none ${
+                        !filters.selectedSubject || availableTopics.length === 0
+                          ? 'cursor-not-allowed bg-gray-50 text-gray-400'
+                          : 'cursor-pointer'
+                      }`}
+                    >
+                      <option value="">Select Topic</option>
+                      {availableTopics.map((topic) => (
+                        <option key={topic._id} value={topic._id}>
+                          {topic.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                   </div>
                 </div>
               )}

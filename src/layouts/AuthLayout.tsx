@@ -10,24 +10,26 @@ const AuthLayout: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       
-      <div className="flex-grow flex items-center justify-center pt-20 pb-16 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="sm:mx-auto sm:w-full sm:max-w-md mb-8">
-            <Link to="/" className="flex justify-center">
-              <img
-                className="h-12 w-auto"
-                src={logo}
-                alt="VerifiedTutors"
-              />
-            </Link>
-          </div>
+      {/* Main content area that takes full height */}
+      <div className="flex-grow relative">
+        {/* Logo positioned absolutely */}
+        <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
+          <Link to="/" className="flex justify-center">
+            <img
+              className="h-12 w-auto"
+              src={logo}
+              alt="VerifiedTutors"
+            />
+          </Link>
+        </div>
 
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            <Outlet />
-          </div>
+        {/* Login form content */}
+        <div className="pt-24">
+          <Outlet />
         </div>
       </div>
       
+      {/* Footer positioned to show only when scrolling */}
       <Footer />
     </div>
   );

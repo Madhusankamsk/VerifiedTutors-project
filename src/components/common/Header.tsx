@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import NotificationItem from './NotificationItem';
-import { ChevronDown, User, LogOut, Bell, Menu, X, ChevronRight, Home } from 'lucide-react';
+import { ChevronDown, User, LogOut, Bell, Menu, X, ChevronRight, Home, Sparkles } from 'lucide-react';
 import logo from '../../assets/logo.png';
 
 interface HeaderProps {
@@ -111,8 +111,11 @@ const Header: React.FC<HeaderProps> = ({
   const isDashboardLayout = !!onToggleSidebar; // Dashboard layout when sidebar toggle is provided
 
   return (
-    <header className="bg-white/95 backdrop-blur-md shadow-sm fixed w-full top-0 z-50 border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="bg-white/80 backdrop-blur-xl shadow-soft border-b border-gray-100/50 fixed w-full top-0 z-50">
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-transparent to-blue-50/30 pointer-events-none"></div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="flex justify-between h-16">
           {/* Logo and Breadcrumb/Title Section */}
           <div className="flex items-center space-x-4">
@@ -120,7 +123,7 @@ const Header: React.FC<HeaderProps> = ({
             {isDashboardLayout && (
               <button
                 onClick={onToggleSidebar}
-                className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors lg:hidden"
+                className="p-2.5 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 transition-all duration-300 lg:hidden border border-transparent hover:border-blue-200/50"
               >
                 {isSidebarOpen ? (
                   <X className="h-5 w-5" />
@@ -135,54 +138,21 @@ const Header: React.FC<HeaderProps> = ({
               <img 
                 src={logo} 
                 alt="VerifiedTutors Logo" 
-                className={`${isDashboardLayout ? 'h-10' : 'h-12'} w-auto transition-all duration-300 hover:opacity-90`}
+                className={`${isDashboardLayout ? 'h-10' : 'h-12'} w-auto transition-all duration-300 hover:opacity-90 filter drop-shadow-sm`}
               />
             </Link>
-
-            {/* Breadcrumb for dashboard pages or custom title */}
-            {/* {isDashboardPage && (
-              <div className="hidden md:flex items-center space-x-2 text-sm">
-                <div className="h-6 w-px bg-gray-300"></div>
-                {dashboardTitle ? (
-                  // Custom dashboard title
-                  <div>
-                    <p className="text-sm text-gray-500 capitalize">{user?.role} Dashboard</p>
-                    <h1 className="text-lg font-semibold text-gray-900">{dashboardTitle}</h1>
-                  </div>
-                ) : (
-                  // Breadcrumb navigation
-                  <>
-                    <ChevronRight className="h-4 w-4 text-gray-400" />
-                    <Link 
-                      to={getDashboardLink()} 
-                      className="text-gray-500 hover:text-gray-700 transition-colors"
-                    >
-                      {breadcrumb?.role}
-                    </Link>
-                    <ChevronRight className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-900 font-medium">{breadcrumb?.page}</span>
-                  </>
-                )}
-              </div>
-            )} */}
           </div>
 
           {/* Right Section - Navigation and Profile */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-4">
             {/* Public Navigation for non-dashboard pages */}
             {!isDashboardPage && (
-              <nav className="flex items-center space-x-6">
+              <nav className="flex items-center space-x-2">
                 <Link 
                   to="/tutors" 
-                  className="text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors"
+                  className="text-gray-600 hover:text-blue-600 px-4 py-2.5 text-sm font-medium transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 border border-transparent hover:border-blue-200/50"
                 >
                   Find Tutors
-                </Link>
-                <Link 
-                  to="/courses" 
-                  className="text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors"
-                >
-                  Courses
                 </Link>
               </nav>
             )}
@@ -193,9 +163,9 @@ const Header: React.FC<HeaderProps> = ({
                 {isDashboardPage && (
                   <Link
                     to="/"
-                    className="text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors flex items-center"
+                    className="text-gray-600 hover:text-blue-600 px-4 py-2.5 text-sm font-medium transition-all duration-300 flex items-center rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 border border-transparent hover:border-blue-200/50"
                   >
-                    <Home className="h-4 w-4 mr-1" />
+                    <Home className="h-4 w-4 mr-2" />
                     Home
                   </Link>
                 )}
@@ -204,28 +174,35 @@ const Header: React.FC<HeaderProps> = ({
                 <div className="relative" ref={notificationsRef}>
                   <button
                     onClick={toggleNotifications}
-                    className="relative p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-200"
+                    className="relative p-2.5 text-gray-500 hover:text-blue-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 rounded-xl transition-all duration-300 border border-transparent hover:border-blue-200/50"
                   >
                     <Bell className="h-5 w-5" />
                     {unreadCount > 0 && (
-                      <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
+                      <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center text-xs font-bold text-white animate-pulse shadow-lg">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
                     )}
                   </button>
 
                   {/* Notifications Dropdown */}
                   {isNotificationsOpen && (
-                    <div className="origin-top-right absolute right-0 mt-3 w-80 rounded-2xl shadow-xl bg-white ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-100 z-[60]">
+                    <div className="origin-top-right absolute right-0 mt-3 w-80 rounded-2xl shadow-xl bg-white/95 backdrop-blur-xl ring-1 ring-black/5 focus:outline-none border border-gray-200/50 z-[60]">
                       <div className="p-1">
                         {/* Header */}
-                        <div className="px-4 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white rounded-t-2xl">
+                        <div className="px-4 py-4 border-b border-gray-100/50 bg-gradient-to-r from-blue-50/50 to-blue-100/50 rounded-t-2xl">
                           <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
+                            <div className="flex items-center gap-2">
+                              <div className="p-1.5 bg-blue-100 rounded-lg">
+                                <Bell className="h-4 w-4 text-blue-600" />
+                              </div>
+                              <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
+                            </div>
                             {notifications.length > 0 && (
                               <button 
                                 onClick={markAllAsRead}
-                                className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                                className="text-xs text-blue-600 hover:text-blue-700 font-medium px-3 py-1 rounded-full hover:bg-blue-50 transition-all duration-200"
                               >
-                                Mark all as read
+                                Mark all read
                               </button>
                             )}
                           </div>
@@ -245,8 +222,8 @@ const Header: React.FC<HeaderProps> = ({
                               ))}
                             </div>
                           ) : (
-                            <div className="px-4 py-6 text-center">
-                              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
+                            <div className="px-4 py-8 text-center">
+                              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
                                 <Bell className="h-6 w-6 text-gray-400" />
                               </div>
                               <p className="text-sm font-medium text-gray-900 mb-1">No new notifications</p>
@@ -256,12 +233,13 @@ const Header: React.FC<HeaderProps> = ({
                         </div>
 
                         {/* Footer */}
-                        <div className="px-4 py-3 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
+                        <div className="px-4 py-3 border-t border-gray-100/50 bg-gradient-to-r from-blue-50/50 to-blue-100/50 rounded-b-2xl">
                           <Link 
                             to="/notifications" 
-                            className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                            className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 hover:gap-2 transition-all duration-200"
                           >
-                            View all notifications →
+                            View all notifications 
+                            <ChevronRight className="h-3 w-3" />
                           </Link>
                         </div>
                       </div>
@@ -273,19 +251,19 @@ const Header: React.FC<HeaderProps> = ({
                 <div className="relative" ref={profileMenuRef}>
                   <button
                     onClick={toggleProfileMenu}
-                    className="flex items-center space-x-3 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 p-2 hover:bg-gray-50 transition-all duration-200"
+                    className="flex items-center space-x-3 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 p-2.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 transition-all duration-300 border border-transparent hover:border-blue-200/50"
                   >
                     {user?.profileImage ? (
                       <img
-                        className="h-8 w-8 rounded-lg object-cover border border-gray-200 shadow-sm"
+                        className="h-8 w-8 rounded-lg object-cover border-2 border-white shadow-soft"
                         src={user.profileImage}
                         alt={user.name}
                       />
-                    ) : (
-                      <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center border border-primary-200 shadow-sm">
-                        <User className="h-4 w-4 text-white" />
-                      </div>
-                    )}
+                                          ) : (
+                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center border-2 border-white shadow-soft">
+                          <User className="h-4 w-4 text-white" />
+                        </div>
+                      )}
                     <div className="text-left hidden sm:block">
                       <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
                       <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
@@ -297,27 +275,28 @@ const Header: React.FC<HeaderProps> = ({
 
                   {/* Profile Menu Dropdown */}
                   {isProfileMenuOpen && (
-                    <div className="origin-top-right absolute right-0 mt-3 w-72 rounded-2xl shadow-xl bg-white ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-100 z-[60]">
+                    <div className="origin-top-right absolute right-0 mt-3 w-72 rounded-2xl shadow-xl bg-white/95 backdrop-blur-xl ring-1 ring-black/5 focus:outline-none border border-gray-200/50 z-[60]">
                       <div className="p-1">
                         {/* User Info Section */}
-                        <div className="px-4 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white rounded-t-2xl">
+                        <div className="px-4 py-4 border-b border-gray-100/50 bg-gradient-to-r from-blue-50/50 to-blue-100/50 rounded-t-2xl">
                           <div className="flex items-center space-x-3">
                             {user?.profileImage ? (
                               <img
-                                className="h-12 w-12 rounded-xl object-cover border-2 border-white shadow-md"
+                                className="h-12 w-12 rounded-xl object-cover border-2 border-white shadow-soft"
                                 src={user.profileImage}
                                 alt={user.name}
                               />
-                            ) : (
-                              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center border-2 border-white shadow-md">
-                                <User className="h-6 w-6 text-white" />
-                              </div>
-                            )}
+                                                          ) : (
+                                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center border-2 border-white shadow-soft">
+                                  <User className="h-6 w-6 text-white" />
+                                </div>
+                              )}
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-bold text-gray-900 truncate">{user?.name}</p>
                               <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                               <div className="mt-1">
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800 capitalize">
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 capitalize border border-blue-200/50">
+                                  <Sparkles className="h-3 w-3 mr-1" />
                                   {user?.role}
                                 </span>
                               </div>
@@ -329,11 +308,11 @@ const Header: React.FC<HeaderProps> = ({
                         <div className="py-2">
                           <Link
                             to={getDashboardLink()}
-                            className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition-all duration-150 rounded-lg mx-1"
+                            className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:text-blue-700 transition-all duration-200 rounded-xl mx-1 border border-transparent hover:border-blue-200/50"
                             onClick={() => setIsProfileMenuOpen(false)}
                           >
-                            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-100 mr-3">
-                              <User className="h-4 w-4 text-primary-600" />
+                            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 mr-3">
+                              <User className="h-4 w-4 text-blue-600" />
                             </div>
                             <div>
                               <p className="font-medium">Dashboard</p>
@@ -341,13 +320,13 @@ const Header: React.FC<HeaderProps> = ({
                             </div>
                           </Link>
                           
-                          <div className="my-1 border-t border-gray-100"></div>
+                          <div className="my-1 border-t border-gray-100/50"></div>
                           
                           <button
                             onClick={handleLogout}
-                            className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 transition-all duration-150 rounded-lg mx-1"
+                            className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 hover:text-red-700 transition-all duration-200 rounded-xl mx-1 border border-transparent hover:border-red-200/50"
                           >
-                            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 mr-3">
+                                                          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-red-100 to-red-200 mr-3">
                               <LogOut className="h-4 w-4 text-red-600" />
                             </div>
                             <div>
@@ -362,16 +341,16 @@ const Header: React.FC<HeaderProps> = ({
                 </div>
               </>
             ) : (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
                 <Link
                   to="/login"
-                  className="text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors"
+                  className="text-gray-600 hover:text-blue-600 px-4 py-2.5 text-sm font-medium transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 border border-transparent hover:border-blue-200/50"
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 shadow-soft hover:shadow-lg transform hover:scale-105 border border-blue-500/20"
                 >
                   Sign Up
                 </Link>
@@ -384,7 +363,7 @@ const Header: React.FC<HeaderProps> = ({
             <div className="md:hidden">
               <button
                 onClick={toggleMobileMenu}
-                className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="p-2.5 rounded-xl text-gray-400 hover:text-gray-500 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 border border-transparent hover:border-blue-200/50"
               >
                 {isMobileMenuOpen ? (
                   <X className="h-6 w-6" />
@@ -399,35 +378,28 @@ const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile menu for non-dashboard pages */}
       {!isDashboardLayout && isMobileMenuOpen && (
-        <div ref={mobileMenuRef} className="md:hidden bg-white border-t border-gray-200">
+        <div ref={mobileMenuRef} className="md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-200/50 shadow-soft">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <Link
               to="/tutors"
-              className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-md"
+              className="block px-4 py-3 text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 rounded-xl transition-all duration-200 border border-transparent hover:border-blue-200/50"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Find Tutors
-            </Link>
-            <Link
-              to="/courses"
-              className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-md"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Courses
             </Link>
             
             {isAuthenticated ? (
               <>
                 <Link
                   to={getDashboardLink()}
-                  className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-md"
+                  className="block px-4 py-3 text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 rounded-xl transition-all duration-200 border border-transparent hover:border-blue-200/50"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Dashboard
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-3 py-2 text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-md"
+                  className="block w-full text-left px-4 py-3 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 rounded-xl transition-all duration-200 border border-transparent hover:border-red-200/50"
                 >
                   Logout
                 </button>
@@ -436,14 +408,14 @@ const Header: React.FC<HeaderProps> = ({
               <>
                 <Link
                   to="/login"
-                  className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-md"
+                  className="block px-4 py-3 text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 rounded-xl transition-all duration-200 border border-transparent hover:border-blue-200/50"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="block px-3 py-2 text-base font-medium bg-primary-600 text-white hover:bg-primary-700 rounded-md"
+                  className="block px-4 py-3 text-base font-medium bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all duration-200 shadow-soft mx-2 text-center"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Sign Up
