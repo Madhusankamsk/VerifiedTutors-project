@@ -145,7 +145,12 @@ const StudentDashboard = () => {
             <div className="space-y-4">
               {bookings.length > 0 ? (
                 bookings.slice(0, 3).map((booking) => (
-                  <div key={booking._id} className="bg-gray-50/50 rounded-xl p-4 transition-all duration-200 hover:bg-gray-50">
+                  <Link
+                    to="/student/bookings"
+                    key={booking._id}
+                    className="block bg-gray-50/50 rounded-xl p-4 transition-all duration-200 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500/50 group cursor-pointer"
+                    tabIndex={0}
+                  >
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-gray-800 font-medium">
@@ -154,19 +159,20 @@ const StudentDashboard = () => {
                         <p className="text-sm text-gray-500 mt-1">
                           {formatDate(booking.createdAt)}
                         </p>
-                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-2 ${
-                          booking.status === 'completed' ? 'bg-green-100 text-green-800' : 
-                          booking.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
+                        <span
+                          className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-2 ${
+                            booking.status === 'completed'
+                              ? 'bg-green-100 text-green-800'
+                              : booking.status === 'confirmed'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}
+                        >
                           {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                         </span>
                       </div>
-                      <Link to="/student/bookings">
-                        <ChevronRight className="w-5 h-5 text-gray-400" />
-                      </Link>
                     </div>
-                  </div>
+                  </Link>
                 ))
               ) : (
                 <div className="text-center py-6">
