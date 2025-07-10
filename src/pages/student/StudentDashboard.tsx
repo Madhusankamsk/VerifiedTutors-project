@@ -74,9 +74,9 @@ const StudentDashboard = () => {
 
       <div className="container mx-auto px-4 relative">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+          {/* <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
             Student Dashboard
-          </h1>
+          </h1> */}
           {/* <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-500">Welcome back,</span>
             <div className="flex items-center space-x-3">
