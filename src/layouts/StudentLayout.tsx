@@ -35,12 +35,7 @@ const StudentLayout: React.FC = () => {
       name: 'Find Tutors', 
       icon: <Icon name="Search" className="h-6 w-6" />
     },
-    { 
-      path: '#', 
-      name: 'Logout', 
-      icon: <Icon name="LogOut" className="h-6 w-6" />,
-      onClick: handleLogout 
-    },
+    
   ];
 
   const currentPage = sidebarItems.find((item) => item.path === location.pathname)?.name || 'Student Dashboard';

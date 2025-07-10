@@ -130,9 +130,9 @@ const TutorBookings: React.FC = () => {
       <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
       
       <div className="relative max-w-7xl mx-auto">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-          My Bookings
-        </h1>
+        {/* <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+          My Bookingss
+        </h1> */}
 
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-md p-3 sm:p-4 mb-4 sm:mb-6 flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center">

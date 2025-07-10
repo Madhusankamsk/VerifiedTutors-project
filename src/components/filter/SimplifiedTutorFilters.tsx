@@ -202,6 +202,40 @@ const SimplifiedTutorFilters: React.FC<SimplifiedTutorFiltersProps> = ({
     <>
       {/* Desktop Filters - Compact Design */}
       <div className="hidden lg:block">
+
+         {/* Active Filter Tags */}
+         {hasActiveFilters && (
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+            {/* <div className="flex items-center justify-between mb-2.5">
+              <h3 className="text-xs font-medium text-gray-700">Active Filters</h3>
+              <button
+                onClick={handleClearAll}
+                className="text-xs text-red-600 hover:text-red-700 font-medium transition-colors px-2 py-1 rounded hover:bg-red-50"
+              >
+                Clear all
+              </button>
+            </div> */}
+            <div className="flex flex-wrap gap-1.5">
+              {renderFilterTags().map((tag) => (
+                <div
+                  key={tag.key}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white text-gray-700 rounded-full text-xs font-medium border border-gray-200 shadow-sm"
+                >
+                  <span>{tag.label}</span>
+                  {tag.canRemove && (
+                    <button
+                      onClick={tag.onRemove}
+                      className="hover:bg-gray-100 rounded-full p-0.5 transition-colors -mr-0.5"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
         {/* URL Parameters Display - Only show when URL parameters are present */}
         {(urlSubject || urlTopic) && (
           <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
@@ -286,38 +320,7 @@ const SimplifiedTutorFilters: React.FC<SimplifiedTutorFiltersProps> = ({
           </div>
         )}
 
-        {/* Active Filter Tags */}
-        {hasActiveFilters && (
-          <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
-            <div className="flex items-center justify-between mb-2.5">
-              <h3 className="text-xs font-medium text-gray-700">Active Filters</h3>
-              <button
-                onClick={handleClearAll}
-                className="text-xs text-red-600 hover:text-red-700 font-medium transition-colors px-2 py-1 rounded hover:bg-red-50"
-              >
-                Clear all
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {renderFilterTags().map((tag) => (
-                <div
-                  key={tag.key}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white text-gray-700 rounded-full text-xs font-medium border border-gray-200 shadow-sm"
-                >
-                  <span>{tag.label}</span>
-                  {tag.canRemove && (
-                    <button
-                      onClick={tag.onRemove}
-                      className="hover:bg-gray-100 rounded-full p-0.5 transition-colors -mr-0.5"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+       
 
         {/* Compact Filter Options */}
         <div className="flex flex-wrap gap-2 mb-5">

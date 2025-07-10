@@ -186,9 +186,9 @@ const StudentBookings = () => {
       <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
       
       <div className="relative">
-        <h1 className="text-3xl font-bold mb-8 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+        {/* <h1 className="text-3xl font-bold mb-8 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
           My Bookings
-        </h1>
+        </h1> */}
 
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-md p-4 mb-6 flex flex-wrap gap-4 items-center">
