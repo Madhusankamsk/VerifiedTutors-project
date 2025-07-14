@@ -939,10 +939,7 @@ export const TutorProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // Add filters only if they have values
       if (params.subject) queryParams.append('subject', params.subject);
       if (params.topic) queryParams.append('topic', params.topic);
-      if (params.rating && params.rating > 0) queryParams.append('minRating', params.rating.toString());
-      if (params.price) {
-        queryParams.append('priceRange', JSON.stringify([params.price.min, params.price.max]));
-      }
+
       if (params.location && params.location.trim() !== '') {
         queryParams.append('location', params.location.trim());
       }

@@ -23,12 +23,10 @@ import TutorLayout from './layouts/TutorLayout';
 import StudentLayout from './layouts/StudentLayout';
 
 // Public Pages
-import HomePage from './pages/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import TutorListingPage from './pages/TutorListingPage';
 import TutorProfilePage from './pages/TutorProfilePage';
-import SubjectTopicsPage from './pages/SubjectTopicsPage';
 import BlogListPage from './pages/BlogListPage';
 import BlogPostPage from './pages/BlogPostPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -81,7 +79,7 @@ const App = () => {
                       <Routes>
                         {/* Public Routes */}
                         <Route path="/" element={<MainLayout />}>
-                          <Route index element={<HomePage />} />
+                          <Route index element={<TutorListingPage />} />
                           <Route path="login" element={
                             <PublicRoute>
                               <LoginPage />
@@ -94,7 +92,6 @@ const App = () => {
                           } />
                           <Route path="tutors" element={<TutorListingPage />} />
                           <Route path="tutors/:id" element={<TutorProfilePage />} />
-                          <Route path="subjects/:subjectId" element={<SubjectTopicsPage />} />
                           <Route path="notifications" element={<NotificationsPage />} />
                           {/* <Route path="courses" element={<CoursesPage />} />
                           <Route path="blogs" element={<BlogListPage />} />

@@ -145,17 +145,6 @@ const Header: React.FC<HeaderProps> = ({
 
           {/* Right Section - Navigation and Profile */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Public Navigation for non-dashboard pages */}
-            {!isDashboardPage && (
-              <nav className="flex items-center space-x-2">
-                <Link 
-                  to="/tutors" 
-                  className="text-gray-600 hover:text-blue-600 px-4 py-2.5 text-sm font-medium transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 border border-transparent hover:border-blue-200/50"
-                >
-                  Find Tutors
-                </Link>
-              </nav>
-            )}
 
             {isAuthenticated ? (
               <>
@@ -380,13 +369,6 @@ const Header: React.FC<HeaderProps> = ({
       {!isDashboardLayout && isMobileMenuOpen && (
         <div ref={mobileMenuRef} className="md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-200/50 shadow-soft">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <Link
-              to="/tutors"
-              className="block px-4 py-3 text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 rounded-xl transition-all duration-200 border border-transparent hover:border-blue-200/50"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Find Tutors
-            </Link>
             
             {isAuthenticated ? (
               <>

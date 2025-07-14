@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { getSubjects } from '../services/api';
 import { Subject, Topic } from './AdminContext';
 import { API_URL } from '../config/constants';
@@ -22,7 +22,7 @@ export const SubjectProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSubjects = async (params?: any) => {
+  const fetchSubjects = useCallback(async (params?: any) => {
     try {
       setLoading(true);
       setError(null);
@@ -34,9 +34,9 @@ export const SubjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchTopics = async (subjectId?: string) => {
+  const fetchTopics = useCallback(async (subjectId?: string) => {
     try {
       setLoading(true);
       setError(null);
@@ -51,15 +51,15 @@ export const SubjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const getTopicsBySubject = (subjectId: string): Topic[] => {
+  const getTopicsBySubject = useCallback((subjectId: string): Topic[] => {
     return topics.filter(topic => 
       typeof topic.subject === 'string' 
         ? topic.subject === subjectId 
         : topic.subject._id === subjectId
     );
-  };
+  }, [topics]);
 
   useEffect(() => {
     fetchSubjects();

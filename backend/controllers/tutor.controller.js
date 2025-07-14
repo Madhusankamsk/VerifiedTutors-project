@@ -200,64 +200,39 @@ export const getTutors = async (req, res) => {
     // Filter by teaching mode and rates
     const teachingModeConditions = [];
     if (teachingMode) {
+      console.log('Teaching mode filter received:', teachingMode);
       if (teachingMode === 'ONLINE') {
+        console.log('Applying ONLINE filter');
         teachingModeConditions.push(
           { 'subjects.teachingModes': { $elemMatch: { type: 'online', enabled: true, rate: { $gt: 0 } } } },
-          { 'subjects.rates.online': { $gt: 0 } } // Legacy support
+          { 'subjects.rates.online': { $gt: 0 } }, // Legacy support
+          { 'subjects.rates.online': { $exists: true, $ne: null } } // Check if online rate exists
         );
       } else if (teachingMode === 'INDIVIDUAL') {
+        console.log('Applying INDIVIDUAL filter');
         teachingModeConditions.push(
           { 'subjects.teachingModes': { $elemMatch: { type: 'home-visit', enabled: true, rate: { $gt: 0 } } } },
-          { 'subjects.rates.individual': { $gt: 0 } } // Legacy support
+          { 'subjects.rates.individual': { $gt: 0 } }, // Legacy support
+          { 'subjects.rates.individual': { $exists: true, $ne: null } } // Check if individual rate exists
         );
       }
+      console.log('Teaching mode conditions:', teachingModeConditions);
     }
 
     // Combine teaching mode conditions with existing query
     if (teachingModeConditions.length > 0) {
+      console.log('Adding teaching mode conditions to query');
       if (Object.keys(query).length > 0) {
         query.$and = query.$and || [];
         query.$and.push({ $or: teachingModeConditions });
+        console.log('Added to $and array');
       } else {
         query.$or = teachingModeConditions;
+        console.log('Set as $or query');
       }
     }
 
-    // Filter by price range
-    if (priceRange) {
-      try {
-        const [minPrice, maxPrice] = JSON.parse(priceRange);
-        const priceConditions = [];
-        
-        if (minPrice > 0) {
-          priceConditions.push(
-            { 'subjects.teachingModes': { $elemMatch: { enabled: true, rate: { $gte: minPrice } } } },
-            { 'subjects.rates.online': { $gte: minPrice } }, // Legacy support
-            { 'subjects.rates.individual': { $gte: minPrice } } // Legacy support
-          );
-        }
-        
-        if (maxPrice < 10000) {
-          priceConditions.push(
-            { 'subjects.teachingModes': { $elemMatch: { enabled: true, rate: { $lte: maxPrice } } } },
-            { 'subjects.rates.online': { $lte: maxPrice } }, // Legacy support
-            { 'subjects.rates.individual': { $lte: maxPrice } } // Legacy support
-          );
-        }
-        
-        if (priceConditions.length > 0) {
-          if (Object.keys(query).length > 0) {
-            query.$and = query.$and || [];
-            query.$and.push({ $or: priceConditions });
-          } else {
-            query.$or = priceConditions;
-          }
-        }
-        console.log('Price range filter applied:', priceRange);
-      } catch (err) {
-        console.error('Error in price range filtering:', err);
-      }
-    }
+
 
     // Filter by location
     if (location) {
@@ -270,10 +245,7 @@ export const getTutors = async (req, res) => {
       }
     }
 
-    // Filter by minimum rating
-    if (minRating) {
-      query.rating = { $gte: Number(minRating) };
-    }
+
 
     // Filter by gender
     if (femaleOnly === 'true') {
@@ -286,12 +258,9 @@ export const getTutors = async (req, res) => {
         sortOptions.rating = sortOrder === 'desc' ? -1 : 1;
         break;
       case 'price':
-        // For price sorting, we'll sort by the minimum rate across all teaching modes
-        // We'll use the online rate as the primary sort, then individual
-        sortOptions['subjects.rates.online'] = sortOrder === 'desc' ? -1 : 1;
-        sortOptions['subjects.rates.individual'] = sortOrder === 'desc' ? -1 : 1;
-        // Fallback to rating if no rates available
-        sortOptions.rating = sortOrder === 'desc' ? -1 : 1;
+        // For price sorting, we need to sort after population since we need to calculate rates
+        // from the teachingModes array structure
+        shouldSortAfterPopulation = true;
         break;
       case 'experience':
         // Sort by the number of experience entries (more experience = higher priority)
@@ -316,6 +285,7 @@ export const getTutors = async (req, res) => {
     // Log the final query for debugging
     console.log('Final Query:', JSON.stringify(query, null, 2));
     console.log('Search parameter received:', search);
+    console.log('Teaching mode parameter:', teachingMode);
     console.log('Sort options:', sortOptions);
     console.log('Should sort after population:', shouldSortAfterPopulation);
 
@@ -323,23 +293,78 @@ export const getTutors = async (req, res) => {
     let tutors;
     
     if (shouldSortAfterPopulation) {
-      // For name sorting, we need to fetch all tutors and sort in memory
-      // This is less efficient but necessary for name sorting
+      // For name and price sorting, we need to fetch all tutors and sort in memory
+      // This is less efficient but necessary for these sorts
       tutors = await Tutor.find(query)
         .populate('user', 'name email profileImage')
         .populate('subjects.subject', 'name topics')
         .populate('subjects.selectedTopics', 'name description');
       
-      // Sort by name
-      tutors = tutors.sort((a, b) => {
-        const nameA = a.user?.name || '';
-        const nameB = b.user?.name || '';
-        if (sortOrder === 'desc') {
-          return nameB.localeCompare(nameA);
-        } else {
-          return nameA.localeCompare(nameB);
-        }
-      });
+      // Sort based on the sortBy parameter
+      if (sortBy === 'name') {
+        tutors = tutors.sort((a, b) => {
+          const nameA = a.user?.name || '';
+          const nameB = b.user?.name || '';
+          if (sortOrder === 'desc') {
+            return nameB.localeCompare(nameA);
+          } else {
+            return nameA.localeCompare(nameB);
+          }
+        });
+      } else if (sortBy === 'price') {
+        console.log('Applying price sorting with order:', sortOrder);
+        tutors = tutors.sort((a, b) => {
+          // Get the minimum rate for each tutor
+          const getMinRate = (tutor) => {
+            if (!tutor.subjects || tutor.subjects.length === 0) return 0;
+            const subject = tutor.subjects[0];
+            
+            // Check new teachingModes structure first
+            if (subject.teachingModes && subject.teachingModes.length > 0) {
+              const enabledRates = subject.teachingModes
+                .filter((mode) => mode.enabled && mode.rate > 0)
+                .map((mode) => mode.rate);
+              return enabledRates.length > 0 ? Math.min(...enabledRates) : 0;
+            }
+            
+            // Fallback to legacy rates structure
+            if (subject.rates) {
+              const rates = [];
+              if (subject.rates.online > 0) rates.push(subject.rates.online);
+              if (subject.rates.individual > 0) rates.push(subject.rates.individual);
+              return rates.length > 0 ? Math.min(...rates) : 0;
+            }
+            
+            return 0;
+          };
+          
+          const rateA = getMinRate(a);
+          const rateB = getMinRate(b);
+          
+          console.log(`Comparing ${a.user?.name} (rate: ${rateA}) vs ${b.user?.name} (rate: ${rateB})`);
+          
+          if (sortOrder === 'desc') {
+            return rateB - rateA; // Higher rates first
+          } else {
+            return rateA - rateB; // Lower rates first
+          }
+        });
+        
+        // Log the first few tutors after sorting
+        console.log('First 3 tutors after price sorting:');
+        tutors.slice(0, 3).forEach((tutor, index) => {
+          const subject = tutor.subjects?.[0];
+          const rates = [];
+          if (subject?.teachingModes) {
+            rates.push(...subject.teachingModes.filter(mode => mode.enabled).map(mode => mode.rate));
+          }
+          if (subject?.rates) {
+            if (subject.rates.online > 0) rates.push(subject.rates.online);
+            if (subject.rates.individual > 0) rates.push(subject.rates.individual);
+          }
+          console.log(`${index + 1}. ${tutor.user?.name}: rates [${rates.join(', ')}], min: ${Math.min(...rates) || 0}`);
+        });
+      }
       
       // Apply pagination after sorting
       tutors = tutors.slice(skip, skip + Number(limit));
@@ -363,6 +388,8 @@ export const getTutors = async (req, res) => {
       returnedTutors: tutors.length,
       firstTutor: tutors[0] ? {
         id: tutors[0]._id,
+        name: tutors[0].user?.name,
+        rating: tutors[0].rating,
         availableLocations: tutors[0].availableLocations,
         subjects: tutors[0].subjects.map(s => ({
           name: s.subject?.name,
@@ -370,7 +397,15 @@ export const getTutors = async (req, res) => {
           bestTopics: s.bestTopics,
           rates: s.rates
         }))
-      } : null
+      } : null,
+      ratingStats: {
+        tutorsWithRatings: tutors.filter(t => t.rating > 0).length,
+        averageRating: tutors.length > 0 ? tutors.reduce((sum, t) => sum + t.rating, 0) / tutors.length : 0,
+        ratingRange: tutors.length > 0 ? {
+          min: Math.min(...tutors.map(t => t.rating)),
+          max: Math.max(...tutors.map(t => t.rating))
+        } : null
+      }
     });
 
     res.json({

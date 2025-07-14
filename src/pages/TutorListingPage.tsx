@@ -1,36 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTutor, TutorProfile } from '../contexts/TutorContext';
 import { useSubjects } from '../contexts/SubjectContext';
-import SimplifiedTutorFilters, { SimplifiedFilterState } from '../components/filter/SimplifiedTutorFilters';
-import { useScrollToTop } from '../hooks/useScrollToTop';
 import { useSearchParams, Link } from 'react-router-dom';
-import { BookOpen, Users, ArrowRight, Star, Sparkles, Search, Filter } from 'lucide-react';
+import { BookOpen, Users, ArrowRight, Star, Sparkles, Search } from 'lucide-react';
 import {
-  BreadcrumbNav,
-  PageHeader,
-  ResultsHeader,
   TutorGrid,
   EmptyState,
-  ErrorState,
-  BackgroundDecorations
+  ErrorState
 } from '../components/tutor-listing';
-
-interface Filters {
-  selectedSubject: string | null;
-  selectedTopic: string | null;
-  rating: number;
-  price: { min: number; max: number };
-  location: string;
-  teachingMode: string;
-  page: number;
-  limit: number;
-  sortBy: string;
-  sortOrder: 'asc' | 'desc';
-  availability: string;
-  experience: string;
-  search: string;
-  femaleOnly: boolean;
-}
+import HomePageFilters, { HomePageFilterState } from '../components/filter/HomePageFilters';
+import TutorSorting from '../components/filter/TutorSorting';
 
 const TutorListingPage: React.FC = () => {
   const { searchTutors } = useTutor();
@@ -73,22 +52,6 @@ const TutorListingPage: React.FC = () => {
     return icons[subjectName as keyof typeof icons] || '📚';
   };
   
-  const [filters, setFilters] = useState<Filters>({
-    selectedSubject: null,
-    selectedTopic: null,
-    rating: 0,
-    price: { min: 0, max: 10000 },
-    location: '',
-    teachingMode: '',
-    page: 1,
-    limit: 24,
-    sortBy: 'rating',
-    sortOrder: 'desc',
-    availability: 'all',
-    experience: 'all',
-    search: '',
-    femaleOnly: false
-  });
   const [searchQuery, setSearchQuery] = useState('');
   const [tutors, setTutors] = useState<TutorProfile[]>([]);
   const [loading, setLoading] = useState(false);
@@ -96,43 +59,19 @@ const TutorListingPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
   const [totalTutors, setTotalTutors] = useState(0);
-  const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const observerTarget = useRef<HTMLDivElement>(null);
-  const [topicName, setTopicName] = useState<string>('');
+  const [filters, setFilters] = useState<HomePageFilterState>({
+    subject: '',
+    topic: '',
+    teachingMode: '',
+    location: '',
+    femaleOnly: false,
+    verified: true
+  });
 
-  // Set subject and topic from URL parameters on component mount
-  useEffect(() => {
-    if (urlSubject) {
-      const subject = subjects.find(s => s.name === urlSubject);
-      if (subject) {
-        setFilters(prev => ({ ...prev, selectedSubject: subject._id }));
-      }
-    }
-  }, [urlSubject, subjects]);
-
-  // Set topic from URL parameters
-  useEffect(() => {
-    if (urlTopic && filters.selectedSubject) {
-      // Fetch topics for the subject and find the matching topic
-      const fetchTopicId = async () => {
-        try {
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/subject/${filters.selectedSubject}`);
-          if (response.ok) {
-            const topics = await response.json();
-            const topic = topics.find((t: any) => t.name === urlTopic);
-            if (topic) {
-              setFilters(prev => ({ ...prev, selectedTopic: topic._id }));
-              setTopicName(topic.name);
-            }
-          }
-        } catch (error) {
-          console.error('Error fetching topic:', error);
-        }
-      };
-      fetchTopicId();
-    }
-  }, [urlTopic, filters.selectedSubject]);
+  const [sortBy, setSortBy] = useState('rating');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Fetch tutor counts for all subjects
   useEffect(() => {
@@ -160,11 +99,6 @@ const TutorListingPage: React.FC = () => {
     fetchTutorCounts();
   }, [subjects]);
 
-  // Scroll to top when filters change (but not for load more)
-  useScrollToTop([filters.selectedSubject, filters.selectedTopic, filters.rating, filters.price, filters.location, 
-                  filters.teachingMode, filters.sortBy, filters.sortOrder, 
-                  filters.availability, filters.experience, filters.search]);
-
   const fetchTutors = useCallback(async (isLoadMore = false, targetPage?: number) => {
     try {
       if (isLoadMore) {
@@ -174,26 +108,19 @@ const TutorListingPage: React.FC = () => {
       }
       setError(null);
       
-      console.log(`fetchTutors called with isLoadMore=${isLoadMore}, targetPage=${targetPage}`);
-      console.log('Current filters:', filters);
-      console.log('Search parameter:', filters.search);
-      
-      // Build search parameters for the new filtering system
+      // Build search parameters
       const searchParams: any = {
-        ...filters
+        page: targetPage || 1,
+        limit: 24,
+        sortBy: 'rating',
+        sortOrder: 'desc'
       };
 
-      // Use target page if provided, otherwise use current page
-      if (targetPage !== undefined) {
-        searchParams.page = targetPage;
-      }
-
-      // Apply subject and topic filters from URL parameters or dropdown filters
+      // Apply subject and topic filters from URL parameters or filter state
       if (urlSubject) {
         searchParams.subject = urlSubject;
-      } else if (filters.selectedSubject) {
-        // Convert subject ID to subject name for the API
-        const subject = subjects.find(s => s._id === filters.selectedSubject);
+      } else if (filters.subject) {
+        const subject = subjects.find(s => s._id === filters.subject);
         if (subject) {
           searchParams.subject = subject.name;
         }
@@ -201,38 +128,60 @@ const TutorListingPage: React.FC = () => {
 
       if (urlTopic) {
         searchParams.topic = urlTopic;
-      } else if (filters.selectedTopic) {
-        // Convert topic ID to topic name for the API
-        const fetchTopicName = async () => {
-          try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/subject/${filters.selectedSubject}`);
-            if (response.ok) {
-              const topics = await response.json();
-              const topic = topics.find((t: any) => t._id === filters.selectedTopic);
-              if (topic) {
-                searchParams.topic = topic.name;
-              }
-            }
-          } catch (error) {
-            console.error('Error fetching topic name:', error);
-          }
-        };
-        
-        if (filters.selectedSubject) {
-          await fetchTopicName();
-        }
+      } else if (filters.topic) {
+        searchParams.topic = filters.topic;
+      }
+
+      // Add search query if present
+      if (searchQuery) {
+        searchParams.search = searchQuery;
+      }
+
+      // Add sorting parameters
+      searchParams.sortBy = sortBy;
+      searchParams.sortOrder = sortOrder;
+      console.log('Sending sorting parameters:', { sortBy, sortOrder });
+
+      if (filters.teachingMode) {
+        searchParams.teachingMode = filters.teachingMode;
+        console.log('Sending teaching mode filter:', filters.teachingMode);
+        // Temporarily comment out to test if filter is the issue
+        // delete searchParams.teachingMode;
+      }
+      
+      // Temporary debugging: log all search params
+      console.log('All search params:', JSON.stringify(searchParams, null, 2));
+
+      if (filters.location) {
+        searchParams.location = filters.location;
+      }
+
+      if (filters.femaleOnly) {
+        searchParams.femaleOnly = 'true';
+      }
+
+      if (!filters.verified) {
+        searchParams.verified = 'all';
       }
 
       // Call the search API
+      console.log('Final search params being sent:', searchParams);
       const response = await searchTutors(searchParams);
-      
-      console.log('Search tutors response:', response);
       
       const newTutors = response.tutors || [];
       const pagination = response.pagination || {};
+      console.log('Received tutors count:', newTutors.length);
+      console.log('First tutor teaching modes:', newTutors[0]?.subjects?.[0]?.teachingModes);
+      console.log('First tutor rates:', newTutors[0]?.subjects?.[0]?.rates);
+      console.log('Tutors ratings:', newTutors.map(t => ({ name: t.user?.name, rating: t.rating })));
       
-      console.log('New tutors count:', newTutors.length);
-      console.log('Pagination info:', pagination);
+      // Log all tutors' teaching modes for debugging
+      newTutors.forEach((tutor, index) => {
+        console.log(`Tutor ${index + 1} (${tutor.user?.name}):`, {
+          teachingModes: tutor.subjects?.[0]?.teachingModes,
+          rates: tutor.subjects?.[0]?.rates
+        });
+      });
       
       if (isLoadMore) {
         setTutors(prev => [...prev, ...newTutors]);
@@ -244,45 +193,39 @@ const TutorListingPage: React.FC = () => {
       setTotalTutors(pagination.total || 0);
       setHasMore(pagination.page < pagination.pages);
       
-      // Update active filters for display
-      const activeFiltersArray = [];
-      if (filters.selectedSubject) activeFiltersArray.push('subject');
-      if (filters.selectedTopic) activeFiltersArray.push('topic');
-      if (filters.rating > 0) activeFiltersArray.push('rating');
-      if (filters.price.min > 0 || filters.price.max < 10000) activeFiltersArray.push('price');
-      if (filters.location) activeFiltersArray.push('location');
-      if (filters.teachingMode) activeFiltersArray.push('teachingMode');
-      if (filters.availability !== 'all') activeFiltersArray.push('availability');
-      if (filters.experience !== 'all') activeFiltersArray.push('experience');
-      if (filters.search) activeFiltersArray.push('search');
-      if (filters.femaleOnly) activeFiltersArray.push('femaleOnly');
-      
-      setActiveFilters(activeFiltersArray);
     } catch (err: any) {
-      console.error('Error in fetchTutors:', err);
-      setError(err.message || 'An error occurred while fetching tutors');
-      setTutors([]);
-      setTotalTutors(0);
-      setHasMore(false);
+      console.error('Error fetching tutors:', err);
+      setError(err.message || 'Failed to fetch tutors');
     } finally {
-      setLoading(false);
+      if (isLoadMore) {
         setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
     }
-  }, [filters, searchTutors, urlSubject, urlTopic, subjects]);
+  }, [urlSubject, urlTopic, searchQuery, filters, sortBy, sortOrder, subjects, searchTutors]);
 
-  // Fetch tutors when component mounts or filters change
+  // Fetch tutors when component mounts, search changes, or filters change
   useEffect(() => {
     fetchTutors(false);
   }, [fetchTutors]);
+
+  const handleFilterChange = (newFilters: HomePageFilterState) => {
+    setFilters(newFilters);
+  };
+
+  const handleSortChange = (newSortBy: string, newSortOrder: 'asc' | 'desc') => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+  };
 
   // Infinite scroll setup
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
-          console.log('Loading more tutors...');
-          setFilters(prev => ({ ...prev, page: prev.page + 1 }));
-          fetchTutors(true, filters.page + 1);
+          const nextPage = Math.ceil(tutors.length / 24) + 1;
+          fetchTutors(true, nextPage);
         }
       },
       { threshold: 1.0 }
@@ -293,106 +236,16 @@ const TutorListingPage: React.FC = () => {
     }
 
     return () => observer.disconnect();
-  }, [hasMore, loading, loadingMore, fetchTutors, filters.page]);
-
-  const handleFilterChange = (newFilters: SimplifiedFilterState) => {
-    console.log('Filter change received:', newFilters);
-    
-    setFilters(prev => {
-      const updated = {
-        ...prev,
-        selectedSubject: newFilters.selectedSubject || null,
-        selectedTopic: newFilters.selectedTopic || null,
-        rating: newFilters.extraFilters.minRating,
-        price: {
-          min: newFilters.extraFilters.priceRange[0],
-          max: newFilters.extraFilters.priceRange[1]
-        },
-        location: newFilters.location,
-        teachingMode: newFilters.teachingMode,
-        femaleOnly: newFilters.extraFilters.femaleOnly,
-        page: 1 // Reset to first page when filters change
-      };
-      
-      console.log('Updated filters:', updated);
-      return updated;
-    });
-  };
-
-  const resetFilters = () => {
-    setFilters(prev => ({
-      ...prev,
-      selectedSubject: null,
-      selectedTopic: null,
-      rating: 0,
-      price: { min: 0, max: 10000 },
-      location: '',
-      teachingMode: '',
-      availability: 'all',
-      experience: 'all',
-      search: '',
-      femaleOnly: false,
-      page: 1
-    }));
-    setSearchQuery('');
-  };
+  }, [hasMore, loading, loadingMore, fetchTutors, tutors.length]);
 
   const handleSearchSubmit = () => {
-    setFilters(prev => ({
-      ...prev,
-      search: searchQuery,
-      page: 1
-    }));
+    fetchTutors(false);
   };
 
   const handleSearchClear = () => {
     setSearchQuery('');
-    setFilters(prev => ({
-      ...prev,
-      search: '',
-      page: 1
-    }));
+    fetchTutors(false);
   };
-
-  const handleSortChange = (sortBy: string, sortOrder: 'asc' | 'desc') => {
-    setFilters(prev => ({
-      ...prev,
-      sortBy,
-      sortOrder,
-      page: 1
-    }));
-  };
-
-  // Fetch topic name when topic filter changes
-  useEffect(() => {
-      const fetchTopicName = async () => {
-      if (filters.selectedTopic && filters.selectedSubject) {
-      try {
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/subject/${filters.selectedSubject}`);
-        if (response.ok) {
-            const topics = await response.json();
-            const topic = topics.find((t: any) => t._id === filters.selectedTopic);
-            if (topic) {
-              setTopicName(topic.name);
-            }
-        }
-      } catch (error) {
-        console.error('Error fetching topic name:', error);
-        }
-      } else {
-        setTopicName('');
-      }
-      };
-
-      fetchTopicName();
-  }, [filters.selectedTopic, filters.selectedSubject]);
-
-  // Reset topic name when topic filter is cleared
-  useEffect(() => {
-    if (!filters.selectedTopic) {
-      setTopicName('');
-    }
-  }, [filters.selectedTopic]);
 
   if (error) {
     return <ErrorState error={error} onRetry={() => fetchTutors(false)} />;
@@ -409,7 +262,7 @@ const TutorListingPage: React.FC = () => {
 
       {/* Main Content - Mobile Responsive */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8 relative z-10">
-        {/* Compact Header with Search and Filters */}
+        {/* Compact Header with Search */}
         <div className="mb-4 sm:mb-6">
           {/* Header with Integrated Search - Mobile First */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
@@ -463,37 +316,34 @@ const TutorListingPage: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
 
-           {/* Filters Section - Mobile Responsive */}
-           <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-3 sm:p-4 lg:p-6 shadow-lg border border-gray-100">
-             <div className="flex items-center gap-2 mb-3 sm:mb-4">
-               <Filter className="h-4 w-4 text-blue-600" />
-               <span className="text-sm font-medium text-gray-900">Filters</span>
-               {activeFilters.length > 0 && (
-                 <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs font-medium">
-                   {activeFilters.length}
-                 </span>
-               )}
-             </div>
-          <SimplifiedTutorFilters 
-            onFilterChange={handleFilterChange} 
+        {/* Filters and Sorting Section */}
+        <div className="mb-6 space-y-4">
+          <HomePageFilters
+            onFilterChange={handleFilterChange}
             urlSubject={urlSubject}
             urlTopic={urlTopic}
           />
-           </div>
+          <TutorSorting
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSortChange={handleSortChange}
+          />
         </div>
 
-        <ResultsHeader
-          loading={loading}
-          tutorCount={tutors.length}
-          activeFiltersCount={activeFilters.length}
-          sortBy={filters.sortBy}
-          sortOrder={filters.sortOrder}
-          onSortChange={handleSortChange}
-        />
-
         {!loading && tutors.length === 0 ? (
-          <EmptyState onResetFilters={resetFilters} />
+          <EmptyState onResetFilters={() => {
+            setSearchQuery('');
+            setFilters({
+              subject: '',
+              topic: '',
+              teachingMode: '',
+              location: '',
+              femaleOnly: false,
+              verified: true
+            });
+          }} />
         ) : (
           <>
             <TutorGrid
@@ -549,7 +399,7 @@ const TutorListingPage: React.FC = () => {
               return (
               <Link
                 key={subject._id}
-                to={`/subjects/${subject._id}`}
+                to={`/?subject=${encodeURIComponent(subject.name)}`}
                   className="group relative overflow-hidden"
                 >
                   <div className={`
@@ -611,7 +461,7 @@ const TutorListingPage: React.FC = () => {
               to="/"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 sm:px-8 py-3 rounded-2xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg font-medium text-sm sm:text-base"
             >
-              Browse All Subjects
+              Browse All Tutors
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
