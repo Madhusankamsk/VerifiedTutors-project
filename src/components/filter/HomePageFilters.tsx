@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { ChevronDown, X, Filter, Star, DollarSign, MapPin, Users, Sparkles } from 'lucide-react';
+import { ChevronDown, X, Filter, Star, DollarSign, Users, Sparkles } from 'lucide-react';
 import { useSubjects } from '../../contexts/SubjectContext';
 
 export interface HomePageFilterState {
   subject: string;
   topic: string;
   teachingMode: string;
-  location: string;
   femaleOnly: boolean;
   verified: boolean;
 }
@@ -21,7 +20,6 @@ const initialFilterState: HomePageFilterState = {
   subject: '',
   topic: '',
   teachingMode: '',
-  location: '',
   femaleOnly: false,
   verified: true
 };
@@ -97,14 +95,8 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
     handleFilterChange({ topic: topicName });
   }, [handleFilterChange]);
 
-
-
   const handleTeachingModeChange = useCallback((mode: string) => {
     handleFilterChange({ teachingMode: mode });
-  }, [handleFilterChange]);
-
-  const handleLocationChange = useCallback((location: string) => {
-    handleFilterChange({ location });
   }, [handleFilterChange]);
 
   const handleFemaleOnlyChange = useCallback((femaleOnly: boolean) => {
@@ -124,27 +116,14 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
     filters.subject || 
     filters.topic || 
     filters.teachingMode ||
-    filters.location ||
     filters.femaleOnly ||
     !filters.verified;
-
-
 
   const teachingModes = [
     { value: '', label: 'Any Mode' },
     { value: 'ONLINE', label: 'Online' },
     { value: 'INDIVIDUAL', label: 'Home Visit' }
   ];
-
-  const locations = [
-    { value: '', label: 'Any Location' },
-    { value: 'Colombo', label: 'Colombo' },
-    { value: 'Kandy', label: 'Kandy' },
-    { value: 'Galle', label: 'Galle' },
-    { value: 'Jaffna', label: 'Jaffna' },
-    { value: 'Anuradhapura', label: 'Anuradhapura' }
-  ];
-
 
 
   return (
@@ -249,29 +228,6 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
             </div>
           </div>
 
-          {/* Location Filter */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              <MapPin className="h-3 w-3 inline mr-1" />
-              Location
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {locations.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleLocationChange(option.value)}
-                  className={`px-3 py-1.5 text-xs rounded-full border transition-all ${
-                    filters.location === option.value
-                      ? 'bg-blue-100 text-blue-700 border-blue-300'
-                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Additional Filters */}
           <div className="flex flex-wrap gap-4">
             {/* Female Only */}
@@ -336,17 +292,6 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
                 <button
                   onClick={() => handleTeachingModeChange('')}
                   className="ml-1 hover:text-purple-800"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            )}
-            {filters.location && (
-              <div className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs">
-                <span>Location: {filters.location}</span>
-                <button
-                  onClick={() => handleLocationChange('')}
-                  className="ml-1 hover:text-indigo-800"
                 >
                   <X className="h-3 w-3" />
                 </button>

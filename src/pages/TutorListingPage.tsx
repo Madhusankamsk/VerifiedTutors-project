@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTutor, TutorProfile } from '../contexts/TutorContext';
 import { useSubjects } from '../contexts/SubjectContext';
 import { useSearchParams, Link } from 'react-router-dom';
-import { BookOpen, Users, ArrowRight, Star, Sparkles, Search } from 'lucide-react';
+import { Users, ArrowRight, Star, Sparkles, Search } from 'lucide-react';
 import {
   TutorGrid,
   EmptyState,
@@ -20,38 +20,6 @@ const TutorListingPage: React.FC = () => {
   const urlSubject = searchParams.get('subject');
   const urlTopic = searchParams.get('topic');
   
-  // State for subject tutor counts
-  const [subjectTutorCounts, setSubjectTutorCounts] = useState<{[key: string]: number}>({});
-  const [loadingCounts, setLoadingCounts] = useState(false);
-  
-  // Subject icons mapping for visual variety
-  const getSubjectIcon = (subjectName: string) => {
-    const icons = {
-      'Mathematics': '🔢',
-      'Physics': '⚡',
-      'Chemistry': '🧪',
-      'Biology': '🧬',
-      'English': '📚',
-      'Sinhala': '🇱🇰',
-      'History': '📜',
-      'Geography': '🌍',
-      'Computer Science': '💻',
-      'Economics': '💰',
-      'Business Studies': '🏢',
-      'Accounting': '📊',
-      'Literature': '📖',
-      'Art': '🎨',
-      'Music': '🎵',
-      'Physical Education': '⚽',
-      'Religious Studies': '🙏',
-      'Agriculture': '🌾',
-      'Technology': '🔧',
-      'Psychology': '🧠'
-    };
-    
-    return icons[subjectName as keyof typeof icons] || '📚';
-  };
-  
   const [searchQuery, setSearchQuery] = useState('');
   const [tutors, setTutors] = useState<TutorProfile[]>([]);
   const [loading, setLoading] = useState(false);
@@ -65,39 +33,12 @@ const TutorListingPage: React.FC = () => {
     subject: '',
     topic: '',
     teachingMode: '',
-    location: '',
     femaleOnly: false,
     verified: true
   });
 
   const [sortBy, setSortBy] = useState('rating');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-
-  // Fetch tutor counts for all subjects
-  useEffect(() => {
-    const fetchTutorCounts = async () => {
-      if (subjects && subjects.length > 0) {
-        try {
-          setLoadingCounts(true);
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/subjects/tutor-counts`);
-          if (response.ok) {
-            const counts = await response.json();
-            const countsMap: {[key: string]: number} = {};
-            counts.forEach((item: any) => {
-              countsMap[item.subjectId] = item.tutorCount;
-            });
-            setSubjectTutorCounts(countsMap);
-          }
-        } catch (error) {
-          console.error('Error fetching tutor counts:', error);
-        } finally {
-          setLoadingCounts(false);
-        }
-      }
-    };
-
-    fetchTutorCounts();
-  }, [subjects]);
 
   const fetchTutors = useCallback(async (isLoadMore = false, targetPage?: number) => {
     try {
@@ -145,16 +86,12 @@ const TutorListingPage: React.FC = () => {
       if (filters.teachingMode) {
         searchParams.teachingMode = filters.teachingMode;
         console.log('Sending teaching mode filter:', filters.teachingMode);
-        // Temporarily comment out to test if filter is the issue
-        // delete searchParams.teachingMode;
       }
       
       // Temporary debugging: log all search params
       console.log('All search params:', JSON.stringify(searchParams, null, 2));
 
-      if (filters.location) {
-        searchParams.location = filters.location;
-      }
+
 
       if (filters.femaleOnly) {
         searchParams.femaleOnly = 'true';
@@ -339,7 +276,6 @@ const TutorListingPage: React.FC = () => {
               subject: '',
               topic: '',
               teachingMode: '',
-              location: '',
               femaleOnly: false,
               verified: true
             });
@@ -369,103 +305,6 @@ const TutorListingPage: React.FC = () => {
             )}
           </>
         )}
-
-        {/* Other Subjects Section - Mobile Responsive */}
-        <div className="mt-12 sm:mt-16 lg:mt-20">
-          <div className="text-center mb-8 sm:mb-10">
-            <div className="inline-flex items-center px-3 sm:px-4 py-2 bg-blue-50/80 backdrop-blur-sm rounded-full text-blue-600 text-sm font-medium mb-4 border border-blue-100">
-              <BookOpen className="h-4 w-4 mr-2" />
-              Explore More
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-4">
-              Explore Other Subjects
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base px-4">
-              Find tutors for different subjects and topics across our platform
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 mb-8 sm:mb-12">
-            {subjects.slice(0, 12).map((subject, index) => {
-              const colors = [
-                'from-blue-100/80 to-blue-200/80 border-blue-200/50',
-                'from-sky-100/80 to-sky-200/80 border-sky-200/50',
-                'from-indigo-100/80 to-indigo-200/80 border-indigo-200/50',
-                'from-cyan-100/80 to-cyan-200/80 border-cyan-200/50',
-                'from-blue-50/80 to-blue-100/80 border-blue-100/50',
-                'from-slate-100/80 to-slate-200/80 border-slate-200/50'
-              ];
-              
-              return (
-              <Link
-                key={subject._id}
-                to={`/?subject=${encodeURIComponent(subject.name)}`}
-                  className="group relative overflow-hidden"
-                >
-                  <div className={`
-                    relative bg-gradient-to-br ${colors[index % colors.length]} 
-                    backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 min-h-[140px] sm:min-h-[180px] flex flex-col
-                    border transition-all duration-500 ease-out
-                    hover:shadow-xl hover:shadow-blue-500/10 
-                    hover:-translate-y-1 sm:hover:-translate-y-2 hover:scale-105
-                    transform perspective-1000
-                  `}>
-                    {/* Hover overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl sm:rounded-2xl"></div>
-                    
-                    {/* Subject Icon */}
-                    <div className="text-center mb-3 sm:mb-4 relative z-10">
-                      <div className="text-3xl sm:text-4xl lg:text-5xl group-hover:scale-110 transition-transform duration-300 filter drop-shadow-sm">
-                  {getSubjectIcon(subject.name)}
-                </div>
-                    </div>
-
-                    {/* Subject Info */}
-                    <div className="text-center relative z-10 flex-1 flex flex-col justify-between">
-                      <div>
-                        <h3 className="font-semibold text-gray-900 text-xs sm:text-sm lg:text-base mb-2 group-hover:text-blue-700 transition-colors duration-300 line-clamp-2">
-                  {subject.name}
-                </h3>
-                      </div>
-                      
-                      <div>
-                        <div className="flex items-center justify-center gap-1 mb-1 sm:mb-2">
-                          <div className="flex items-center gap-1 bg-white/60 backdrop-blur-sm rounded-full px-2 sm:px-3 py-1">
-                            <Users className="h-3 w-3 text-blue-600" />
-                            <span className="text-xs text-blue-700 font-medium">
-                              {subjectTutorCounts[subject._id] || 0}
-                  </span>
-                          </div>
-                        </div>
-                        
-                        <p className="text-xs text-gray-500 group-hover:text-gray-600 transition-colors duration-300">
-                          tutors available
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Arrow Icon */}
-                    <div className="absolute top-3 sm:top-4 right-3 sm:right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-                      <div className="bg-white/80 backdrop-blur-sm rounded-full p-1 sm:p-1.5 shadow-sm">
-                        <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
-                      </div>
-                    </div>
-                </div>
-              </Link>
-              );
-            })}
-          </div>
-          
-          <div className="text-center px-4">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 sm:px-8 py-3 rounded-2xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg font-medium text-sm sm:text-base"
-            >
-              Browse All Tutors
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
 
         {/* Featured Tutors Section - Mobile Responsive */}
         {tutors.length > 0 && (
