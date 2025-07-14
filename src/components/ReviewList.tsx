@@ -17,7 +17,6 @@ interface Review {
     category: string;
   };
   topics?: {
-    _id: string;
     name: string;
     description?: string;
   }[];
@@ -107,7 +106,7 @@ export const ReviewList: React.FC<ReviewListProps> = ({
                           <div className="flex flex-wrap gap-1 mt-1">
                             {review.topics.slice(0, 3).map((topic, index) => (
                               <span 
-                                key={topic._id || index}
+                                key={index}
                                 className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full border border-blue-200 flex items-center"
                               >
                                 <Hash className="w-3 h-3 mr-1" />

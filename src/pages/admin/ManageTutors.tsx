@@ -236,12 +236,23 @@ const ManageTutors = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="relative">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 -z-10"></div>
+      
+      {/* Header Section */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Manage Tutors</h1>
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+            Manage Tutors
+          </h1>
+          <p className="text-gray-600">
+            Review, verify, and manage tutor profiles and applications
+          </p>
+        </div>
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="flex items-center px-4 py-2 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <Filter className="h-4 w-4 mr-2" />
           Filters
@@ -250,10 +261,10 @@ const ManageTutors = () => {
       </div>
 
       {/* Search Bar */}
-      <div className="mb-5">
+      <div className="mb-6">
         <div className="relative flex shadow-sm">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-            <Search className="h-3.5 w-3.5 text-gray-400" />
+            <Search className="h-4 w-4 text-gray-400" />
           </div>
           <div className="relative flex-grow">
             <input
@@ -266,37 +277,37 @@ const ManageTutors = () => {
                   handleSearch();
                 }
               }}
-              className="w-full pl-8 pr-7 py-2 text-xs border border-gray-200 rounded-l-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-300 bg-white"
+              className="w-full pl-10 pr-8 py-2 text-sm border border-gray-200 rounded-l-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-300 bg-white"
             />
             {searchTerm && (
               <button
                 onClick={handleClearSearch}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-0.5 rounded-full hover:bg-gray-100"
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
               </button>
             )}
           </div>
           <button
             onClick={handleSearch}
-            className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-r-lg transition-all duration-200 flex items-center justify-center text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 shadow-sm"
+            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-r-lg transition-all duration-200 flex items-center justify-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 shadow-sm"
           >
-            <Search className="h-3.5 w-3.5" />
-            <span className="ml-1.5 hidden sm:inline">Search</span>
+            <Search className="h-4 w-4" />
+            <span className="ml-2 hidden sm:inline">Search</span>
           </button>
         </div>
       </div>
 
       {/* Filters */}
       {showFilters && (
-        <div className="bg-white p-4 rounded-lg shadow mb-6">
+        <div className="bg-white/80 backdrop-blur-sm p-4 rounded-lg shadow-md mb-6 border border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Verification Status</label>
               <select
                 value={filters.verified}
                 onChange={(e) => setFilters({ ...filters, verified: e.target.value })}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
               >
                 <option value="all">All</option>
                 <option value="verified">Verified</option>
@@ -308,12 +319,14 @@ const ManageTutors = () => {
               <select
                 value={filters.rating}
                 onChange={(e) => setFilters({ ...filters, rating: e.target.value })}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
               >
                 <option value="all">All</option>
+                <option value="5">5 Stars</option>
                 <option value="4">4+ Stars</option>
                 <option value="3">3+ Stars</option>
                 <option value="2">2+ Stars</option>
+                <option value="1">1+ Stars</option>
               </select>
             </div>
             <div>
@@ -321,12 +334,12 @@ const ManageTutors = () => {
               <select
                 value={filters.sortBy}
                 onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
                 <option value="rating">Highest Rating</option>
-                <option value="name">Name (A-Z)</option>
+                <option value="name">Name A-Z</option>
               </select>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTutor } from '../../contexts/TutorContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { Star, Users, DollarSign, Edit2, Trash2, Calendar, Clock, TrendingUp, Award, BookOpen, MessageCircle, Eye, Plus, ArrowRight, Target, ChevronRight } from 'lucide-react';
+import { Star, Users, DollarSign, Edit2, Trash2, Calendar, Clock, TrendingUp, Award, BookOpen, MessageCircle, Eye, Plus, ArrowRight, Target, ChevronRight, User, MessageSquare } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -21,6 +21,7 @@ interface Booking {
   startTime: string;
   endTime: string;
   status: string;
+  amount: number; // Added amount for new structure
 }
 
 const TutorDashboard = () => {
@@ -34,7 +35,8 @@ const TutorDashboard = () => {
   
   const [pendingBookings, setPendingBookings] = useState<Booking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
-  
+  const [completedBookings, setCompletedBookings] = useState<Booking[]>([]);
+
   const handleDeleteProfile = async () => {
     if (window.confirm('Are you sure you want to delete your profile? This action cannot be undone.')) {
       try {
@@ -55,11 +57,14 @@ const TutorDashboard = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        const filtered = response.data.filter((booking: Booking) => booking.status === 'pending');
-        setPendingBookings(filtered);
+        const pending = response.data.filter((booking: Booking) => booking.status === 'pending');
+        const completed = response.data.filter((booking: Booking) => booking.status === 'completed');
+        
+        setPendingBookings(pending);
+        setCompletedBookings(completed);
         setLoadingBookings(false);
       } catch (error) {
-        console.error('Error fetching pending bookings:', error);
+        console.error('Error fetching bookings:', error);
         setLoadingBookings(false);
       }
     };
@@ -138,9 +143,17 @@ const TutorDashboard = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
+    <div className="relative">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 -z-10"></div>
+      
+      {/* Decorative Elements */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-primary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob -z-10"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-secondary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 -z-10"></div>
+      <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 -z-10"></div>
+
       {/* Welcome Section */}
-      <div className="text-center sm:text-left">
+      <div className="mb-6 sm:mb-8">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Welcome back, {profile.user.name.split(' ')[0]}! 👋
         </h2>
@@ -150,7 +163,7 @@ const TutorDashboard = () => {
       </div>
 
       {/* Profile Overview Card */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8 relative overflow-hidden">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8 relative overflow-hidden mb-6 sm:mb-8">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-purple-600/5"></div>
         
         <div className="relative z-10">
@@ -202,103 +215,57 @@ const TutorDashboard = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              <Link
-                to="/tutor/profile/edit"
-                className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium"
-              >
-                <Edit2 className="w-4 h-4 mr-2" />
-                Edit Profile
-              </Link>
-              <Link
-                to="/tutor/profile"
-                className="inline-flex items-center justify-center px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium"
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                View Profile
-              </Link>
+            {/* Quick Stats */}
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-4 sm:gap-6 lg:gap-4">
+              <div className="bg-blue-50/50 rounded-xl p-4 text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-blue-600 mb-1">
+                  {profile.subjects?.length || 0}
+                </div>
+                <div className="text-sm text-blue-700 font-medium">Subjects</div>
+              </div>
+              <div className="bg-green-50/50 rounded-xl p-4 text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-1">
+                  {pendingBookings.length}
+                </div>
+                <div className="text-sm text-green-700 font-medium">Pending</div>
+              </div>
+              <div className="bg-purple-50/50 rounded-xl p-4 text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-purple-600 mb-1">
+                  {completedBookings.length}
+                </div>
+                <div className="text-sm text-purple-700 font-medium">Completed</div>
+              </div>
             </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8">
+            <Link
+              to="/tutor/profile"
+              className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center space-x-2"
+            >
+              <User className="w-5 h-5" />
+              <span>Edit Profile</span>
+            </Link>
+            <Link
+              to="/tutor/bookings"
+              className="flex-1 bg-white/50 backdrop-blur-sm text-gray-800 py-3 px-4 rounded-xl hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 flex items-center justify-center space-x-2 border border-gray-200"
+            >
+              <Calendar className="w-5 h-5 text-gray-500" />
+              <span>View Bookings</span>
+            </Link>
+            <button
+              onClick={handleDeleteProfile}
+              className="flex-1 bg-red-50 text-red-600 py-3 px-4 rounded-xl hover:bg-red-100 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 flex items-center justify-center space-x-2 border border-red-200"
+            >
+              <Trash2 className="w-5 h-5" />
+              <span>Delete Profile</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-4 sm:p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <DollarSign className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
-            <div className="text-right">
-              <p className="text-xs sm:text-sm font-medium text-gray-600">Earnings</p>
-              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-                Rs. {(profile.totalEarnings || 0).toLocaleString()}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center text-xs text-green-600">
-            <TrendingUp className="w-3 h-3 mr-1" />
-            <span>+12% this month</span>
-          </div>
-        </div>
-
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-4 sm:p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <Users className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
-            <div className="text-right">
-              <p className="text-xs sm:text-sm font-medium text-gray-600">Students</p>
-              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-                {profile.totalStudents || 0}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center text-xs text-blue-600">
-            <Users className="w-3 h-3 mr-1" />
-            <span>Active learners</span>
-          </div>
-        </div>
-
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-4 sm:p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
-            <div className="text-right">
-              <p className="text-xs sm:text-sm font-medium text-gray-600">Sessions</p>
-              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-                {profile.totalSessions || 0}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center text-xs text-purple-600">
-            <Clock className="w-3 h-3 mr-1" />
-            <span>Completed</span>
-          </div>
-        </div>
-
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-4 sm:p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <Star className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
-            <div className="text-right">
-              <p className="text-xs sm:text-sm font-medium text-gray-600">Rating</p>
-              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-                {(profile.rating || 0).toFixed(1)}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center text-xs text-orange-600">
-            <Star className="w-3 h-3 mr-1" />
-            <span>Average score</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Grid */}
+      {/* Recent Bookings and Stats Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         {/* Recent Bookings */}
         <div className="lg:col-span-2">
@@ -317,118 +284,100 @@ const TutorDashboard = () => {
               </Link>
             </div>
             
-            {loadingBookings ? (
-              <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-              </div>
-            ) : pendingBookings.length > 0 ? (
-              <div className="space-y-4">
-                {pendingBookings.slice(0, 5).map((booking) => (
-                  <div key={booking._id} className="bg-gray-50/80 backdrop-blur-sm rounded-xl p-4 border border-gray-100 hover:shadow-lg transition-all duration-200 group">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-semibold">
-                          {booking.student.name.charAt(0)}
+            <div className="space-y-4">
+              {pendingBookings.slice(0, 5).map((booking) => (
+                <div key={booking._id} className="bg-gray-50/50 rounded-xl p-4 hover:bg-gray-100/50 transition-colors">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                          <span className="text-white font-semibold text-sm">
+                            {booking.student.name.charAt(0)}
+                          </span>
                         </div>
                         <div>
-                          <h4 className="font-semibold text-gray-900">{booking.subject.name}</h4>
-                          <p className="text-sm text-gray-600">{booking.student.name}</p>
-                          <p className="text-xs text-gray-500">{formatDate(booking.startTime)}</p>
+                          <h4 className="font-medium text-gray-900">{booking.student.name}</h4>
+                          <p className="text-sm text-gray-500">{booking.subject.name}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(booking.status)}`}>
-                          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                        </span>
+                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          <span>{formatDate(booking.startTime)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <DollarSign className="w-4 h-4" />
+                          <span>${booking.amount}</span>
+                        </div>
                       </div>
                     </div>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(booking.status)}`}>
+                      {booking.status}
+                    </span>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Calendar className="w-8 h-8 text-gray-400" />
                 </div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">No bookings yet</h4>
-                <p className="text-gray-600 text-sm">Your upcoming bookings will appear here</p>
-              </div>
-            )}
+              ))}
+              
+              {pendingBookings.length === 0 && (
+                <div className="text-center py-8">
+                  <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No pending bookings</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Quick Actions & Reviews */}
-        <div className="space-y-6 sm:space-y-8">
-          {/* Quick Actions */}
+        {/* Quick Stats */}
+        <div className="space-y-6">
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-              <Target className="w-5 h-5 mr-2 text-blue-600" />
-              Quick Actions
+              <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
+              Quick Stats
             </h3>
-            <div className="space-y-3">
-              <Link
-                to="/tutor/bookings"
-                className="flex items-center justify-between p-3 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors group"
-              >
-                <div className="flex items-center">
-                  <Calendar className="w-5 h-5 text-blue-600 mr-3" />
-                  <span className="font-medium text-blue-700">Manage Bookings</span>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Total Bookings</span>
+                <span className="font-semibold text-gray-900">{pendingBookings.length + completedBookings.length}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Completion Rate</span>
+                <span className="font-semibold text-green-600">
+                  {pendingBookings.length + completedBookings.length > 0 
+                    ? Math.round((completedBookings.length / (pendingBookings.length + completedBookings.length)) * 100)
+                    : 0}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Average Rating</span>
+                <div className="flex items-center gap-1">
+                  <Star className="w-4 h-4 text-yellow-500" />
+                  <span className="font-semibold text-gray-900">{(profile.rating || 0).toFixed(1)}</span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-blue-600 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link
-                to="/tutor/blogs"
-                className="flex items-center justify-between p-3 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors group"
-              >
-                <div className="flex items-center">
-                  <BookOpen className="w-5 h-5 text-purple-600 mr-3" />
-                  <span className="font-medium text-purple-700">Manage Blogs</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-purple-600 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link
-                to="/tutor/profile/edit"
-                className="flex items-center justify-between p-3 bg-green-50 rounded-xl hover:bg-green-100 transition-colors group"
-              >
-                <div className="flex items-center">
-                  <Edit2 className="w-5 h-5 text-green-600 mr-3" />
-                  <span className="font-medium text-green-700">Edit Profile</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-green-600 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              </div>
             </div>
           </div>
 
-          {/* Recent Reviews */}
-          {reviews && reviews.length > 0 && (
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                <MessageCircle className="w-5 h-5 mr-2 text-blue-600" />
-                Recent Reviews
-              </h3>
-              <div className="space-y-4">
-                {reviews.slice(0, 3).map((review, index) => (
-                  <div key={index} className="bg-gray-50/80 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center">
-                        <div className="flex text-yellow-400 mr-2">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={`w-3 h-3 ${i < review.rating ? 'fill-current' : ''}`} />
-                          ))}
-                        </div>
-                        <span className="text-xs text-gray-600">{review.rating}/5</span>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-700 mb-2 line-clamp-2">{review.review}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">- {review.student?.name}</span>
-                      <span className="text-xs text-blue-600 font-medium">{review.subject?.name}</span>
-                    </div>
-                  </div>
-                ))}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+              <MessageSquare className="w-5 h-5 mr-2 text-blue-600" />
+              Recent Activity
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm text-gray-600">Profile updated</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span className="text-sm text-gray-600">New booking received</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                <span className="text-sm text-gray-600">Review submitted</span>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

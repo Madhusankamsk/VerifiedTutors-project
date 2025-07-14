@@ -90,9 +90,12 @@ const EditTutorProfileBasicInfo: React.FC<EditTutorProfileBasicInfoProps> = ({
               </div>
             )}
           </div>
-          <p className="text-xs text-gray-500 mt-3 text-center font-medium lg:hidden">
-            Max file size: 2MB • JPG, PNG, GIF
-          </p>
+          {/* File size requirements - visible on all screen sizes */}
+          <div className="mt-3 text-center">
+            <p className="text-xs text-gray-500 font-medium">
+              Profile photo: Max file size: 2MB • JPG, PNG, GIF
+            </p>
+          </div>
         </div>
 
         {/* Basic Information */}
@@ -257,11 +260,6 @@ const EditTutorProfileBasicInfo: React.FC<EditTutorProfileBasicInfoProps> = ({
               </div>
             </div>
           </div>
-
-          {/* Desktop file size note */}
-          <p className="text-xs text-gray-500 font-medium hidden lg:block">
-            Profile photo: Max file size: 2MB • JPG, PNG, GIF
-          </p>
         </div>
       </div>
     </div>

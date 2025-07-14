@@ -75,9 +75,27 @@ export const createRating = async (req, res) => {
       // Use topics from the booking automatically
       const topicsFromBooking = booking.selectedTopics ? booking.selectedTopics.map(topic => topic._id) : [];
       
-      // Allow review submission even if no topics are selected
-      // This handles legacy bookings or bookings where topics weren't selected
-      
+      if (topicsFromBooking.length === 0) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'No topics found for this booking. Cannot submit review without topics.' 
+        });
+      }
+
+      // Check if student has already reviewed these specific topics for this tutor
+      const existingTopicRating = await Rating.findOne({ 
+        tutor: booking.tutor._id, 
+        student: req.user._id,
+        topics: { $in: topicsFromBooking }
+      });
+
+      if (existingTopicRating) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'You have already reviewed these topics for this tutor. You can only submit one review per topic combination.' 
+        });
+      }
+
       // Create new rating
       existingRating = await Rating.create({
         tutor: booking.tutor._id,

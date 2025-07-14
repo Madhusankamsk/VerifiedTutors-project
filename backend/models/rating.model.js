@@ -18,7 +18,8 @@ const ratingSchema = new mongoose.Schema({
   },
   topics: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Topic'
+    ref: 'Topic',
+    required: true
   }],
   booking: {
     type: mongoose.Schema.Types.ObjectId,

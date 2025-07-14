@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { API_URL } from '../../config/constants';
 import { useNotifications } from '../../contexts/NotificationContext';
-import TutorReviewForm from '../../components/tutor-profile/TutorReviewForm';
+
 
 const StudentBookings = () => {
   const { bookings, loading, error, fetchBookings } = useStudent();
@@ -136,12 +136,12 @@ const StudentBookings = () => {
         });
 
         // Close the review modal
-        setShowReviewForm(false);
-        setSelectedBooking(null);
-        
+      setShowReviewForm(false);
+      setSelectedBooking(null);
+      
         // Refresh bookings to show the new review
-        await fetchBookings();
-        await loadBookingReviews();
+      await fetchBookings();
+      await loadBookingReviews();
       }
     } catch (error: any) {
       console.error('Error submitting review:', error);
@@ -165,232 +165,199 @@ const StudentBookings = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100 p-6">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 shadow">
-          <h2 className="text-xl font-bold text-red-700 mb-2">Error</h2>
-          <p className="text-red-600">{error}</p>
-          <button 
-            onClick={fetchBookings}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-          >
-            Try Again
-          </button>
-        </div>
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 shadow">
+        <h2 className="text-xl font-bold text-red-700 mb-2">Error</h2>
+        <p className="text-red-600">{error}</p>
+        <button 
+          onClick={fetchBookings}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100 p-6 relative">
+    <div className="relative">
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 -z-10"></div>
       
-      <div className="relative">
-        <h1 className="text-3xl font-bold mb-8 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+      {/* Header Section */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
           My Bookings
         </h1>
-
-        {/* Filters */}
-        <div className="bg-white rounded-xl shadow-md p-4 mb-6 flex flex-wrap gap-4 items-center">
-          <div className="flex items-center space-x-2">
-            <label className="text-sm text-gray-600">Status:</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
-              <option value="all">All</option>
-              <option value="pending">Pending</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-        </div>
-
-        {filteredBookings.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-md p-8 text-center border border-gray-100">
-            <div className="flex justify-center mb-4">
-              <Calendar className="w-12 h-12 text-gray-400" />
-            </div>
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">No Bookings Found</h2>
-            <p className="text-gray-500 mb-6">
-              You haven't booked any sessions yet.
-            </p>
-            <Link 
-              to="/tutors"
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition inline-block"
-            >
-              Find a Tutor
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {filteredBookings.map((booking) => (
-              <div key={booking._id} className="bg-white rounded-xl shadow-md p-6 border border-gray-100 transition hover:shadow-lg">
-                <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-800 mb-1">
-                      {booking.subject?.name || 'Unnamed Subject'}
-                    </h2>
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${getStatusBadgeClass(booking.status)}`}>
-                      {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                  <div className="flex items-start">
-                    <User className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-gray-500">Tutor</p>
-                      <p className="font-medium text-gray-800">
-                        {booking.tutor?.user?.name || 'Unknown Tutor'}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <Calendar className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-gray-500">Start Time</p>
-                      <p className="font-medium text-gray-800">{formatDate(booking.startTime)}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <Clock className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-gray-500">Duration</p>
-                      <p className="font-medium text-gray-800">{formatDuration(booking.duration)}</p>
-                    </div>
-                  </div>
-
-                  {booking.learningMethod && (
-                    <div className="flex items-start">
-                      {getLearningMethodIcon(booking.learningMethod)}
-                      <div className="ml-2">
-                        <p className="text-sm text-gray-500">Learning Method</p>
-                        <p className="font-medium text-gray-800">{getLearningMethodLabel(booking.learningMethod)}</p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-start">
-                    <DollarSign className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-gray-600">Amount</p>
-                      <p className="font-medium text-gray-800">Rs. {booking.amount}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <Book className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-gray-500">Payment Status</p>
-                      <p className="font-medium text-gray-800">
-                        {booking.paymentStatus.charAt(0).toUpperCase() + booking.paymentStatus.slice(1)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {booking.contactNumber && (
-                    <div className="flex items-start">
-                      <Phone className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
-                      <div>
-                        <p className="text-sm text-gray-500">Contact</p>
-                        <p className="font-medium text-gray-800">{booking.contactNumber}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Selected Topics */}
-                {booking.selectedTopics && booking.selectedTopics.length > 0 && (
-                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Hash className="w-4 h-4 text-blue-600" />
-                      <p className="text-sm font-medium text-blue-800">Selected Topics</p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {booking.selectedTopics.map((topic) => (
-                        <span 
-                          key={topic._id}
-                          className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full border border-blue-200"
-                        >
-                          {topic.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {booking.notes && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">Notes:</p>
-                    <p className="text-gray-700">{booking.notes}</p>
-                  </div>
-                )}
-
-                {booking.meetingLink && (
-                  <div className="mt-4">
-                    <a 
-                      href={booking.meetingLink} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition inline-block"
-                    >
-                      Join Session
-                    </a>
-                  </div>
-                )}
-
-                {booking.status === 'completed' && (
-                  <div className="mt-4">
-                    {bookingReviews[booking._id] ? (
-                      <div 
-                        className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
-                        onClick={() => handleReviewClick(booking)}
-                        title="Click to edit your review"
-                      >
-                        <div className="flex items-center text-green-600">
-                          <Check className="w-4 h-4 mr-1" />
-                          <span className="text-sm font-medium">Review Submitted</span>
-                        </div>
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star 
-                              key={i} 
-                              className={`w-4 h-4 ${i < bookingReviews[booking._id].rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
-                            />
-                          ))}
-                          <span className="ml-1 text-sm text-gray-600">
-                            {bookingReviews[booking._id].rating}/5
-                          </span>
-                        </div>
-                        <span className="text-xs text-gray-500 ml-2">(Click to edit)</span>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handleReviewClick(booking)}
-                        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition inline-flex items-center"
-                      >
-                        <Star className="w-4 h-4 mr-2" />
-                        Leave a Review
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+        <p className="text-gray-600">
+          Manage and track all your tutoring sessions
+        </p>
       </div>
 
+      {/* Filters */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-md p-4 mb-6 flex flex-wrap gap-4 items-center border border-gray-100">
+        <div className="flex items-center space-x-2">
+          <label className="text-sm text-gray-600 font-medium">Status:</label>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+          >
+            <option value="all">All</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+      </div>
+
+      {filteredBookings.length === 0 ? (
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-md p-8 text-center border border-gray-100">
+          <div className="flex justify-center mb-4">
+            <Calendar className="w-12 h-12 text-gray-400" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">No Bookings Found</h2>
+          <p className="text-gray-500 mb-6">
+            {statusFilter === 'all' 
+              ? "You haven't booked any sessions yet." 
+              : `No ${statusFilter} bookings found.`}
+          </p>
+          <Link 
+            to="/tutors"
+            className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition inline-block"
+          >
+            Find Tutors
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredBookings.map((booking) => (
+            <div key={booking._id} className="bg-white/80 backdrop-blur-sm rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all duration-200">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                {/* Booking Info */}
+                <div className="flex-1">
+                  <div className="flex items-start gap-4">
+                    {/* Tutor Avatar */}
+                    <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center text-white font-bold shadow-md">
+                      {booking.tutor.user.profileImage ? (
+                        <img 
+                          src={booking.tutor.user.profileImage} 
+                          alt={booking.tutor.user.name}
+                          className="w-full h-full object-cover rounded-xl"
+                        />
+                      ) : (
+                        booking.tutor.user.name.charAt(0)
+                      )}
+                    </div>
+                    
+                    {/* Booking Details */}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900">{booking.subject.name}</h3>
+                        <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getStatusBadgeClass(booking.status)}`}>
+                          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                        </span>
+                      </div>
+                      
+                      <p className="text-gray-600 mb-3">
+                        with <span className="font-medium">{booking.tutor.user.name}</span>
+                      </p>
+                      
+                      <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>{formatDate(booking.startTime)}</span>
+                        </div>
+                        {booking.duration && (
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            <span>{formatDuration(booking.duration)}</span>
+                          </div>
+                        )}
+                        {booking.learningMethod && (
+                          <div className="flex items-center gap-1">
+                            {getLearningMethodIcon(booking.learningMethod)}
+                            <span>{getLearningMethodLabel(booking.learningMethod)}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1">
+                          <DollarSign className="w-4 h-4" />
+                          <span>${booking.amount}</span>
+                        </div>
+                      </div>
+                      
+                      {booking.selectedTopics && booking.selectedTopics.length > 0 && (
+                        <div className="mt-3">
+                          <p className="text-sm text-gray-600 mb-2">Topics:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {booking.selectedTopics.map((topic) => (
+                              <span key={topic._id} className="px-2 py-1 bg-primary-50 text-primary-700 rounded-md text-xs">
+                                {topic.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 min-w-0 sm:min-w-fit">
+                  {booking.status === 'completed' && !bookingReviews[booking._id] && (
+                    <button
+                      onClick={() => handleReviewClick(booking)}
+                      className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition flex items-center justify-center gap-2"
+                    >
+                      <Star className="w-4 h-4" />
+                      <span>Review</span>
+                    </button>
+                  )}
+                  
+                  {booking.status === 'confirmed' && booking.meetingLink && (
+                    <a
+                      href={booking.meetingLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2"
+                    >
+                      <Video className="w-4 h-4" />
+                      <span>Join</span>
+                    </a>
+                  )}
+                  
+                  {booking.contactNumber && (
+                    <a
+                      href={`tel:${booking.contactNumber}`}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2"
+                    >
+                      <Phone className="w-4 h-4" />
+                      <span>Call</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+              
+              {booking.notes && (
+                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    <strong>Notes:</strong> {booking.notes}
+                  </p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Review Modal */}
       {showReviewForm && selectedBooking && (
         <BookingReviewForm
           isOpen={showReviewForm}
-          onClose={() => setShowReviewForm(false)}
+          onClose={() => {
+            setShowReviewForm(false);
+            setSelectedBooking(null);
+          }}
           onSubmit={handleReviewSubmit}
           subject={selectedBooking.subject}
           topics={selectedBooking.selectedTopics || []}

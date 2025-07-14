@@ -83,7 +83,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
           </nav>
 
           {/* User Info */}
-          <div className="px-4 py-4 border-t border-gray-200/50 bg-gradient-to-r from-blue-50/30 to-purple-50/30">
+          <div className="px-6 py-4 border-t border-gray-200/50 bg-gradient-to-r from-blue-50/30 to-purple-50/30">
             <div className="flex items-center space-x-3">
               {user?.profileImage ? (
                 <img
@@ -114,9 +114,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
           <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
         </div>
 
-        {/* Page Content */}
+        {/* Page Content with consistent padding */}
         <div className="min-h-[calc(100vh-4rem)] lg:min-h-[calc(100vh-8rem)]">
-          <Outlet />
+          <div className="p-4 sm:p-6 lg:p-8">
+            <Outlet />
+          </div>
         </div>
       </main>
 
