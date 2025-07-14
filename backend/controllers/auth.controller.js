@@ -2,8 +2,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
 import Tutor from '../models/tutor.model.js';
 import passport from 'passport';
-import { sendEmail } from '../services/emailService.js';
-import { sendSMS } from '../services/smsService.js';
+import NotificationService from '../services/notificationService.js';
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -55,48 +54,16 @@ export const registerUser = async (req, res) => {
     const token = generateToken(user._id);
     console.log(`🔑 JWT token generated for user: ${user._id}`);
 
-    // Send welcome notifications
+    // Send welcome notifications using centralized service
     console.log(`📧 Sending welcome notifications to: ${email}`);
     try {
-      const loginUrl = `${process.env.FRONTEND_URL}/login`;
-      
-      // Send email notification
-      console.log(`📧 Sending registration email to: ${email}`);
-      const emailResult = await sendEmail({
-        to: user.email,
-        template: user.role === 'tutor' ? 'tutorRegistration' : 'studentRegistration',
-        context: {
-          name: user.name,
-          loginUrl
-        }
+      await NotificationService.sendRegistrationNotification({
+        name: user.name,
+        email: user.email,
+        phone: phone,
+        role: user.role
       });
-
-      if (emailResult.success) {
-        console.log(`✅ Registration email sent successfully to ${email}`);
-      } else {
-        console.log(`❌ Registration email failed: ${emailResult.reason}`);
-      }
-
-      // Send SMS notification if phone number is provided
-      if (phone) {
-        console.log(`📱 Sending registration SMS to: ${phone}`);
-        const smsResult = await sendSMS({
-          to: phone,
-          template: user.role === 'tutor' ? 'tutorRegistration' : 'studentRegistration',
-          context: {
-            name: user.name,
-            loginUrl
-          }
-        });
-
-        if (smsResult.success) {
-          console.log(`✅ Registration SMS sent successfully to ${phone}`);
-        } else {
-          console.log(`❌ Registration SMS failed: ${smsResult.reason}`);
-        }
-      } else {
-        console.log(`📱 No phone number provided, skipping SMS notification`);
-      }
+      console.log(`✅ Registration notifications sent successfully to ${email}`);
     } catch (notificationError) {
       console.error(`❌ Failed to send welcome notifications:`, notificationError);
       // Don't fail the registration if notifications fail
@@ -283,32 +250,16 @@ export const updateGoogleUserRole = async (req, res) => {
       console.log(`✅ Tutor profile created for Google user`);
     }
 
-    // Send role confirmation notifications
+    // Send role confirmation notifications using centralized service
     console.log(`📧 Sending role confirmation notifications to: ${user.email}`);
     try {
-      const loginUrl = `${process.env.FRONTEND_URL}/login`;
-      
-      // Send email notification
-      console.log(`📧 Sending role confirmation email to: ${user.email}`);
-      const emailResult = await sendEmail({
-        to: user.email,
-        template: user.role === 'tutor' ? 'tutorRegistration' : 'studentRegistration',
-        context: {
-          name: user.name,
-          loginUrl,
-          email: user.email
-        }
+      await NotificationService.sendRegistrationNotification({
+        name: user.name,
+        email: user.email,
+        phone: '', // Google users don't have phone initially
+        role: user.role
       });
-
-      if (emailResult.success) {
-        console.log(`✅ Role confirmation email sent successfully to ${user.email}`);
-      } else {
-        console.log(`❌ Role confirmation email failed: ${emailResult.reason}`);
-      }
-
-      // Note: SMS not sent for Google users since we don't have phone number
-      console.log(`📱 No phone number available for Google user, skipping SMS notification`);
-      
+      console.log(`✅ Role confirmation notifications sent successfully to ${user.email}`);
     } catch (notificationError) {
       console.error(`❌ Failed to send role confirmation notifications:`, notificationError);
       // Don't fail the role update if notifications fail
@@ -354,28 +305,14 @@ export const forgotPassword = async (req, res) => {
     // Create reset URL
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
-    // Send password reset notification
+    // Send password reset notification using centralized service
     try {
-      await sendEmail({
-        to: user.email,
-        template: 'passwordReset',
-        context: {
-          name: user.name,
-          resetUrl
-        }
-      });
-
-      // Send SMS if phone number exists
-      if (user.phone) {
-        await sendSMS({
-          to: user.phone,
-          template: 'passwordReset',
-          context: {
-            name: user.name,
-            resetUrl
-          }
-        });
-      }
+      await NotificationService.sendPasswordResetNotification(
+        user.email,
+        user.name,
+        resetUrl,
+        user.phone
+      );
     } catch (notificationError) {
       console.error('Failed to send password reset notification:', notificationError);
       return res.status(500).json({ message: 'Failed to send password reset notification' });

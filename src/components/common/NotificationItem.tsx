@@ -1,10 +1,10 @@
 import React from 'react';
 import { Bell, CheckCircle, Info, AlertTriangle, XCircle, X, ExternalLink } from 'lucide-react';
-import { Notification } from '../../contexts/NotificationContext';
+import { UnifiedNotification } from '../../contexts/NotificationContext';
 import { formatDistanceToNow } from 'date-fns';
 
 interface NotificationItemProps {
-  notification: Notification;
+  notification: UnifiedNotification;
   onMarkAsRead: (id: string) => void;
   onRemove: (id: string) => void;
 }

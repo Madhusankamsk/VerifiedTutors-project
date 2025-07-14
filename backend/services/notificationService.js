@@ -1,5 +1,7 @@
 import { sendEmail } from './emailService.js';
 import { sendSMS } from './smsService.js';
+import Notification from '../models/notification.model.js';
+import socketService from './socketService.js';
 
 /**
  * Notification Service - Handles all email and SMS notifications
@@ -40,6 +42,9 @@ class NotificationService {
           }
         });
       }
+
+      // Create database notification
+      await this.createRegistrationDatabaseNotification(user);
 
       console.log(`Registration notifications sent to ${user.email}`);
     } catch (error) {
@@ -105,6 +110,9 @@ class NotificationService {
         }
       }
 
+      // Create database notification
+      await this.createVerificationDatabaseNotification(tutor, status, reason);
+
       console.log(`Verification ${status} notifications sent to ${tutor.user.email}`);
     } catch (error) {
       console.error('Failed to send verification notifications:', error);
@@ -165,6 +173,9 @@ class NotificationService {
           context
         });
       }
+
+      // Create database notifications
+      await this.createBookingDatabaseNotification(booking, type);
 
       console.log(`Booking ${type} notifications sent for booking ${booking._id}`);
     } catch (error) {
@@ -442,6 +453,207 @@ class NotificationService {
     }
 
     return results;
+  }
+
+  /**
+   * Create database notification
+   * @param {Object} notificationData - Notification data
+   * @param {string} notificationData.userId - User ID
+   * @param {string} notificationData.type - Notification type
+   * @param {string} notificationData.title - Notification title
+   * @param {string} notificationData.message - Notification message
+   * @param {string} notificationData.category - Notification category
+   * @param {Object} notificationData.action - Action object (optional)
+   * @param {Object} notificationData.metadata - Additional metadata (optional)
+   * @param {string} notificationData.priority - Priority level (optional)
+   * @param {Date} notificationData.expiresAt - Expiration date (optional)
+   */
+  static async createDatabaseNotification(notificationData) {
+    try {
+      const notification = await Notification.createNotification(notificationData);
+      console.log(`Database notification created: ${notification._id}`);
+      
+      // Send real-time notification
+      socketService.sendNotificationToUser(notificationData.user, {
+        id: notification._id,
+        type: notification.type,
+        title: notification.title,
+        message: notification.message,
+        category: notification.category,
+        action: notification.action,
+        priority: notification.priority,
+        createdAt: notification.createdAt,
+        read: false
+      });
+      
+      return notification;
+    } catch (error) {
+      console.error('Failed to create database notification:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create booking notification in database
+   * @param {Object} booking - Booking object with populated relations
+   * @param {string} type - 'confirmation', 'reminder', 'cancelled'
+   */
+  static async createBookingDatabaseNotification(booking, type) {
+    try {
+      const notificationData = {
+        user: booking.student._id,
+        type: 'booking',
+        category: 'booking',
+        priority: type === 'reminder' ? 'high' : 'medium',
+        metadata: {
+          bookingId: booking._id,
+          tutorId: booking.tutor._id,
+          subjectId: booking.subject._id,
+          type: type
+        }
+      };
+
+      // Student notification
+      if (type === 'confirmation') {
+        notificationData.title = 'Booking Confirmed';
+        notificationData.message = `Your booking with ${booking.tutor.user.name} for ${booking.subject.name} has been confirmed.`;
+        notificationData.action = {
+          label: 'View Booking',
+          url: `/student/bookings/${booking._id}`
+        };
+      } else if (type === 'reminder') {
+        notificationData.title = 'Session Reminder';
+        notificationData.message = `Your session with ${booking.tutor.user.name} is starting soon.`;
+        notificationData.action = {
+          label: 'Join Session',
+          url: `/student/bookings/${booking._id}`
+        };
+      } else if (type === 'cancelled') {
+        notificationData.title = 'Booking Cancelled';
+        notificationData.message = `Your booking with ${booking.tutor.user.name} has been cancelled.`;
+        notificationData.action = {
+          label: 'Book Again',
+          url: '/tutors'
+        };
+      }
+
+      await this.createDatabaseNotification(notificationData);
+
+      // Tutor notification
+      const tutorNotificationData = {
+        ...notificationData,
+        user: booking.tutor.user._id,
+        action: {
+          label: 'View Booking',
+          url: `/tutor/bookings/${booking._id}`
+        }
+      };
+
+      if (type === 'confirmation') {
+        tutorNotificationData.title = 'New Booking Received';
+        tutorNotificationData.message = `${booking.student.name} has booked a session with you for ${booking.subject.name}.`;
+      } else if (type === 'reminder') {
+        tutorNotificationData.title = 'Session Reminder';
+        tutorNotificationData.message = `Your session with ${booking.student.name} is starting soon.`;
+      } else if (type === 'cancelled') {
+        tutorNotificationData.title = 'Booking Cancelled';
+        tutorNotificationData.message = `Your booking with ${booking.student.name} has been cancelled.`;
+      }
+
+      await this.createDatabaseNotification(tutorNotificationData);
+
+      // Send real-time booking update
+      socketService.sendBookingUpdate(booking, type);
+
+      console.log(`Booking database notifications created for ${type}`);
+    } catch (error) {
+      console.error('Failed to create booking database notifications:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create verification notification in database
+   * @param {Object} tutor - Tutor object with populated user
+   * @param {string} status - 'approved' or 'rejected'
+   * @param {string} reason - Rejection reason (optional)
+   */
+  static async createVerificationDatabaseNotification(tutor, status, reason = null) {
+    try {
+      const notificationData = {
+        user: tutor.user._id,
+        type: 'verification',
+        category: 'verification',
+        priority: 'high',
+        metadata: {
+          tutorId: tutor._id,
+          status: status,
+          reason: reason
+        }
+      };
+
+      if (status === 'approved') {
+        notificationData.title = 'Profile Approved!';
+        notificationData.message = 'Congratulations! Your tutor profile has been verified and approved. You can now start accepting students.';
+        notificationData.action = {
+          label: 'View Profile',
+          url: '/tutor/profile'
+        };
+      } else if (status === 'rejected') {
+        notificationData.title = 'Profile Verification Failed';
+        notificationData.message = `Your profile verification was unsuccessful. Reason: ${reason}. Please update your profile and try again.`;
+        notificationData.action = {
+          label: 'Update Profile',
+          url: '/tutor/profile'
+        };
+      }
+
+      await this.createDatabaseNotification(notificationData);
+      console.log(`Verification database notification created for ${status}`);
+    } catch (error) {
+      console.error('Failed to create verification database notification:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create registration notification in database
+   * @param {Object} user - User object
+   */
+  static async createRegistrationDatabaseNotification(user) {
+    try {
+      const notificationData = {
+        user: user._id,
+        type: 'success',
+        category: 'system',
+        priority: 'medium',
+        metadata: {
+          role: user.role
+        }
+      };
+
+      if (user.role === 'tutor') {
+        notificationData.title = 'Welcome to VerifiedTutors!';
+        notificationData.message = 'Your tutor account has been created successfully. Complete your profile to start accepting students.';
+        notificationData.action = {
+          label: 'Complete Profile',
+          url: '/tutor/profile'
+        };
+      } else {
+        notificationData.title = 'Welcome to VerifiedTutors!';
+        notificationData.message = 'Your student account is ready. Start browsing tutors and booking sessions.';
+        notificationData.action = {
+          label: 'Find Tutors',
+          url: '/tutors'
+        };
+      }
+
+      await this.createDatabaseNotification(notificationData);
+      console.log(`Registration database notification created for ${user.role}`);
+    } catch (error) {
+      console.error('Failed to create registration database notification:', error);
+      throw error;
+    }
   }
 }
 

@@ -12,6 +12,7 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import PublicRoute from './components/common/PublicRoute';
 import RoleRoute from './components/common/RoleRoute';
 import ScrollToTop from './components/common/ScrollToTop';
+import WebSocketProvider from './components/common/WebSocketProvider';
 import { Toaster } from 'react-hot-toast';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -58,24 +59,25 @@ const App = () => {
       <ScrollToTop />
       <AuthProvider>
         <NotificationProvider>
-          <SubjectProvider>
-            <TutorProvider>
-              <AdminProvider>
-                <BlogProvider>
-                  <RatingProvider>
-                    <StudentProvider>
-                      <Toaster position="top-right" />
-                      <ToastContainer
-                        position="top-right"
-                        autoClose={5000}
-                        hideProgressBar={false}
-                        newestOnTop
-                        closeOnClick
-                        rtl={false}
-                        pauseOnFocusLoss
-                        draggable
-                        pauseOnHover
-                      />
+          <WebSocketProvider>
+            <SubjectProvider>
+              <TutorProvider>
+                <AdminProvider>
+                  <BlogProvider>
+                    <RatingProvider>
+                      <StudentProvider>
+                        <Toaster position="top-right" />
+                        <ToastContainer
+                          position="top-right"
+                          autoClose={5000}
+                          hideProgressBar={false}
+                          newestOnTop
+                          closeOnClick
+                          rtl={false}
+                          pauseOnFocusLoss
+                          draggable
+                          pauseOnHover
+                        />
                       <Routes>
                         {/* Public Routes */}
                         <Route path="/" element={<MainLayout />}>
@@ -159,6 +161,7 @@ const App = () => {
               </AdminProvider>
             </TutorProvider>
           </SubjectProvider>
+        </WebSocketProvider>
         </NotificationProvider>
       </AuthProvider>
     </Router>

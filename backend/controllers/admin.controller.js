@@ -2,8 +2,7 @@ import Tutor from '../models/tutor.model.js';
 import User from '../models/user.model.js';
 import Subject from '../models/subject.model.js';
 import Booking from '../models/booking.model.js';
-import { sendEmail } from '../services/emailService.js';
-import { sendSMS } from '../services/smsService.js';
+import NotificationService from '../services/notificationService.js';
 
 // @desc    Get all tutors
 // @route   GET /api/admin/tutors
@@ -203,48 +202,11 @@ export const approveTutor = async (req, res) => {
     await tutor.save();
     console.log(`✅ Tutor verification status updated successfully`);
 
-    // Send approval notifications
+    // Send approval notifications using centralized service
     console.log(`📧 Sending approval notifications to: ${tutor.user.email}`);
     try {
-      const loginUrl = `${process.env.FRONTEND_URL}/login`;
-      
-      // Send email notification
-      console.log(`📧 Sending approval email to: ${tutor.user.email}`);
-      const emailResult = await sendEmail({
-        to: tutor.user.email,
-        template: 'tutorApproved',
-        context: {
-          name: tutor.user.name,
-          loginUrl
-        }
-      });
-
-      if (emailResult.success) {
-        console.log(`✅ Approval email sent successfully to ${tutor.user.email}`);
-      } else {
-        console.log(`❌ Approval email failed: ${emailResult.reason}`);
-      }
-
-      // Send SMS notification if phone number exists
-      if (tutor.phone) {
-        console.log(`📱 Sending approval SMS to: ${tutor.phone}`);
-        const smsResult = await sendSMS({
-          to: tutor.phone,
-          template: 'tutorApproved',
-          context: {
-            name: tutor.user.name,
-            loginUrl
-          }
-        });
-
-        if (smsResult.success) {
-          console.log(`✅ Approval SMS sent successfully to ${tutor.phone}`);
-        } else {
-          console.log(`❌ Approval SMS failed: ${smsResult.reason}`);
-        }
-      } else {
-        console.log(`📱 No phone number available, skipping SMS notification`);
-      }
+      await NotificationService.sendVerificationNotification(tutor, 'approved');
+      console.log(`✅ Approval notifications sent successfully to ${tutor.user.email}`);
     } catch (notificationError) {
       console.error(`❌ Failed to send approval notifications:`, notificationError);
       // Don't fail the verification if notifications fail
@@ -305,51 +267,11 @@ export const rejectTutor = async (req, res) => {
     await tutor.save();
     console.log(`✅ Tutor rejection status updated successfully`);
 
-    // Send rejection notifications
+    // Send rejection notifications using centralized service
     console.log(`📧 Sending rejection notifications to: ${tutor.user.email}`);
     try {
-      const loginUrl = `${process.env.FRONTEND_URL}/login`;
-      
-      // Send email notification
-      console.log(`📧 Sending rejection email to: ${tutor.user.email}`);
-      const emailResult = await sendEmail({
-        to: tutor.user.email,
-        template: 'tutorRejected',
-        context: {
-          name: tutor.user.name,
-          reason: reason,
-          supportEmail: process.env.SUPPORT_EMAIL,
-          loginUrl
-        }
-      });
-
-      if (emailResult.success) {
-        console.log(`✅ Rejection email sent successfully to ${tutor.user.email}`);
-      } else {
-        console.log(`❌ Rejection email failed: ${emailResult.reason}`);
-      }
-
-      // Send SMS notification if phone number exists
-      if (tutor.phone) {
-        console.log(`📱 Sending rejection SMS to: ${tutor.phone}`);
-        const smsResult = await sendSMS({
-          to: tutor.phone,
-          template: 'tutorRejected',
-          context: {
-            name: tutor.user.name,
-            reason: reason,
-            loginUrl
-          }
-        });
-
-        if (smsResult.success) {
-          console.log(`✅ Rejection SMS sent successfully to ${tutor.phone}`);
-        } else {
-          console.log(`❌ Rejection SMS failed: ${smsResult.reason}`);
-        }
-      } else {
-        console.log(`📱 No phone number available, skipping SMS notification`);
-      }
+      await NotificationService.sendVerificationNotification(tutor, 'rejected', reason);
+      console.log(`✅ Rejection notifications sent successfully to ${tutor.user.email}`);
     } catch (notificationError) {
       console.error(`❌ Failed to send rejection notifications:`, notificationError);
       // Don't fail the rejection if notifications fail

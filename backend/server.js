@@ -7,7 +7,9 @@ import dotenv from 'dotenv';
 import passport from 'passport';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createServer } from 'http';
 import './config/passport.js'; // Import passport configuration
+import socketService from './services/socketService.js';
 
 // Route imports
 import authRoutes from './routes/auth.routes.js';
@@ -20,14 +22,16 @@ import topicRoutes from './routes/topic.routes.js';
 import ratingRoutes from './routes/rating.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import bookingRoutes from './routes/booking.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
 
 // Middleware imports
 import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
 
-// Initialize app
+// Initialize app and server
 const app = express();
+const server = createServer(app);
 const PORT = process.env.PORT || 5000;
 
 // Get __dirname equivalent in ES modules
@@ -60,6 +64,7 @@ app.use('/api/topics', topicRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Base API route
 app.get('/api', (req, res) => {
@@ -88,7 +93,11 @@ const connectDB = async () => {
 
 // Start server
 connectDB().then(() => {
-  app.listen(PORT, '0.0.0.0', () => {
+  // Initialize Socket.IO
+  socketService.initialize(server);
+  
+  server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
+    console.log(`Socket.IO server initialized`);
   });
 });

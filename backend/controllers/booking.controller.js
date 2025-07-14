@@ -3,8 +3,7 @@ import Tutor from '../models/tutor.model.js';
 import User from '../models/user.model.js';
 import Subject from '../models/subject.model.js';
 import Topic from '../models/topic.model.js';
-import { sendEmail } from '../services/emailService.js';
-import { sendSMS } from '../services/smsService.js';
+import NotificationService from '../services/notificationService.js';
 
 // @desc    Create a new booking
 // @route   POST /api/bookings
@@ -90,86 +89,9 @@ export const createBooking = async (req, res) => {
         }
       });
 
-    // Send notifications
+    // Send notifications using centralized service
     try {
-      const dashboardUrl = `${process.env.FRONTEND_URL}/dashboard`;
-      const formattedDate = new Date(startTime).toLocaleDateString();
-      const formattedTime = new Date(startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      // Send email to student
-      await sendEmail({
-        to: populatedBooking.student.email,
-        template: 'bookingConfirmation',
-        context: {
-          studentName: populatedBooking.student.name,
-          tutorName: populatedBooking.tutor.user.name,
-          subject: populatedBooking.subject.name,
-          topic: populatedBooking.topic ? populatedBooking.topic.name : 'General',
-          date: formattedDate,
-          time: formattedTime,
-          duration: duration,
-          mode: teachingMode,
-          amount: amount,
-          dashboardUrl
-        }
-      });
-
-      // Send email to tutor
-      await sendEmail({
-        to: populatedBooking.tutor.user.email,
-        template: 'bookingConfirmation',
-        context: {
-          studentName: populatedBooking.student.name,
-          tutorName: populatedBooking.tutor.user.name,
-          subject: populatedBooking.subject.name,
-          topic: populatedBooking.topic ? populatedBooking.topic.name : 'General',
-          date: formattedDate,
-          time: formattedTime,
-          duration: duration,
-          mode: teachingMode,
-          amount: amount,
-          dashboardUrl
-        }
-      });
-
-      // Send SMS to student if phone number exists
-      if (populatedBooking.student.phone) {
-        await sendSMS({
-          to: populatedBooking.student.phone,
-          template: 'bookingConfirmation',
-          context: {
-            studentName: populatedBooking.student.name,
-            tutorName: populatedBooking.tutor.user.name,
-            subject: populatedBooking.subject.name,
-            topic: populatedBooking.topic ? populatedBooking.topic.name : 'General',
-            date: formattedDate,
-            time: formattedTime,
-            duration: duration,
-            mode: teachingMode,
-            amount: amount
-          }
-        });
-      }
-
-      // Send SMS to tutor if phone number exists
-      if (populatedBooking.tutor.phone) {
-        await sendSMS({
-          to: populatedBooking.tutor.phone,
-          template: 'bookingConfirmation',
-          context: {
-            studentName: populatedBooking.student.name,
-            tutorName: populatedBooking.tutor.user.name,
-            subject: populatedBooking.subject.name,
-            topic: populatedBooking.topic ? populatedBooking.topic.name : 'General',
-            date: formattedDate,
-            time: formattedTime,
-            duration: duration,
-            mode: teachingMode,
-            amount: amount
-          }
-        });
-      }
-
+      await NotificationService.sendBookingNotification(populatedBooking, 'confirmation');
       console.log('Booking notifications sent successfully');
     } catch (notificationError) {
       console.error('Failed to send booking notifications:', notificationError);
@@ -322,57 +244,8 @@ export const updateBookingStatus = async (req, res) => {
 
     // Send notifications based on status change
     try {
-      const dashboardUrl = `${process.env.FRONTEND_URL}/dashboard`;
-      const formattedDate = new Date(booking.date).toLocaleDateString();
-
       if (status === 'cancelled') {
-        // Send cancellation notifications
-        await sendEmail({
-          to: booking.student.email,
-          template: 'bookingCancelled',
-          context: {
-            studentName: booking.student.name,
-            tutorName: booking.tutor.user.name,
-            date: formattedDate,
-            dashboardUrl
-          }
-        });
-
-        await sendEmail({
-          to: booking.tutor.user.email,
-          template: 'bookingCancelled',
-          context: {
-            studentName: booking.student.name,
-            tutorName: booking.tutor.user.name,
-            date: formattedDate,
-            dashboardUrl
-          }
-        });
-
-        // Send SMS notifications
-        if (booking.student.phone) {
-          await sendSMS({
-            to: booking.student.phone,
-            template: 'bookingCancelled',
-            context: {
-              studentName: booking.student.name,
-              tutorName: booking.tutor.user.name,
-              date: formattedDate
-            }
-          });
-        }
-
-        if (booking.tutor.phone) {
-          await sendSMS({
-            to: booking.tutor.phone,
-            template: 'bookingCancelled',
-            context: {
-              studentName: booking.student.name,
-              tutorName: booking.tutor.user.name,
-              date: formattedDate
-            }
-          });
-        }
+        await NotificationService.sendBookingNotification(booking, 'cancelled');
       }
     } catch (notificationError) {
       console.error('Failed to send status change notifications:', notificationError);
@@ -445,71 +318,9 @@ export const sendBookingReminder = async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
-    // Send reminder notifications
+    // Send reminder notifications using centralized service
     try {
-      const dashboardUrl = `${process.env.FRONTEND_URL}/dashboard`;
-      const formattedDate = new Date(booking.date).toLocaleDateString();
-
-      // Send email reminders
-      await sendEmail({
-        to: booking.student.email,
-        template: 'bookingReminder',
-        context: {
-          studentName: booking.student.name,
-          tutorName: booking.tutor.user.name,
-          subject: booking.subject.name,
-          date: formattedDate,
-          time: booking.time,
-          mode: booking.teachingMode,
-          dashboardUrl
-        }
-      });
-
-      await sendEmail({
-        to: booking.tutor.user.email,
-        template: 'bookingReminder',
-        context: {
-          studentName: booking.student.name,
-          tutorName: booking.tutor.user.name,
-          subject: booking.subject.name,
-          date: formattedDate,
-          time: booking.time,
-          mode: booking.teachingMode,
-          dashboardUrl
-        }
-      });
-
-      // Send SMS reminders
-      if (booking.student.phone) {
-        await sendSMS({
-          to: booking.student.phone,
-          template: 'bookingReminder',
-          context: {
-            studentName: booking.student.name,
-            tutorName: booking.tutor.user.name,
-            subject: booking.subject.name,
-            date: formattedDate,
-            time: booking.time,
-            mode: booking.teachingMode
-          }
-        });
-      }
-
-      if (booking.tutor.phone) {
-        await sendSMS({
-          to: booking.tutor.phone,
-          template: 'bookingReminder',
-          context: {
-            studentName: booking.student.name,
-            tutorName: booking.tutor.user.name,
-            subject: booking.subject.name,
-            date: formattedDate,
-            time: booking.time,
-            mode: booking.teachingMode
-          }
-        });
-      }
-
+      await NotificationService.sendSessionReminder(booking);
       res.json({ message: 'Reminders sent successfully' });
     } catch (notificationError) {
       console.error('Failed to send reminders:', notificationError);
