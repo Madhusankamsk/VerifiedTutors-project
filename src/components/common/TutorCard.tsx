@@ -134,9 +134,12 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group border border-gray-100 w-full h-88">
+    <Link
+      to={`/tutors/${tutor.id}`}
+      className="block bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group border border-gray-100 w-full"
+    >
       {/* Profile Image Section */}
-      <div className="relative h-36 bg-gradient-to-br from-blue-50 to-blue-100">
+      <div className="relative w-full aspect-square bg-gradient-to-br from-blue-50 to-blue-100 overflow-hidden">
         {tutor.profileImage ? (
           <img
             src={tutor.profileImage}
@@ -144,19 +147,107 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-4xl font-bold text-blue-200">
+          <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+            <span className="text-4xl font-bold text-white">
               {tutor.name.charAt(0)}
             </span>
           </div>
         )}
         
-        {/* Verified Badge */}
+        {/* Gradient Overlay for Content */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent h-2/3"></div>
+        
+        {/* Verified Badge - Top Right */}
         {tutor.verified && (
-          <div className="absolute top-2 right-2 bg-green-500 rounded-full p-1 shadow-lg border-2 border-white">
-            <CheckCircle className="h-3 w-3 text-white" />
+          <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium shadow-lg">
+            Verified
           </div>
         )}
+        
+        {/* Content Overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 space-y-2">
+          {/* Name */}
+          <h3 className="text-white font-semibold text-sm line-clamp-1 group-hover:text-blue-200 transition-colors">
+            {tutor.name}
+          </h3>
+          
+          {/* Rating */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="flex items-center">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-3 w-3 ${
+                      i < Math.floor(tutor.rating)
+                        ? 'text-yellow-400 fill-yellow-400'
+                        : 'text-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="text-xs text-gray-200 ml-1">
+                ({tutor.reviewCount})
+              </span>
+            </div>
+          </div>
+          
+          {/* Location */}
+          <div className="flex items-center text-gray-200">
+            <MapPin className="h-3 w-3 mr-1 text-gray-300 flex-shrink-0" />
+            <span className="text-xs line-clamp-1">
+              {tutor.location || 'Location not specified'}
+            </span>
+          </div>
+          
+          {/* Subjects */}
+          <div className="flex items-center text-gray-200">
+            <Book className="h-3 w-3 mr-1 text-gray-300 flex-shrink-0" />
+            <span className="text-xs line-clamp-1">
+              {subjectNames.join(', ')}
+            </span>
+          </div>
+          
+          {/* Topics */}
+          {subjectTopics.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {subjectTopics.slice(0, 2).map((topic, index) => (
+                <span
+                  key={index}
+                  className="px-1.5 py-0.5 bg-white/20 text-white text-xs rounded-md backdrop-blur-sm"
+                  title={topic}
+                >
+                  {topic}
+                </span>
+              ))}
+              {subjectTopics.length > 2 && (
+                <span className="px-1.5 py-0.5 bg-white/20 text-white text-xs rounded-md backdrop-blur-sm">
+                  +{subjectTopics.length - 2}
+                </span>
+              )}
+            </div>
+          )}
+          
+          {/* Pricing */}
+          {(rates.online > 0 || rates.individual > 0) && (
+            <div className="flex items-center gap-3 text-xs">
+              {rates.online > 0 && (
+                <div className="flex items-center text-gray-200">
+                  <Video className="h-3 w-3 text-blue-300 mr-1" />
+                  <span>Rs. {rates.online}</span>
+                </div>
+              )}
+              {rates.individual > 0 && (
+                <div className="flex items-center text-gray-200">
+                  <Home className="h-3 w-3 text-green-300 mr-1" />
+                  <span>Rs. {rates.individual}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
+
         
         {/* Favorite Button */}
         <button 
@@ -169,113 +260,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
           />
         </button>
       </div>
-
-      {/* Content Section */}
-      <div className="p-4 flex flex-col flex-1">
-        {/* Name and Rating */}
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1 group-hover:text-primary-600 transition-colors">
-            {tutor.name}
-          </h3>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="flex items-center">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-3 w-3 ${
-                      i < Math.floor(tutor.rating)
-                        ? 'text-yellow-400 fill-yellow-400'
-                        : 'text-gray-200'
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="text-xs text-gray-500 ml-1">
-                ({tutor.reviewCount})
-              </span>
-            </div>
-            {tutor.verified && (
-              <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-medium shadow-sm">Verified</span>
-            )}
-          </div>
-        </div>
-
-        {/* Location */}
-        <div className="mb-4">
-          <div className="flex items-center text-gray-600">
-            <MapPin className="h-3 w-3 mr-1.5 text-gray-400 flex-shrink-0" />
-            <span className="text-sm line-clamp-1 font-medium">
-              {tutor.location || 'Location not specified'}
-            </span>
-          </div>
-        </div>
-
-        {/* Subjects and Topics */}
-        <div className="mb-4 flex-1">
-          {/* Subject Names */}
-          <div className="flex items-start text-gray-600 mb-2">
-            <Book className="h-3 w-3 mr-1.5 text-gray-400 mt-0.5 flex-shrink-0" />
-            <span className="text-sm line-clamp-1 leading-relaxed font-medium">
-              {subjectNames.join(', ')}
-            </span>
-          </div>
-          
-          {/* Subject Topics */}
-          {subjectTopics.length > 0 && (
-            <div className="mt-2">
-              <div className="flex flex-wrap gap-1">
-                {subjectTopics.slice(0, 3).map((topic, index) => (
-                  <span
-                    key={index}
-                    className="px-1.5 py-0.5 bg-primary-50 text-primary-700 text-xs rounded border border-primary-200 truncate max-w-20 sm:max-w-24"
-                    title={topic}
-                  >
-                    {topic}
-                  </span>
-                ))}
-                {subjectTopics.length > 3 && (
-                  <span 
-                    className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded border border-gray-200"
-                    title={`${subjectTopics.length - 3} more topics: ${subjectTopics.slice(3).join(', ')}`}
-                  >
-                    +{subjectTopics.length - 3}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Pricing Section */}
-        {(rates.online > 0 || rates.individual  > 0) && (
-          <div className="mb-4">
-            <div className="flex items-center gap-4 text-xs">
-              {rates.online > 0 && (
-                <div className="flex items-center">
-                  <Video className="h-3 w-3 text-blue-600 mr-1" />
-                  <span className="text-gray-600 font-medium">Rs. {rates.online}</span>
-                </div>
-              )}
-              {rates.individual > 0 && (
-                <div className="flex items-center">
-                  <Home className="h-3 w-3 text-green-600 mr-1" />
-                  <span className="text-gray-600 font-medium">Rs. {rates.individual}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* View Profile Button */}
-        <Link
-          to={`/tutors/${tutor.id}`}
-          className="block w-full py-3 text-center bg-primary-600 text-white rounded-lg text-sm font-semibold hover:bg-primary-700 transition-colors mt-auto shadow-sm hover:shadow-md"
-        >
-          View Profile
-        </Link>
-      </div>
-    </div>
+    </Link>
   );
 };
 
