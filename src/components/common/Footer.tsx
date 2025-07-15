@@ -49,7 +49,17 @@ const Footer: React.FC = () => {
               <span>© {currentYear} VerifiedTutors. Made with</span>
               <div className="flex items-center space-x-1">
                 <Heart className="h-4 w-4 text-red-500 animate-pulse" />
-                <span>for education.</span>
+                <span>
+                  for education, by{' '}
+                  <a
+                    href="https://alteredminds.co"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-blue-400 transition-colors"
+                  >
+                    alteredMinds.co
+                  </a>
+                </span>
               </div>
             </div>
             

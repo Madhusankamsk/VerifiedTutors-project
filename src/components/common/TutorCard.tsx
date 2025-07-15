@@ -165,7 +165,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
         )}
         
         {/* Content Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 space-y-2">
+        <div className="absolute bottom-0 left-0 right-0 p-3 pb-16 sm:pb-12 md:pb-3 space-y-2">
           {/* Name */}
           <h3 className="text-white font-semibold text-sm line-clamp-1 group-hover:text-blue-200 transition-colors">
             {tutor.name}
@@ -249,14 +249,14 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
         
 
         
-        {/* Favorite Button */}
+        {/* Favorite Button - Bottom Right */}
         <button 
           onClick={handleFavoriteClick}
-          className="absolute top-2 left-2 bg-white rounded-full p-1 shadow-sm hover:bg-gray-50 transition-colors"
+          className="absolute bottom-4 right-4 sm:bottom-3 sm:right-3 md:bottom-2 md:right-2 sm:bg-white/95 sm:backdrop-blur-sm rounded-full sm:p-1.5 shadow-lg hover:bg-white hover:shadow-xl transition-all duration-200 sm:border sm:border-white/30 z-20"
           aria-label={isTutorFavorite ? "Remove from favorites" : "Add to favorites"}
         >
           <Heart 
-            className={`h-3 w-3 ${isTutorFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
+            className={`h-5 w-5 sm:h-3.5 sm:w-3.5 ${isTutorFavorite ? 'text-red-500 fill-red-500' : 'text-white hover:text-red-400 sm:text-gray-600'}`} 
           />
         </button>
       </div>

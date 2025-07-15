@@ -10,9 +10,17 @@ const DashboardFooter: React.FC = () => {
         <div className="flex items-center space-x-2">
           <span>© {currentYear} VerifiedTutors</span>
           <span className="hidden sm:inline">•</span>
-          <span className="hidden sm:inline">Made with</span>
-          <Heart className="h-3 w-3 text-red-500" />
-          <span className="hidden sm:inline">for education</span>
+          <span>
+                  for education, by{' '}
+                  <a
+                    href="https://alteredminds.co"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-blue-400 transition-colors"
+                  >
+                    alteredMinds.co
+                  </a>
+                </span>
         </div>
         <div className="flex items-center space-x-4">
           <span className="hidden md:inline">v1.0.0</span>

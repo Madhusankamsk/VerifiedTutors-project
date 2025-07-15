@@ -298,7 +298,7 @@ const TutorProfilePage: React.FC = () => {
           {/* Header Section */}
           <TutorProfileHeader profile={profile} onBookSession={handleBookSession} />
           
-          {/* Tabs Navigation */}
+          {/* Tabs Navigation - Moved to top on mobile */}
           <TutorProfileTabs
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -324,10 +324,8 @@ const TutorProfilePage: React.FC = () => {
               )}
             </div>
 
-            {/* Sidebar */}
-            <div className="order-first lg:order-last">
-              <TutorProfileSidebar profile={profile} />
-            </div>
+            {/* Sidebar - Moved below tabs on mobile, right side on desktop */}
+            
           </div>
         </div>
       </div>
