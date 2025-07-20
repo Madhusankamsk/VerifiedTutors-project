@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTutor, TutorProfile } from '../contexts/TutorContext';
 import { useSubjects } from '../contexts/SubjectContext';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Users, ArrowRight, Star, Sparkles, Search } from 'lucide-react';
+import { Users, ArrowRight, Star, Sparkles, Search, ArrowUp } from 'lucide-react';
 import HeroImage from '../assets/HeroImage.png';
 import {
   TutorGrid,
@@ -40,6 +40,25 @@ const TutorListingPage: React.FC = () => {
 
   const [sortBy, setSortBy] = useState('rating');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
+
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }, []);
+
+  // Handle scroll to show/hide scroll to top button
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      setShowScrollToTop(scrollTop > 300);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const fetchTutors = useCallback(async (isLoadMore = false, targetPage?: number) => {
     try {
@@ -311,58 +330,58 @@ const TutorListingPage: React.FC = () => {
           <div className="flex-1">
             {/* Mobile Filters - Hidden on Desktop */}
             <div className="lg:hidden mb-6 space-y-4">
-              <HomePageFilters
-                onFilterChange={handleFilterChange}
-                urlSubject={urlSubject}
-                urlTopic={urlTopic}
-              />
+          <HomePageFilters
+            onFilterChange={handleFilterChange}
+            urlSubject={urlSubject}
+            urlTopic={urlTopic}
+          />
             </div>
 
             {/* Sorting Section */}
             <div className="mb-6">
-              <TutorSorting
-                sortBy={sortBy}
-                sortOrder={sortOrder}
-                onSortChange={handleSortChange}
-              />
-            </div>
+          <TutorSorting
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSortChange={handleSortChange}
+          />
+        </div>
 
-            {!loading && tutors.length === 0 ? (
-              <EmptyState onResetFilters={() => {
-                setSearchQuery('');
-                setFilters({
-                  subject: '',
-                  topic: '',
-                  teachingMode: '',
-                  femaleOnly: false,
-                  verified: true
-                });
-              }} />
-            ) : (
-              <>
-                <TutorGrid
-                  tutors={tutors}
-                  loading={loading}
-                />
-                
-                {/* Infinite scroll observer target */}
-                {hasMore && (
-                  <div 
-                    ref={observerTarget}
-                    className="h-16 flex items-center justify-center"
-                  >
-                    {loadingMore && (
-                      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-100">
-                        <div className="flex items-center gap-3">
-                          <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent"></div>
-                          <span className="text-gray-600 font-medium">Loading more tutors...</span>
-                        </div>
-                      </div>
-                    )}
+        {!loading && tutors.length === 0 ? (
+          <EmptyState onResetFilters={() => {
+            setSearchQuery('');
+            setFilters({
+              subject: '',
+              topic: '',
+              teachingMode: '',
+              femaleOnly: false,
+              verified: true
+            });
+          }} />
+        ) : (
+          <>
+            <TutorGrid
+              tutors={tutors}
+              loading={loading}
+            />
+            
+            {/* Infinite scroll observer target */}
+            {hasMore && (
+              <div 
+                ref={observerTarget}
+                className="h-16 flex items-center justify-center"
+              >
+                {loadingMore && (
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-100">
+                    <div className="flex items-center gap-3">
+                      <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent"></div>
+                      <span className="text-gray-600 font-medium">Loading more tutors...</span>
+                    </div>
                   </div>
                 )}
-              </>
+              </div>
             )}
+          </>
+        )}
 
 
           </div>
@@ -372,86 +391,99 @@ const TutorListingPage: React.FC = () => {
         {tutors.length > 0 && (
           <div className="w-full mt-12 sm:mt-16 lg:mt-20">
             <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
-              <div className="text-center mb-8 sm:mb-10">
-                <div className="inline-flex items-center px-3 sm:px-4 py-2 bg-blue-50/80 backdrop-blur-sm rounded-full text-blue-600 text-sm font-medium mb-4 border border-blue-100">
-                  <Star className="h-4 w-4 mr-2" />
-                  Top Rated
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-4">
-                  Featured Tutors
-                </h2>
-                <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base px-4">
-                  Discover top-rated tutors across all subjects
-                </p>
+            <div className="text-center mb-8 sm:mb-10">
+              <div className="inline-flex items-center px-3 sm:px-4 py-2 bg-blue-50/80 backdrop-blur-sm rounded-full text-blue-600 text-sm font-medium mb-4 border border-blue-100">
+                <Star className="h-4 w-4 mr-2" />
+                Top Rated
               </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
-                {tutors.slice(0, 6).map((tutor) => (
-                  <div key={tutor._id} className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 group">
-                    <div className="flex items-start gap-3 sm:gap-4">
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                        {tutor.user.profileImage ? (
-                          <img 
-                            src={tutor.user.profileImage} 
-                            alt={tutor.user.name}
-                            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-blue-600 font-semibold text-lg sm:text-xl">
-                            {tutor.user.name.charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate group-hover:text-blue-700 transition-colors duration-300">
-                          {tutor.user.name}
-                        </h3>
-                        <div className="flex items-center gap-1 mt-1">
-                          <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 fill-current" />
-                          <span className="text-xs sm:text-sm text-gray-600">
-                            {tutor.rating.toFixed(1)} ({tutor.totalReviews} reviews)
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 mt-1">
-                          <Users className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
-                          <span className="text-xs sm:text-sm text-blue-600 font-medium">
-                            {tutor.totalStudents} students
-                          </span>
-                        </div>
-                        {tutor.subjects && tutor.subjects.length > 0 && (
-                          <div className="mt-2">
-                            <span className="text-xs sm:text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                              {tutor.subjects[0].subject.name}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <Link
-                        to={`/tutors/${tutor._id}`}
-                        className="text-blue-600 hover:text-blue-700 transition-colors p-1.5 sm:p-2 hover:bg-blue-50 rounded-full flex-shrink-0"
-                      >
-                        <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="text-center px-4">
-                <Link
-                  to="/tutors"
-                  className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm text-gray-700 px-6 sm:px-8 py-3 rounded-2xl hover:bg-white transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg font-medium border border-gray-200 text-sm sm:text-base"
-                >
-                  View All Tutors
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </div>
+              <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-4">
+                Featured Tutors
+              </h2>
+              <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base px-4">
+                Discover top-rated tutors across all subjects
+              </p>
           </div>
+          
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
+            {tutors.slice(0, 6).map((tutor) => (
+                <div key={tutor._id} className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 group">
+                <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                    {tutor.user.profileImage ? (
+                      <img 
+                        src={tutor.user.profileImage} 
+                        alt={tutor.user.name}
+                          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover"
+                      />
+                    ) : (
+                        <span className="text-blue-600 font-semibold text-lg sm:text-xl">
+                        {tutor.user.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate group-hover:text-blue-700 transition-colors duration-300">
+                      {tutor.user.name}
+                    </h3>
+                    <div className="flex items-center gap-1 mt-1">
+                        <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 fill-current" />
+                        <span className="text-xs sm:text-sm text-gray-600">
+                        {tutor.rating.toFixed(1)} ({tutor.totalReviews} reviews)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 mt-1">
+                        <Users className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
+                        <span className="text-xs sm:text-sm text-blue-600 font-medium">
+                        {tutor.totalStudents} students
+                      </span>
+                    </div>
+                    {tutor.subjects && tutor.subjects.length > 0 && (
+                      <div className="mt-2">
+                          <span className="text-xs sm:text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                          {tutor.subjects[0].subject.name}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <Link
+                    to={`/tutors/${tutor._id}`}
+                      className="text-blue-600 hover:text-blue-700 transition-colors p-1.5 sm:p-2 hover:bg-blue-50 rounded-full flex-shrink-0"
+                  >
+                      <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+            <div className="text-center px-4">
+            <Link
+              to="/tutors"
+                className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm text-gray-700 px-6 sm:px-8 py-3 rounded-2xl hover:bg-white transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg font-medium border border-gray-200 text-sm sm:text-base"
+            >
+              View All Tutors
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+              </div>
+          </div>
+        </div>
         )}
       </div>
+
+      {/* Floating Go to Top Button - Mobile Only */}
+      {showScrollToTop && (
+        <div className="lg:hidden fixed bottom-6 right-6 z-50">
+          <button
+            onClick={scrollToTop}
+            className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+            aria-label="Go to top of page"
+          >
+            <ArrowUp className="h-5 w-5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

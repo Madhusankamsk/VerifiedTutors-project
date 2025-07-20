@@ -189,17 +189,17 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
               <span className="text-xs text-gray-200 ml-1">
                 ({tutor.reviewCount})
               </span>
-            </div>
           </div>
-          
-          {/* Location */}
+        </div>
+
+        {/* Location */}
           <div className="flex items-center text-gray-200">
             <MapPin className="h-3 w-3 mr-1 text-gray-300 flex-shrink-0" />
             <span className="text-xs line-clamp-1">
               {tutor.location || 'Location not specified'}
             </span>
-          </div>
-          
+        </div>
+
           {/* Subjects */}
           <div className="flex items-center text-gray-200">
             <Book className="h-3 w-3 mr-1 text-gray-300 flex-shrink-0" />
@@ -210,24 +210,24 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
           
           {/* Topics */}
           {subjectTopics.length > 0 && (
-            <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1">
               {subjectTopics.slice(0, 2).map((topic, index) => (
-                <span
-                  key={index}
+                  <span
+                    key={index}
                   className="px-1.5 py-0.5 bg-white/20 text-white text-xs rounded-md backdrop-blur-sm"
-                  title={topic}
-                >
-                  {topic}
-                </span>
-              ))}
+                    title={topic}
+                  >
+                    {topic}
+                  </span>
+                ))}
               {subjectTopics.length > 2 && (
                 <span className="px-1.5 py-0.5 bg-white/20 text-white text-xs rounded-md backdrop-blur-sm">
                   +{subjectTopics.length - 2}
-                </span>
-              )}
+                  </span>
+                )}
             </div>
           )}
-          
+
           {/* Pricing */}
           {(rates.online > 0 || rates.individual > 0) && (
             <div className="flex items-center gap-3 text-xs">
@@ -245,10 +245,10 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
               )}
             </div>
           )}
-        </div>
+          </div>
         
 
-        
+
         {/* Favorite Button - Bottom Right */}
         <button 
           onClick={handleFavoriteClick}

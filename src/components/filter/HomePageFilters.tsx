@@ -162,7 +162,7 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
         {/* Subject Dropdown */}
         <div className="relative">
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            Subject
+            Select a Subject
           </label>
           <select
             value={filters.subject}

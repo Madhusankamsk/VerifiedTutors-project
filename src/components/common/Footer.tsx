@@ -38,17 +38,17 @@ const Footer: React.FC = () => {
     <footer className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 text-white relative overflow-hidden mt-auto">
       {/* Background Elements */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.1)_1px,transparent_0)] bg-[length:20px_20px] opacity-20"></div>
-             <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-full blur-3xl"></div>
-       <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-sky-500/10 to-blue-600/10 rounded-full blur-3xl"></div>
+      <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-full blur-3xl"></div>
+      <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-sky-500/10 to-blue-600/10 rounded-full blur-3xl"></div>
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 relative z-10">
         {/* Bottom Section */}
-        <div className="pt-4 border-t border-white/10">
+        <div className="pt-4 sm:pt-6 border-t border-white/10">
           <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-            <div className="flex items-center space-x-2 text-sm text-gray-400">
+            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 text-xs sm:text-sm text-gray-400 text-center sm:text-left">
               <span>© {currentYear} VerifiedTutors. Made with</span>
               <div className="flex items-center space-x-1">
-                <Heart className="h-4 w-4 text-red-500 animate-pulse" />
+                <Heart className="h-3 w-3 sm:h-4 sm:w-4 text-red-500 animate-pulse" />
                 <span>
                   for education, by{' '}
                   <a
@@ -63,22 +63,22 @@ const Footer: React.FC = () => {
               </div>
             </div>
             
-            <div className="flex flex-wrap justify-center sm:justify-end gap-6">
+            <div className="flex flex-wrap justify-center sm:justify-end gap-4 sm:gap-6">
               <Link 
                 to="/privacy" 
-                className="text-sm text-gray-400 hover:text-blue-400 transition-all duration-300 hover:scale-105"
+                className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-all duration-300 hover:scale-105 px-2 py-1 rounded"
               >
                 Privacy Policy
               </Link>
               <Link 
                 to="/terms" 
-                className="text-sm text-gray-400 hover:text-blue-400 transition-all duration-300 hover:scale-105"
+                className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-all duration-300 hover:scale-105 px-2 py-1 rounded"
               >
                 Terms of Service
               </Link>
               <Link 
                 to="/cookies" 
-                className="text-sm text-gray-400 hover:text-blue-400 transition-all duration-300 hover:scale-105"
+                className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-all duration-300 hover:scale-105 px-2 py-1 rounded"
               >
                 Cookie Policy
               </Link>
@@ -86,18 +86,18 @@ const Footer: React.FC = () => {
           </div>
           
           {/* Trust Indicators */}
-          <div className="mt-8 flex flex-wrap justify-center items-center gap-6 text-xs text-gray-500">
-            <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-full border border-white/10">
+          <div className="mt-6 sm:mt-8 flex flex-wrap justify-center items-center gap-3 sm:gap-6 text-xs text-gray-500">
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-white/5 rounded-full border border-white/10">
               <Award className="h-3 w-3 text-blue-400" />
-              <span>Verified Platform</span>
+              <span className="text-xs">Verified Platform</span>
             </div>
-            <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-full border border-white/10">
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-white/5 rounded-full border border-white/10">
               <Users className="h-3 w-3 text-emerald-400" />
-              <span>Trusted by 1000+ Students</span>
+              <span className="text-xs">Trusted by 1000+ Students</span>
             </div>
-            <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-full border border-white/10">
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-white/5 rounded-full border border-white/10">
               <Sparkles className="h-3 w-3 text-purple-400" />
-              <span>Quality Guaranteed</span>
+              <span className="text-xs">Quality Guaranteed</span>
             </div>
           </div>
         </div>
