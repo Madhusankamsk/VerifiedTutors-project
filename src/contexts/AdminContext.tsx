@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
-import { API_URL } from '../config/constants';
+
 
 // Types
 interface DashboardStats {
@@ -197,7 +197,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`${API_URL}/api/admin/dashboard/stats`, {
+      const response = await axios.get(`/api/admin/dashboard/stats`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -218,7 +218,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLoading(true);
       setError(null);
       const response = await axios.get(
-        `${API_URL}/api/admin/tutors?page=${page}&search=${search}&verified=${filters.verified}&rating=${filters.rating}&sortBy=${filters.sortBy}`,
+        `/api/admin/tutors?page=${page}&search=${search}&verified=${filters.verified}&rating=${filters.rating}&sortBy=${filters.sortBy}`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -248,7 +248,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      await axios.patch(`${API_URL}/api/admin/tutors/${tutorId}/approve`, {}, {
+              await axios.patch(`/api/admin/tutors/${tutorId}/approve`, {}, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -268,7 +268,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      await axios.patch(`${API_URL}/api/admin/tutors/${tutorId}/reject`, { reason }, {
+              await axios.patch(`/api/admin/tutors/${tutorId}/reject`, { reason }, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -288,7 +288,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      await axios.delete(`${API_URL}/api/admin/tutors/${tutorId}`, {
+              await axios.delete(`/api/admin/tutors/${tutorId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -308,7 +308,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      await axios.patch(`${API_URL}/api/admin/tutors/${tutorId}/toggle-verification`, {}, {
+              await axios.patch(`/api/admin/tutors/${tutorId}/toggle-verification`, {}, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -328,7 +328,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      await axios.delete(`${API_URL}/admin/students/${studentId}`);
+              await axios.delete(`/api/admin/students/${studentId}`);
       await fetchDashboardStats();
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Failed to delete student';
@@ -345,7 +345,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`${API_URL}/api/subjects`);
+      const response = await axios.get(`/api/subjects`);
       setSubjects(response.data);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Failed to fetch subjects';
@@ -360,7 +360,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.post(`${API_URL}/api/subjects`, subjectData);
+      const response = await axios.post(`/api/subjects`, subjectData);
       setSubjects(prev => [...prev, response.data]);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Failed to create subject';
@@ -376,7 +376,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.put(`${API_URL}/api/subjects/${id}`, subjectData);
+      const response = await axios.put(`/api/subjects/${id}`, subjectData);
       setSubjects(prev => prev.map(subject => 
         subject._id === id ? response.data : subject
       ));
@@ -394,7 +394,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(true);
       setError(null);
-      await axios.delete(`${API_URL}/api/subjects/${id}`);
+      await axios.delete(`/api/subjects/${id}`);
       setSubjects(prev => prev.filter(subject => subject._id !== id));
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Failed to delete subject';
@@ -413,7 +413,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const subject = subjects.find(s => s._id === id);
       if (!subject) throw new Error('Subject not found');
       
-      const response = await axios.put(`${API_URL}/api/subjects/${id}`, {
+      const response = await axios.put(`/api/subjects/${id}`, {
         isActive: !subject.isActive
       });
       
@@ -436,7 +436,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setBookingLoading(true);
       setBookingError(null);
       
-      const response = await axios.get(`${API_URL}/api/admin/bookings`, {
+      const response = await axios.get(`/api/admin/bookings`, {
         params: { page, status, sortBy },
         headers: { Authorization: `Bearer ${token}` }
       });

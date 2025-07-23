@@ -59,7 +59,7 @@ const SubjectFilter: React.FC<SubjectFilterProps> = ({
   const fetchTopics = async (subjectId: string) => {
     try {
       setTopicsLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/subject/${subjectId}`);
+              const response = await fetch(`/api/topics/subject/${subjectId}`);
       if (response.ok) {
         const data = await response.json();
         setTopics(data.filter((topic: Topic) => topic.isActive));

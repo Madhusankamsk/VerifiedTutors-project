@@ -35,7 +35,7 @@ const ManageSubjects = () => {
       const counts: { [subjectId: string]: number } = {};
       
       for (const subject of subjects) {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/subject/${subject._id}`);
+        const response = await fetch(`/api/topics/subject/${subject._id}`);
         if (response.ok) {
           const topics = await response.json();
           counts[subject._id] = topics.filter((topic: Topic) => topic.isActive).length;
@@ -343,7 +343,7 @@ const ManageTopics: React.FC<ManageTopicsProps> = ({ subject, onBack }) => {
   const fetchTopics = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/subject/${subject._id}`);
+      const response = await fetch(`/api/topics/subject/${subject._id}`);
       if (response.ok) {
         const data = await response.json();
         setTopics(data);
@@ -362,8 +362,8 @@ const ManageTopics: React.FC<ManageTopicsProps> = ({ subject, onBack }) => {
     e.preventDefault();
     try {
       const url = editingTopic 
-        ? `${import.meta.env.VITE_API_URL}/api/topics/${editingTopic}`
-        : `${import.meta.env.VITE_API_URL}/api/topics`;
+        ? `/api/topics/${editingTopic}`
+        : `/api/topics`;
       
       const method = editingTopic ? 'PUT' : 'POST';
       
@@ -397,7 +397,7 @@ const ManageTopics: React.FC<ManageTopicsProps> = ({ subject, onBack }) => {
   const handleDelete = async (topicId: string) => {
     if (window.confirm('Are you sure you want to delete this topic?')) {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/${topicId}`, {
+        const response = await fetch(`/api/topics/${topicId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -419,7 +419,7 @@ const ManageTopics: React.FC<ManageTopicsProps> = ({ subject, onBack }) => {
   // Toggle topic status
   const handleToggleStatus = async (topicId: string, currentStatus: boolean) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/topics/${topicId}`, {
+      const response = await fetch(`/api/topics/${topicId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
