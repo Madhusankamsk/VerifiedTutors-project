@@ -3,8 +3,8 @@ import { ChevronDown, X, Filter, Star, DollarSign, Users, Sparkles } from 'lucid
 import { useSubjects } from '../../contexts/SubjectContext';
 
 export interface HomePageFilterState {
-  subject: string;
-  topic: string;
+  subject: string; // Subject ID
+  topic: string; // Topic name (not ID)
   teachingMode: string;
   femaleOnly: boolean;
   verified: boolean;
@@ -12,6 +12,7 @@ export interface HomePageFilterState {
 
 interface HomePageFiltersProps {
   onFilterChange: (filters: HomePageFilterState) => void;
+  filters: HomePageFilterState;
   urlSubject?: string | null;
   urlTopic?: string | null;
 }
@@ -26,26 +27,26 @@ const initialFilterState: HomePageFilterState = {
 
 const HomePageFilters: React.FC<HomePageFiltersProps> = ({ 
   onFilterChange, 
+  filters,
   urlSubject, 
   urlTopic 
 }) => {
   const { subjects, topics, fetchTopics, getTopicsBySubject } = useSubjects();
-  const [filters, setFilters] = useState<HomePageFilterState>(initialFilterState);
   const [isExpanded, setIsExpanded] = useState(false);
   const [availableTopics, setAvailableTopics] = useState<any[]>([]);
 
-  // Initialize filters from URL parameters
+  // Initialize filters from URL parameters - this is now handled by the parent component
   useEffect(() => {
     if (urlSubject) {
       const subject = subjects.find(s => s.name === urlSubject);
-      if (subject) {
-        setFilters(prev => ({ ...prev, subject: subject._id }));
+      if (subject && !filters.subject) {
+        onFilterChange({ ...filters, subject: subject._id });
       }
     }
-    if (urlTopic) {
-      setFilters(prev => ({ ...prev, topic: urlTopic }));
+    if (urlTopic && !filters.topic) {
+      onFilterChange({ ...filters, topic: urlTopic });
     }
-  }, [urlSubject, urlTopic, subjects]);
+  }, [urlSubject, urlTopic, subjects, filters, onFilterChange]);
 
   // Fetch topics when subject changes
   useEffect(() => {
@@ -79,7 +80,6 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
 
   const handleFilterChange = useCallback((newFilters: Partial<HomePageFilterState>) => {
     const updatedFilters = { ...filters, ...newFilters };
-    setFilters(updatedFilters);
     onFilterChange(updatedFilters);
   }, [filters, onFilterChange]);
 
@@ -108,7 +108,6 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
   }, [handleFilterChange]);
 
   const clearFilters = useCallback(() => {
-    setFilters(initialFilterState);
     onFilterChange(initialFilterState);
   }, [onFilterChange]);
 
@@ -157,8 +156,8 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
         </div>
       </div>
 
-      {/* Subject and Topic Dropdowns - Improved Mobile Layout */}
-      <div className="space-y-3 mb-3 sm:mb-4">
+      {/* Subject and Topic Dropdowns - Single Row on Desktop, 2 Rows on Mobile */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3 sm:mb-4">
         {/* Subject Dropdown */}
         <div className="relative">
           <label className="block text-xs font-medium text-gray-700 mb-1.5">

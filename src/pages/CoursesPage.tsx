@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { Search, Filter, BookOpen, Clock, Users, Star, ChevronDown } from 'lucide-react';
+import { useSubjects } from '../contexts/SubjectContext';
+import SubjectBubbles from '../components/common/SubjectBubbles';
+import CourseFilterBubbles from '../components/common/CourseFilterBubbles';
 
 interface Course {
   id: string;
@@ -19,6 +22,7 @@ interface Course {
 }
 
 const CoursesPage: React.FC = () => {
+  const { subjects } = useSubjects();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedLevel, setSelectedLevel] = useState('All');
@@ -146,15 +150,83 @@ const CoursesPage: React.FC = () => {
             <p className="text-xl text-blue-100 mb-8">
               Explore our curated collection of courses taught by expert instructors
             </p>
-            <div className="relative max-w-2xl mx-auto">
-              <input
-                type="text"
-                placeholder="Search for courses..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-6 py-4 rounded-lg shadow-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-6 h-6" />
+            <div className="relative max-w-4xl mx-auto">
+              {/* Search Bar Container */}
+              <div className="relative group mb-6">
+                {/* Glow Effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-blue-600/30 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Main Search Bar */}
+                <div className="relative bg-white/95 backdrop-blur-sm border border-white/20 rounded-2xl shadow-2xl shadow-black/20 overflow-hidden">
+                  <div className="flex items-center p-2">
+                    {/* Search Icon */}
+                    <div className="pl-4 pr-3">
+                      <Search className="h-5 w-5 text-gray-400" />
+                    </div>
+                    
+                    {/* Search Input */}
+                    <input
+                      type="text"
+                      placeholder="Search for courses, subjects, or instructors..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="flex-1 py-4 px-2 bg-transparent border-none outline-none text-gray-900 placeholder-gray-500 text-base font-medium min-w-0"
+                    />
+                    
+                    {/* Clear Button */}
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="px-3 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                      >
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                    
+                    {/* Search Button */}
+                    <button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl transition-all duration-200 font-semibold text-sm ml-2 mr-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                      <span className="hidden sm:inline">Search</span>
+                      <Search className="h-5 w-5 sm:hidden" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Subject Filter Bubbles */}
+              <div className="mt-4">
+                <SubjectBubbles
+                  onSubjectClick={(subjectName) => {
+                    // Toggle behavior: if same subject is already in search, clear it
+                    if (searchQuery === subjectName) {
+                      setSearchQuery('');
+                    } else {
+                      setSearchQuery(subjectName);
+                    }
+                  }}
+                  maxSubjects={0}
+                  variant="hero"
+                  className="mb-3"
+                  showPopular={true}
+                  popularSubjects={['Mathematics', 'Programming', 'Language', 'Science']}
+                  selectedSubjectName={searchQuery}
+                />
+                <CourseFilterBubbles
+                  onFilterClick={(filterType, value) => {
+                    if (filterType === 'level') {
+                      // Toggle behavior: if Beginner is already selected, clear it
+                      if (selectedLevel === value) {
+                        setSelectedLevel('All');
+                      } else {
+                        setSelectedLevel(value);
+                      }
+                    }
+                  }}
+                  selectedLevel={selectedLevel}
+                  className="mt-4"
+                />
+              </div>
             </div>
           </div>
         </div>

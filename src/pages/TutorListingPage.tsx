@@ -11,10 +11,13 @@ import {
 } from '../components/tutor-listing';
 import HomePageFilters, { HomePageFilterState } from '../components/filter/HomePageFilters';
 import TutorSorting from '../components/filter/TutorSorting';
+import SubjectBubbles from '../components/common/SubjectBubbles';
+import TopicBubbles from '../components/common/TopicBubbles';
+import FilterBubbles from '../components/common/FilterBubbles';
 
 const TutorListingPage: React.FC = () => {
   const { searchTutors } = useTutor();
-  const { subjects } = useSubjects();
+  const { subjects, getTopicsBySubject } = useSubjects();
   const [searchParams] = useSearchParams();
   
   // Get subject and topic from URL parameters
@@ -176,6 +179,15 @@ const TutorListingPage: React.FC = () => {
     setSortOrder(newSortOrder);
   };
 
+  const handleSearchSubmit = () => {
+    fetchTutors(false);
+  };
+
+  const handleSearchClear = () => {
+    setSearchQuery('');
+    fetchTutors(false);
+  };
+
   // Infinite scroll setup
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -195,14 +207,7 @@ const TutorListingPage: React.FC = () => {
     return () => observer.disconnect();
   }, [hasMore, loading, loadingMore, fetchTutors, tutors.length]);
 
-  const handleSearchSubmit = () => {
-    fetchTutors(false);
-  };
 
-  const handleSearchClear = () => {
-    setSearchQuery('');
-    fetchTutors(false);
-  };
 
   if (error) {
     return <ErrorState error={error} onRetry={() => fetchTutors(false)} />;
@@ -226,24 +231,133 @@ const TutorListingPage: React.FC = () => {
         {/* Content Overlay - Improved Mobile Layout */}
         <div className="relative z-10 h-full flex items-center justify-center">
           <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 w-full">
-            <div className="max-w-3xl text-center sm:text-left">
+            <div className="max-w-4xl mx-auto text-center">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-3 sm:mb-4 leading-tight">
                 Find Your Perfect Tutor
               </h1>
-              <p className="text-sm sm:text-base lg:text-lg text-blue-100 mb-4 sm:mb-6 leading-relaxed">
+              <p className="text-sm sm:text-base lg:text-lg text-blue-100 mb-6 sm:mb-8 leading-relaxed">
                 Connect with verified, experienced tutors who can help you excel in any subject
               </p>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center sm:justify-start">
-                <div className="flex items-center justify-center sm:justify-start text-white/90 text-xs sm:text-sm">
-                  <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
+              
+              {/* Hero Search Bar and Subject Filter Bubbles */}
+              <div className="mb-6 sm:mb-8">
+                <div className="relative max-w-4xl mx-auto">
+                  {/* Search Bar Container */}
+                  <div className="relative group mb-6">
+                    {/* Glow Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-blue-600/30 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    
+                    {/* Main Search Bar */}
+                    <div className="relative bg-white/95 backdrop-blur-sm border border-white/20 rounded-2xl shadow-2xl shadow-black/20 overflow-hidden">
+                      <div className="flex items-center p-2">
+                        {/* Search Icon */}
+                        <div className="pl-4 pr-3">
+                          <Search className="h-5 w-5 text-gray-400" />
+                        </div>
+                        
+                        {/* Search Input */}
+                        <input
+                          type="text"
+                          placeholder="Search for tutors, subjects, or topics..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && handleSearchSubmit()}
+                          className="flex-1 py-4 px-2 bg-transparent border-none outline-none text-gray-900 placeholder-gray-500 text-base font-medium min-w-0"
+                        />
+                        
+                        {/* Clear Button */}
+                        {searchQuery && (
+                          <button
+                            onClick={handleSearchClear}
+                            className="px-3 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                          >
+                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                        
+                        {/* Search Button */}
+                        <button
+                          onClick={handleSearchSubmit}
+                          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl transition-all duration-200 font-semibold text-sm ml-2 mr-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                        >
+                          <span className="hidden sm:inline">Search</span>
+                          <Search className="h-5 w-5 sm:hidden" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Subject Filter Bubbles */}
+                  <div className="mt-4">
+                    <SubjectBubbles
+                      onSubjectClick={(subjectName) => {
+                        const subject = subjects.find(s => s.name === subjectName);
+                        if (subject) {
+                          // Toggle behavior: if same subject is clicked, remove filter
+                          if (filters.subject === subject._id) {
+                            const newFilters = { ...filters, subject: '', topic: '' };
+                            setFilters(newFilters);
+                            handleFilterChange(newFilters);
+                          } else {
+                            // Set new subject filter
+                            const newFilters = { ...filters, subject: subject._id, topic: '' };
+                            setFilters(newFilters);
+                            handleFilterChange(newFilters);
+                          }
+                        }
+                      }}
+                      maxSubjects={0}
+                      variant="hero"
+                      className="mb-3"
+                      showPopular={true}
+                      popularSubjects={['Mathematics', 'English', 'Science', 'Physics', 'Chemistry']}
+                      selectedSubjectId={filters.subject}
+                    />
+                    <FilterBubbles
+                      onFilterClick={(filterType, value) => {
+                        if (filterType === 'teachingMode') {
+                          // Toggle behavior: if same mode is already selected, remove it
+                          if (filters.teachingMode === value) {
+                            const newFilters = { ...filters, teachingMode: '' };
+                            setFilters(newFilters);
+                            handleFilterChange(newFilters);
+                          } else {
+                            // Set new teaching mode
+                            const newFilters = { ...filters, teachingMode: value };
+                            setFilters(newFilters);
+                            handleFilterChange(newFilters);
+                          }
+                        } else if (filterType === 'femaleOnly') {
+                          // Toggle female only filter
+                          const newFilters = { ...filters, femaleOnly: !filters.femaleOnly };
+                          setFilters(newFilters);
+                          handleFilterChange(newFilters);
+                        }
+                      }}
+                      selectedFilters={{
+                        teachingMode: filters.teachingMode,
+                        femaleOnly: filters.femaleOnly
+                      }}
+                      className="mt-4"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Stats */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center">
+                <div className="flex items-center justify-center text-white/90 text-sm">
+                  <Users className="h-4 w-4 mr-2 flex-shrink-0" />
                   <span>1000+ Verified Tutors</span>
                 </div>
-                <div className="flex items-center justify-center sm:justify-start text-white/90 text-xs sm:text-sm">
-                  <Star className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 fill-current flex-shrink-0" />
+                <div className="flex items-center justify-center text-white/90 text-sm">
+                  <Star className="h-4 w-4 mr-2 fill-current flex-shrink-0" />
                   <span>4.8+ Average Rating</span>
                 </div>
-                <div className="flex items-center justify-center sm:justify-start text-white/90 text-xs sm:text-sm">
-                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
+                <div className="flex items-center justify-center text-white/90 text-sm">
+                  <Sparkles className="h-4 w-4 mr-2 flex-shrink-0" />
                   <span>50+ Subjects</span>
                 </div>
               </div>
@@ -259,91 +373,75 @@ const TutorListingPage: React.FC = () => {
       <div className="absolute top-1/2 left-0 w-64 h-64 bg-cyan-100 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-blob animation-delay-6000"></div>
       <div className="absolute bottom-1/4 right-0 w-80 h-80 bg-blue-50 rounded-full mix-blend-multiply filter blur-3xl opacity-25 animate-blob animation-delay-8000"></div>
 
-      {/* Main Content - Improved Mobile Responsiveness */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8 relative z-10">
-        {/* Page Title and Search Section - Better Mobile Layout */}
-        <div className="mb-4 sm:mb-6 lg:mb-8">
-          {/* Header with Centered Search - Improved Mobile */}
-          <div className="flex flex-col items-center gap-3 sm:gap-4">
-            {/* Search Bar - Better Mobile Sizing */}
-            <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg">
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-sky-500/20 rounded-full blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative flex items-center bg-gray-50 border border-gray-200 rounded-full overflow-hidden hover:border-blue-300 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all duration-200">
-                  <div className="pl-3 sm:pl-4 pr-2 sm:pr-3">
-                    <Search className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Search tutors..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearchSubmit()}
-                    className="flex-1 py-2.5 px-2 bg-transparent border-none outline-none text-gray-900 placeholder-gray-500 text-sm min-w-0"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={handleSearchClear}
-                      className="px-2 text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  )}
-                  <button
-                    onClick={handleSearchSubmit}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2.5 rounded-full transition-colors duration-200 font-medium text-sm ml-1 mr-1"
-                  >
-                    <span className="hidden sm:inline">Search</span>
-                    <Search className="h-4 w-4 sm:hidden" />
-                  </button>
-                </div>
-              </div>
+      {/* Topic Bubbles Section - White Background */}
+      {(filters.subject || urlSubject) && (
+        <div className="bg-white border-b border-gray-100 shadow-sm">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-6 sm:py-8">
+            <div className="text-center mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-2">
+                Select a Topic
+              </h2>
+              <p className="text-sm sm:text-base text-gray-600">
+                Choose a specific topic to find specialized tutors
+              </p>
             </div>
             
-            {/* Page Info - Below Search */}
-            {urlSubject && urlTopic && (
-              <div className="text-center">
-                <p className="text-sm sm:text-base text-gray-600">
-                  Tutors specializing in {urlTopic}
-                </p>
-              </div>
-            )}
+            <TopicBubbles
+              topics={getTopicsBySubject(filters.subject || urlSubject || '')}
+              onTopicClick={(topicId) => {
+                const topic = getTopicsBySubject(filters.subject || urlSubject || '').find(t => t._id === topicId);
+                if (topic) {
+                  // Toggle behavior: if same topic is clicked, remove filter
+                  if (filters.topic === topic.name) {
+                    const newFilters = { ...filters, topic: '' };
+                    setFilters(newFilters);
+                    handleFilterChange(newFilters);
+                  } else {
+                    const newFilters = { ...filters, topic: topic.name };
+                    setFilters(newFilters);
+                    handleFilterChange(newFilters);
+                  }
+                }
+              }}
+              selectedTopicId={getTopicsBySubject(filters.subject || urlSubject || '').find(t => t.name === filters.topic)?._id}
+              className="justify-center"
+            />
           </div>
         </div>
+      )}
 
-        {/* Desktop Layout with Sidebar */}
-        <div className="lg:flex lg:gap-8">
-          {/* Filters Sidebar - Desktop Only */}
-          <div className="hidden lg:block lg:w-80 lg:flex-shrink-0">
-            <div className="sticky top-8">
-              <HomePageFilters
-                onFilterChange={handleFilterChange}
-                urlSubject={urlSubject}
-                urlTopic={urlTopic}
-              />
-            </div>
+      {/* Main Content - Improved Mobile Responsiveness */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8 relative z-10">
+        {/* Page Info - Show when coming from subject/topic links */}
+        {urlSubject && urlTopic && (
+          <div className="mb-4 sm:mb-6 text-center">
+            <p className="text-sm sm:text-base text-gray-600">
+              Tutors specializing in {urlTopic}
+            </p>
+          </div>
+        )}
+
+        {/* Main Content Area */}
+        <div className="w-full">
+          {/* Mobile Filters */}
+          <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
+            <HomePageFilters
+              onFilterChange={handleFilterChange}
+              filters={filters}
+              urlSubject={urlSubject}
+              urlTopic={urlTopic}
+            />
           </div>
 
-          {/* Main Content Area */}
-          <div className="flex-1">
-            {/* Mobile Filters - Hidden on Desktop */}
-            <div className="lg:hidden mb-4 sm:mb-6 space-y-3 sm:space-y-4">
-              <HomePageFilters
-                onFilterChange={handleFilterChange}
-                urlSubject={urlSubject}
-                urlTopic={urlTopic}
-              />
-            </div>
-
             {/* Sorting Section */}
-            <div className="mb-4 sm:mb-6">
-              <TutorSorting
-                sortBy={sortBy}
-                sortOrder={sortOrder}
-                onSortChange={handleSortChange}
-              />
+            <div className="mb-4 sm:mb-6 flex justify-end">
+              <div className="w-48">
+                <TutorSorting
+                  sortBy={sortBy}
+                  sortOrder={sortOrder}
+                  onSortChange={handleSortChange}
+                />
+              </div>
             </div>
 
             {!loading && tutors.length === 0 ? (
@@ -383,7 +481,6 @@ const TutorListingPage: React.FC = () => {
               </>
             )}
           </div>
-        </div>
 
         {/* Featured Tutors Section - Improved Mobile Layout */}
         {tutors.length > 0 && (
