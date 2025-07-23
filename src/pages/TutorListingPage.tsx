@@ -210,8 +210,8 @@ const TutorListingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
-      {/* Hero Header Section */}
-      <div className="relative w-full h-1/3 overflow-hidden mt-16 lg:mt-0 py-8 sm:py-12 lg:py-16">
+      {/* Hero Header Section - Improved Mobile Responsiveness */}
+      <div className="relative w-full min-h-[300px] sm:min-h-[400px] lg:min-h-[500px] overflow-hidden pt-16 py-8 sm:py-12 lg:py-16">
         {/* Background Image */}
         <div className="absolute inset-0">
           <img 
@@ -223,27 +223,27 @@ const TutorListingPage: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 via-blue-800/60 to-purple-900/70"></div>
         </div>
         
-        {/* Content Overlay */}
+        {/* Content Overlay - Improved Mobile Layout */}
         <div className="relative z-10 h-full flex items-center justify-center">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 w-full">
             <div className="max-w-3xl text-center sm:text-left">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-white mb-2 sm:mb-3 leading-tight">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-3 sm:mb-4 leading-tight">
                 Find Your Perfect Tutor
               </h1>
-              <p className="text-sm sm:text-base lg:text-lg text-blue-100 mb-3 sm:mb-4 leading-relaxed">
+              <p className="text-sm sm:text-base lg:text-lg text-blue-100 mb-4 sm:mb-6 leading-relaxed">
                 Connect with verified, experienced tutors who can help you excel in any subject
               </p>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center sm:justify-start">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center sm:justify-start">
                 <div className="flex items-center justify-center sm:justify-start text-white/90 text-xs sm:text-sm">
-                  <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
                   <span>1000+ Verified Tutors</span>
                 </div>
                 <div className="flex items-center justify-center sm:justify-start text-white/90 text-xs sm:text-sm">
-                  <Star className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 fill-current" />
+                  <Star className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 fill-current flex-shrink-0" />
                   <span>4.8+ Average Rating</span>
                 </div>
                 <div className="flex items-center justify-center sm:justify-start text-white/90 text-xs sm:text-sm">
-                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
                   <span>50+ Subjects</span>
                 </div>
               </div>
@@ -259,23 +259,23 @@ const TutorListingPage: React.FC = () => {
       <div className="absolute top-1/2 left-0 w-64 h-64 bg-cyan-100 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-blob animation-delay-6000"></div>
       <div className="absolute bottom-1/4 right-0 w-80 h-80 bg-blue-50 rounded-full mix-blend-multiply filter blur-3xl opacity-25 animate-blob animation-delay-8000"></div>
 
-      {/* Main Content - Mobile Responsive */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-6 sm:py-8 lg:py-10 relative z-10">
-        {/* Page Title and Search Section */}
-        <div className="mb-6 sm:mb-8">
-          {/* Header with Centered Search */}
-          <div className="flex flex-col items-center gap-4">
-            {/* Search Bar - Centered */}
-            <div className="w-full max-w-md lg:max-w-lg">
+      {/* Main Content - Improved Mobile Responsiveness */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8 relative z-10">
+        {/* Page Title and Search Section - Better Mobile Layout */}
+        <div className="mb-4 sm:mb-6 lg:mb-8">
+          {/* Header with Centered Search - Improved Mobile */}
+          <div className="flex flex-col items-center gap-3 sm:gap-4">
+            {/* Search Bar - Better Mobile Sizing */}
+            <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg">
               <div className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-sky-500/20 rounded-full blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative flex items-center bg-gray-50 border border-gray-200 rounded-full overflow-hidden hover:border-blue-300 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all duration-200">
-                  <div className="pl-4 pr-3">
+                  <div className="pl-3 sm:pl-4 pr-2 sm:pr-3">
                     <Search className="h-4 w-4 text-gray-400" />
                   </div>
                   <input
                     type="text"
-                    placeholder="Search"
+                    placeholder="Search tutors..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSearchSubmit()}
@@ -329,152 +329,150 @@ const TutorListingPage: React.FC = () => {
           {/* Main Content Area */}
           <div className="flex-1">
             {/* Mobile Filters - Hidden on Desktop */}
-            <div className="lg:hidden mb-6 space-y-4">
-          <HomePageFilters
-            onFilterChange={handleFilterChange}
-            urlSubject={urlSubject}
-            urlTopic={urlTopic}
-          />
+            <div className="lg:hidden mb-4 sm:mb-6 space-y-3 sm:space-y-4">
+              <HomePageFilters
+                onFilterChange={handleFilterChange}
+                urlSubject={urlSubject}
+                urlTopic={urlTopic}
+              />
             </div>
 
             {/* Sorting Section */}
-            <div className="mb-6">
-          <TutorSorting
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            onSortChange={handleSortChange}
-          />
-        </div>
+            <div className="mb-4 sm:mb-6">
+              <TutorSorting
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onSortChange={handleSortChange}
+              />
+            </div>
 
-        {!loading && tutors.length === 0 ? (
-          <EmptyState onResetFilters={() => {
-            setSearchQuery('');
-            setFilters({
-              subject: '',
-              topic: '',
-              teachingMode: '',
-              femaleOnly: false,
-              verified: true
-            });
-          }} />
-        ) : (
-          <>
-            <TutorGrid
-              tutors={tutors}
-              loading={loading}
-            />
-            
-            {/* Infinite scroll observer target */}
-            {hasMore && (
-              <div 
-                ref={observerTarget}
-                className="h-16 flex items-center justify-center"
-              >
-                {loadingMore && (
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-100">
-                    <div className="flex items-center gap-3">
-                      <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent"></div>
-                      <span className="text-gray-600 font-medium">Loading more tutors...</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </>
-        )}
-
-
-          </div>
-        </div>
-
-        {/* Featured Tutors Section - Full Width Container */}
-        {tutors.length > 0 && (
-          <div className="w-full mt-12 sm:mt-16 lg:mt-20">
-            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
-            <div className="text-center mb-8 sm:mb-10">
-              <div className="inline-flex items-center px-3 sm:px-4 py-2 bg-blue-50/80 backdrop-blur-sm rounded-full text-blue-600 text-sm font-medium mb-4 border border-blue-100">
-                <Star className="h-4 w-4 mr-2" />
-                Top Rated
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-4">
-                Featured Tutors
-              </h2>
-              <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base px-4">
-                Discover top-rated tutors across all subjects
-              </p>
-          </div>
-          
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
-            {tutors.slice(0, 6).map((tutor) => (
-                <div key={tutor._id} className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 group">
-                <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                    {tutor.user.profileImage ? (
-                      <img 
-                        src={tutor.user.profileImage} 
-                        alt={tutor.user.name}
-                          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover"
-                      />
-                    ) : (
-                        <span className="text-blue-600 font-semibold text-lg sm:text-xl">
-                        {tutor.user.name.charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate group-hover:text-blue-700 transition-colors duration-300">
-                      {tutor.user.name}
-                    </h3>
-                    <div className="flex items-center gap-1 mt-1">
-                        <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 fill-current" />
-                        <span className="text-xs sm:text-sm text-gray-600">
-                        {tutor.rating.toFixed(1)} ({tutor.totalReviews} reviews)
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 mt-1">
-                        <Users className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
-                        <span className="text-xs sm:text-sm text-blue-600 font-medium">
-                        {tutor.totalStudents} students
-                      </span>
-                    </div>
-                    {tutor.subjects && tutor.subjects.length > 0 && (
-                      <div className="mt-2">
-                          <span className="text-xs sm:text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                          {tutor.subjects[0].subject.name}
-                        </span>
+            {!loading && tutors.length === 0 ? (
+              <EmptyState onResetFilters={() => {
+                setSearchQuery('');
+                setFilters({
+                  subject: '',
+                  topic: '',
+                  teachingMode: '',
+                  femaleOnly: false,
+                  verified: true
+                });
+              }} />
+            ) : (
+              <>
+                <TutorGrid
+                  tutors={tutors}
+                  loading={loading}
+                />
+                
+                {/* Infinite scroll observer target */}
+                {hasMore && (
+                  <div 
+                    ref={observerTarget}
+                    className="h-16 flex items-center justify-center"
+                  >
+                    {loadingMore && (
+                      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent"></div>
+                          <span className="text-gray-600 font-medium">Loading more tutors...</span>
+                        </div>
                       </div>
                     )}
                   </div>
-                  
-                  <Link
-                    to={`/tutors/${tutor._id}`}
-                      className="text-blue-600 hover:text-blue-700 transition-colors p-1.5 sm:p-2 hover:bg-blue-50 rounded-full flex-shrink-0"
-                  >
-                      <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-            <div className="text-center px-4">
-            <Link
-              to="/tutors"
-                className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm text-gray-700 px-6 sm:px-8 py-3 rounded-2xl hover:bg-white transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg font-medium border border-gray-200 text-sm sm:text-base"
-            >
-              View All Tutors
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-              </div>
+                )}
+              </>
+            )}
           </div>
         </div>
+
+        {/* Featured Tutors Section - Improved Mobile Layout */}
+        {tutors.length > 0 && (
+          <div className="w-full mt-8 sm:mt-12 lg:mt-16">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
+              <div className="text-center mb-6 sm:mb-8 lg:mb-10">
+                <div className="inline-flex items-center px-3 sm:px-4 py-2 bg-blue-50/80 backdrop-blur-sm rounded-full text-blue-600 text-sm font-medium mb-3 sm:mb-4 border border-blue-100">
+                  <Star className="h-4 w-4 mr-2" />
+                  Top Rated
+                </div>
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3 sm:mb-4">
+                  Featured Tutors
+                </h2>
+                <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base px-4">
+                  Discover top-rated tutors across all subjects
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8 lg:mb-12">
+                {tutors.slice(0, 6).map((tutor) => (
+                  <div key={tutor._id} className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 group">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                        {tutor.user.profileImage ? (
+                          <img 
+                            src={tutor.user.profileImage} 
+                            alt={tutor.user.name}
+                            className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-blue-600 font-semibold text-base sm:text-lg lg:text-xl">
+                            {tutor.user.name.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate group-hover:text-blue-700 transition-colors duration-300">
+                          {tutor.user.name}
+                        </h3>
+                        <div className="flex items-center gap-1 mt-1">
+                          <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 fill-current" />
+                          <span className="text-xs sm:text-sm text-gray-600">
+                            {tutor.rating.toFixed(1)} ({tutor.totalReviews} reviews)
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 mt-1">
+                          <Users className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
+                          <span className="text-xs sm:text-sm text-blue-600 font-medium">
+                            {tutor.totalStudents} students
+                          </span>
+                        </div>
+                        {tutor.subjects && tutor.subjects.length > 0 && (
+                          <div className="mt-2">
+                            <span className="text-xs sm:text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                              {tutor.subjects[0].subject.name}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <Link
+                        to={`/tutors/${tutor._id}`}
+                        className="text-blue-600 hover:text-blue-700 transition-colors p-1.5 sm:p-2 hover:bg-blue-50 rounded-full flex-shrink-0"
+                      >
+                        <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="text-center px-4">
+                <Link
+                  to="/tutors"
+                  className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm text-gray-700 px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 rounded-2xl hover:bg-white transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg font-medium border border-gray-200 text-sm sm:text-base"
+                >
+                  View All Tutors
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
       {/* Floating Go to Top Button - Mobile Only */}
       {showScrollToTop && (
-        <div className="lg:hidden fixed bottom-6 right-6 z-50">
+        <div className="lg:hidden fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-50">
           <button
             onClick={scrollToTop}
             className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"

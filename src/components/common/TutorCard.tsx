@@ -138,7 +138,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
       to={`/tutors/${tutor.id}`}
       className="block bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group border border-gray-100 w-full"
     >
-      {/* Profile Image Section */}
+      {/* Profile Image Section - Improved Mobile Layout */}
       <div className="relative w-full aspect-square bg-gradient-to-br from-blue-50 to-blue-100 overflow-hidden">
         {tutor.profileImage ? (
           <img
@@ -148,13 +148,13 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-            <span className="text-4xl font-bold text-white">
+            <span className="text-3xl sm:text-4xl font-bold text-white">
               {tutor.name.charAt(0)}
             </span>
           </div>
         )}
         
-        {/* Gradient Overlay for Content */}
+        {/* Gradient Overlay for Content - Better Mobile Positioning */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent h-2/3"></div>
         
         {/* Verified Badge - Top Right */}
@@ -164,10 +164,10 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
           </div>
         )}
         
-        {/* Content Overlay */}
+        {/* Content Overlay - Improved Mobile Layout */}
         <div className="absolute bottom-0 left-0 right-0 p-3 pb-16 sm:pb-12 md:pb-3 space-y-2">
           {/* Name */}
-          <h3 className="text-white font-semibold text-sm line-clamp-1 group-hover:text-blue-200 transition-colors">
+          <h3 className="text-white font-semibold text-sm sm:text-base line-clamp-1 group-hover:text-blue-200 transition-colors">
             {tutor.name}
           </h3>
           
@@ -178,7 +178,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`h-3 w-3 ${
+                    className={`h-3 w-3 sm:h-4 sm:w-4 ${
                       i < Math.floor(tutor.rating)
                         ? 'text-yellow-400 fill-yellow-400'
                         : 'text-gray-300'
@@ -189,16 +189,16 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
               <span className="text-xs text-gray-200 ml-1">
                 ({tutor.reviewCount})
               </span>
+            </div>
           </div>
-        </div>
 
-        {/* Location */}
+          {/* Location */}
           <div className="flex items-center text-gray-200">
             <MapPin className="h-3 w-3 mr-1 text-gray-300 flex-shrink-0" />
             <span className="text-xs line-clamp-1">
               {tutor.location || 'Location not specified'}
             </span>
-        </div>
+          </div>
 
           {/* Subjects */}
           <div className="flex items-center text-gray-200">
@@ -208,55 +208,54 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
             </span>
           </div>
           
-          {/* Topics */}
+          {/* Topics - Better Mobile Layout */}
           {subjectTopics.length > 0 && (
-              <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1">
               {subjectTopics.slice(0, 2).map((topic, index) => (
-                  <span
-                    key={index}
+                <span
+                  key={index}
                   className="px-1.5 py-0.5 bg-white/20 text-white text-xs rounded-md backdrop-blur-sm"
-                    title={topic}
-                  >
-                    {topic}
-                  </span>
-                ))}
+                  title={topic}
+                >
+                  {topic}
+                </span>
+              ))}
               {subjectTopics.length > 2 && (
                 <span className="px-1.5 py-0.5 bg-white/20 text-white text-xs rounded-md backdrop-blur-sm">
                   +{subjectTopics.length - 2}
-                  </span>
-                )}
+                </span>
+              )}
             </div>
           )}
 
-          {/* Pricing */}
+          {/* Pricing - Improved Mobile Layout */}
           {(rates.online > 0 || rates.individual > 0) && (
-            <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-2 sm:gap-3 text-xs">
               {rates.online > 0 && (
                 <div className="flex items-center text-gray-200">
-                  <Video className="h-3 w-3 text-blue-300 mr-1" />
+                  <Video className="h-3 w-3 text-blue-300 mr-1 flex-shrink-0" />
                   <span>Rs. {rates.online}</span>
                 </div>
               )}
               {rates.individual > 0 && (
                 <div className="flex items-center text-gray-200">
-                  <Home className="h-3 w-3 text-green-300 mr-1" />
+                  <Home className="h-3 w-3 text-green-300 mr-1 flex-shrink-0" />
                   <span>Rs. {rates.individual}</span>
                 </div>
               )}
             </div>
           )}
-          </div>
+        </div>
         
 
-
-        {/* Favorite Button - Bottom Right */}
+        {/* Favorite Button - Better Mobile Positioning */}
         <button 
           onClick={handleFavoriteClick}
-          className="absolute bottom-4 right-4 sm:bottom-3 sm:right-3 md:bottom-2 md:right-2 sm:bg-white/95 sm:backdrop-blur-sm rounded-full sm:p-1.5 shadow-lg hover:bg-white hover:shadow-xl transition-all duration-200 sm:border sm:border-white/30 z-20"
+          className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 md:bottom-2 md:right-2 sm:bg-white/95 sm:backdrop-blur-sm rounded-full sm:p-1.5 shadow-lg hover:bg-white hover:shadow-xl transition-all duration-200 sm:border sm:border-white/30 z-20"
           aria-label={isTutorFavorite ? "Remove from favorites" : "Add to favorites"}
         >
           <Heart 
-            className={`h-5 w-5 sm:h-3.5 sm:w-3.5 ${isTutorFavorite ? 'text-red-500 fill-red-500' : 'text-white hover:text-red-400 sm:text-gray-600'}`} 
+            className={`h-5 w-5 sm:h-4 sm:w-4 md:h-3.5 md:w-3.5 ${isTutorFavorite ? 'text-red-500 fill-red-500' : 'text-white hover:text-red-400 sm:text-gray-600'}`} 
           />
         </button>
       </div>

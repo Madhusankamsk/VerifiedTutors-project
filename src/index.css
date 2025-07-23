@@ -242,6 +242,28 @@ body {
   .notification-dropdown-mobile {
     @apply w-72 sm:w-80;
   }
+
+  /* Mobile card improvements */
+  .mobile-card-compact {
+    @apply p-3 sm:p-4;
+  }
+
+  .mobile-text-responsive {
+    @apply text-sm sm:text-base;
+  }
+
+  .mobile-spacing-responsive {
+    @apply space-y-2 sm:space-y-3;
+  }
+
+  /* Mobile grid improvements */
+  .mobile-grid-responsive {
+    @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .mobile-gap-responsive {
+    @apply gap-3 sm:gap-4 lg:gap-6;
+  }
 }
 
 /* Responsive improvements */
@@ -269,6 +291,26 @@ body {
   /* Mobile notification positioning */
   .notification-dropdown-mobile {
     @apply right-0 left-0 mx-3 w-auto;
+  }
+
+  /* Mobile hero section improvements */
+  .hero-mobile {
+    @apply min-h-[300px] py-8;
+  }
+
+  /* Mobile search improvements */
+  .search-mobile {
+    @apply max-w-sm;
+  }
+
+  /* Mobile filter improvements */
+  .filter-mobile {
+    @apply space-y-3;
+  }
+
+  /* Mobile card improvements */
+  .card-mobile {
+    @apply p-3;
   }
 }
 
@@ -376,6 +418,30 @@ body {
   .mobile-nav-item {
     @apply min-h-[48px] flex items-center;
   }
+
+  /* Mobile hero improvements */
+  .hero-title-mobile {
+    @apply text-2xl sm:text-3xl;
+  }
+
+  .hero-subtitle-mobile {
+    @apply text-sm sm:text-base;
+  }
+
+  /* Mobile search improvements */
+  .search-container-mobile {
+    @apply w-full max-w-sm;
+  }
+
+  /* Mobile filter improvements */
+  .filter-container-mobile {
+    @apply mb-4 space-y-3;
+  }
+
+  /* Mobile grid improvements */
+  .grid-mobile {
+    @apply gap-4;
+  }
 }
 
 /* High DPI display optimizations */
@@ -399,5 +465,51 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Mobile-specific improvements for better UX */
+@media (max-width: 480px) {
+  /* Smaller text on very small screens */
+  .text-xs-mobile {
+    @apply text-xs;
+  }
+
+  /* Tighter spacing on mobile */
+  .spacing-tight-mobile {
+    @apply space-y-2;
+  }
+
+  /* Better button sizing on mobile */
+  .button-mobile {
+    @apply px-3 py-2 text-sm;
+  }
+
+  /* Improved mobile navigation */
+  .nav-mobile {
+    @apply px-3 py-2;
+  }
+}
+
+/* Landscape mobile improvements */
+@media (max-width: 768px) and (orientation: landscape) {
+  .hero-mobile-landscape {
+    @apply min-h-[250px] py-6;
+  }
+
+  .content-mobile-landscape {
+    @apply py-4;
+  }
+}
+
+/* Tablet-specific improvements */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .tablet-optimized {
+    @apply px-6;
+  }
+
+  .tablet-grid {
+    @apply grid-cols-2;
   }
 }

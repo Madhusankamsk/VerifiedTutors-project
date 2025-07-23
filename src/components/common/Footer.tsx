@@ -41,8 +41,8 @@ const Footer: React.FC = () => {
       <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-full blur-3xl"></div>
       <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-sky-500/10 to-blue-600/10 rounded-full blur-3xl"></div>
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 relative z-10">
-        {/* Bottom Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 relative z-10">
+        {/* Bottom Section - Improved Mobile Layout */}
         <div className="pt-4 sm:pt-6 border-t border-white/10">
           <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
             <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 text-xs sm:text-sm text-gray-400 text-center sm:text-left">
@@ -63,7 +63,7 @@ const Footer: React.FC = () => {
               </div>
             </div>
             
-            <div className="flex flex-wrap justify-center sm:justify-end gap-4 sm:gap-6">
+            <div className="flex flex-wrap justify-center sm:justify-end gap-3 sm:gap-4 lg:gap-6">
               <Link 
                 to="/privacy" 
                 className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-all duration-300 hover:scale-105 px-2 py-1 rounded"
@@ -85,8 +85,8 @@ const Footer: React.FC = () => {
             </div>
           </div>
           
-          {/* Trust Indicators */}
-          <div className="mt-6 sm:mt-8 flex flex-wrap justify-center items-center gap-3 sm:gap-6 text-xs text-gray-500">
+          {/* Trust Indicators - Better Mobile Layout */}
+          <div className="mt-4 sm:mt-6 lg:mt-8 flex flex-wrap justify-center items-center gap-2 sm:gap-3 lg:gap-6 text-xs text-gray-500">
             <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-white/5 rounded-full border border-white/10">
               <Award className="h-3 w-3 text-blue-400" />
               <span className="text-xs">Verified Platform</span>

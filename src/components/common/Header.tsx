@@ -136,7 +136,7 @@ const Header: React.FC<HeaderProps> = ({
             <Link to="/" className="flex-shrink-0 group">
               <svg 
                 viewBox="0 0 1536.000000 1024.000000"
-                className={`${isDashboardLayout ? 'h-36' : 'h-40'} w-auto transition-all duration-300 hover:opacity-90 filter drop-shadow-sm text-blue-600`}
+                className={`${isDashboardLayout ? 'h-28 sm:h-32 lg:h-36' : 'h-28 sm:h-32 lg:h-36'} w-auto transition-all duration-300 hover:opacity-90 filter drop-shadow-sm text-blue-600`}
                 fill="currentColor"
               >
                 <g transform="translate(0.000000,1024.000000) scale(0.100000,-0.100000)">
@@ -443,7 +443,7 @@ l0 344 -100 0 -100 0 0 -220 c0 -165 -3 -229 -14 -254 -42 -101 -191 -111
       {/* Mobile menu */}
       {isMobileMenuOpen && (
         <div ref={mobileMenuRef} className="md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-200/50 shadow-soft">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+          <div className="px-3 pt-3 pb-4 space-y-2">
             
             {isAuthenticated ? (
               <>
@@ -470,7 +470,7 @@ l0 344 -100 0 -100 0 0 -220 c0 -165 -3 -229 -14 -254 -42 -101 -191 -111
 
                 <Link
                   to={getDashboardLink()}
-                  className="block px-4 py-3 text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 rounded-xl transition-all duration-200 border border-transparent hover:border-blue-200/50"
+                  className="block px-4 py-3.5 text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 rounded-xl transition-all duration-200 border border-transparent hover:border-blue-200/50"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Dashboard

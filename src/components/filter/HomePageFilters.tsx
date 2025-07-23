@@ -128,8 +128,8 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
 
   return (
     <div className="bg-white/90 backdrop-blur-sm rounded-xl p-3 sm:p-4 shadow-md border border-gray-200/60">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3">
+      {/* Header - Improved Mobile Spacing */}
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-blue-600" />
           <span className="text-sm font-semibold text-gray-900">Filters</span>
@@ -157,17 +157,17 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
         </div>
       </div>
 
-      {/* Subject and Topic Dropdowns - Vertical Stack */}
-      <div className="space-y-3 mb-3">
+      {/* Subject and Topic Dropdowns - Improved Mobile Layout */}
+      <div className="space-y-3 mb-3 sm:mb-4">
         {/* Subject Dropdown */}
         <div className="relative">
-          <label className="block text-xs font-medium text-gray-700 mb-1">
+          <label className="block text-xs font-medium text-gray-700 mb-1.5">
             Select a Subject
           </label>
           <select
             value={filters.subject}
             onChange={(e) => handleSubjectChange(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-colors"
+            className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-colors"
           >
             <option value="">All Subjects</option>
             {subjects.map((subject) => (
@@ -180,13 +180,13 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
 
         {/* Topic Dropdown */}
         <div className="relative">
-          <label className="block text-xs font-medium text-gray-700 mb-1">
+          <label className="block text-xs font-medium text-gray-700 mb-1.5">
             Topic
           </label>
           <select
             value={filters.topic}
             onChange={(e) => handleTopicChange(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-colors disabled:bg-gray-50 disabled:text-gray-500"
+            className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-colors disabled:bg-gray-50 disabled:text-gray-500"
             disabled={!filters.subject}
           >
             <option value="">All Topics</option>
@@ -199,9 +199,9 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
         </div>
       </div>
 
-      {/* Expanded Filters */}
+      {/* Expanded Filters - Better Mobile Spacing */}
       {isExpanded && (
-        <div className="space-y-3">
+        <div className="space-y-3 sm:space-y-4">
           {/* Teaching Mode Filter */}
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">
@@ -213,7 +213,7 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
                 <button
                   key={option.value}
                   onClick={() => handleTeachingModeChange(option.value)}
-                  className={`px-2.5 py-1.5 text-xs rounded-md border transition-all text-left ${
+                  className={`px-3 py-2 text-xs sm:text-sm rounded-md border transition-all text-left ${
                     filters.teachingMode === option.value
                       ? 'bg-blue-100 text-blue-700 border-blue-300 shadow-sm'
                       : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
@@ -230,7 +230,7 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
             {/* Female Only */}
             <button
               onClick={() => handleFemaleOnlyChange(!filters.femaleOnly)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-md border transition-all w-full text-left ${
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-md border transition-all w-full text-left ${
                 filters.femaleOnly
                   ? 'bg-pink-100 text-pink-700 border-pink-300 shadow-sm'
                   : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
@@ -243,7 +243,7 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
             {/* Verified Only */}
             <button
               onClick={() => handleVerifiedChange(!filters.verified)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-md border transition-all w-full text-left ${
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-md border transition-all w-full text-left ${
                 filters.verified
                   ? 'bg-green-100 text-green-700 border-green-300 shadow-sm'
                   : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
@@ -256,16 +256,16 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
         </div>
       )}
 
-      {/* Active Filters Display */}
+      {/* Active Filters Display - Improved Mobile Layout */}
       {hasActiveFilters && (
-        <div className="mt-3 pt-3 border-t border-gray-200">
+        <div className="mt-3 sm:mt-4 pt-3 border-t border-gray-200">
           <div className="flex flex-wrap gap-1.5">
             {selectedSubject && (
               <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs">
-                <span>{selectedSubject.name}</span>
+                <span className="truncate max-w-24 sm:max-w-32">{selectedSubject.name}</span>
                 <button
                   onClick={() => handleSubjectChange('')}
-                  className="ml-1 hover:text-blue-800 transition-colors"
+                  className="ml-1 hover:text-blue-800 transition-colors flex-shrink-0"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -273,10 +273,10 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
             )}
             {selectedTopic && (
               <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs">
-                <span>{selectedTopic.name}</span>
+                <span className="truncate max-w-24 sm:max-w-32">{selectedTopic.name}</span>
                 <button
                   onClick={() => handleTopicChange('')}
-                  className="ml-1 hover:text-blue-800 transition-colors"
+                  className="ml-1 hover:text-blue-800 transition-colors flex-shrink-0"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -284,10 +284,10 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
             )}
             {filters.teachingMode && (
               <div className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs">
-                <span>{filters.teachingMode}</span>
+                <span className="truncate max-w-20 sm:max-w-24">{filters.teachingMode}</span>
                 <button
                   onClick={() => handleTeachingModeChange('')}
-                  className="ml-1 hover:text-purple-800 transition-colors"
+                  className="ml-1 hover:text-purple-800 transition-colors flex-shrink-0"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -298,7 +298,7 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
                 <span>Female Only</span>
                 <button
                   onClick={() => handleFemaleOnlyChange(false)}
-                  className="ml-1 hover:text-pink-800 transition-colors"
+                  className="ml-1 hover:text-pink-800 transition-colors flex-shrink-0"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -309,7 +309,7 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
                 <span>All Tutors</span>
                 <button
                   onClick={() => handleVerifiedChange(true)}
-                  className="ml-1 hover:text-orange-800 transition-colors"
+                  className="ml-1 hover:text-orange-800 transition-colors flex-shrink-0"
                 >
                   <X className="h-3 w-3" />
                 </button>
