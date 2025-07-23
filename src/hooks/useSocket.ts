@@ -44,7 +44,8 @@ export const useSocket = (): UseSocketReturn => {
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
-        timeout: 20000
+        timeout: 20000,
+        forceNew: true // Force new connection to avoid stale connections
       });
 
       // Connection event handlers
@@ -61,6 +62,14 @@ export const useSocket = (): UseSocketReturn => {
       socket.on('connect_error', (error: Error) => {
         console.error('Socket connection error:', error);
         isConnectedRef.current = false;
+        
+        // Retry connection after delay
+        setTimeout(() => {
+          if (user && token && !socketRef.current?.connected) {
+            console.log('Retrying socket connection...');
+            connect();
+          }
+        }, 5000);
       });
 
       socket.on('reconnect', (attemptNumber: number) => {

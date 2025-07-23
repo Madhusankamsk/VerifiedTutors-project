@@ -218,6 +218,8 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
             hasDatabaseNotifications = dbResponse.data.notifications.length > 0;
           } else {
             console.log('❌ Failed to load database notifications');
+            // Set empty array to prevent loading state
+            setDatabaseNotifications([]);
           }
 
           // Load local notifications from localStorage
@@ -232,68 +234,19 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
               })));
             } catch (error) {
               console.error('Error loading local notifications:', error);
+              // Clear corrupted localStorage data
+              localStorage.removeItem(`notifications_${user._id}`);
+              setNotifications([]);
             }
-          } else if (!hasDatabaseNotifications) {
-            console.log('📝 Creating sample notifications (no existing notifications found)');
-            // Only add sample notifications if no database notifications exist
-            const sampleNotifications: Notification[] = [];
-            
-            if (user.role === 'tutor') {
-              sampleNotifications.push({
-                id: 'welcome-tutor',
-                type: 'success',
-                title: 'Welcome to VerifiedTutors!',
-                message: 'Your tutor account has been created successfully. Complete your profile to start accepting students.',
-                timestamp: new Date(),
-                read: false,
-                action: {
-                  label: 'Complete Profile',
-                  url: '/tutor/profile'
-                }
-              });
-
-              sampleNotifications.push({
-                id: 'verification-tutor',
-                type: 'info',
-                title: 'Profile Verification',
-                message: 'Your profile is under review. You\'ll receive an email once verified.',
-                timestamp: new Date(),
-                read: false,
-              });
-            } else if (user.role === 'student') {
-              sampleNotifications.push({
-                id: 'welcome-student',
-                type: 'success',
-                title: 'Welcome to VerifiedTutors!',
-                message: 'Your student account is ready. Start browsing tutors and booking sessions.',
-                timestamp: new Date(),
-                read: false,
-                action: {
-                  label: 'Find Tutors',
-                  url: '/tutors'
-                }
-              });
-            }
-
-            sampleNotifications.push({
-              id: 'getting-started',
-              type: 'info',
-              title: 'Getting Started',
-              message: 'Check out our tutorial to learn how to use the platform effectively.',
-              timestamp: new Date(),
-              read: false,
-              action: {
-                label: 'View Tutorial',
-                url: '/tutorial'
-              }
-            });
-
-            setNotifications(sampleNotifications);
           } else {
-            console.log('✅ No sample notifications needed (database notifications exist)');
+            console.log('✅ No local notifications found');
+            setNotifications([]);
           }
         } catch (error) {
           console.error('Error loading notifications:', error);
+          // Set empty arrays to prevent loading state
+          setDatabaseNotifications([]);
+          setNotifications([]);
         } finally {
           setLoading(false);
           setHasInitialized(true);

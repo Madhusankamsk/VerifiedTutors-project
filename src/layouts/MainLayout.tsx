@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
+import NotificationTester from '../components/common/NotificationTester';
 
 const MainLayout: React.FC = () => {
 
@@ -12,6 +13,7 @@ const MainLayout: React.FC = () => {
         <Outlet />
       </main>
       <Footer />
+      <NotificationTester />
     </div>
   );
 };

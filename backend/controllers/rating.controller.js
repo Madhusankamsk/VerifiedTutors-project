@@ -1,6 +1,7 @@
 import Rating from '../models/rating.model.js';
 import Tutor from '../models/tutor.model.js';
 import Booking from '../models/booking.model.js';
+import NotificationService from '../services/notificationService.js';
 
 // @desc    Get all ratings for a tutor
 // @route   GET /api/ratings/tutor/:tutorId
@@ -124,7 +125,23 @@ export const createRating = async (req, res) => {
     const populatedRating = await Rating.findById(existingRating._id)
       .populate('student', 'name profileImage')
       .populate('subject', 'name category')
-      .populate('topics', 'name description');
+      .populate('topics', 'name description')
+      .populate({
+        path: 'tutor',
+        populate: {
+          path: 'user',
+          select: 'name email'
+        }
+      });
+
+    // Send notification to tutor about new review
+    try {
+      await NotificationService.sendReviewNotification(populatedRating);
+      console.log('Review notification sent successfully');
+    } catch (notificationError) {
+      console.error('Failed to send review notification:', notificationError);
+      // Don't fail the rating if notification fails
+    }
 
     res.status(201).json({
       success: true,

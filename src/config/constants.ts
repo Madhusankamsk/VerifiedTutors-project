@@ -1,5 +1,7 @@
 // API Configuration
-export const API_URL = ''; // Empty base URL since API is served from same origin in production
+export const API_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://verifiedtutors-project.onrender.com' // Your production backend URL
+  : 'http://localhost:5000'; // Development backend URL
 
 // Application URLs
 export const APP_URL = typeof window !== 'undefined' 
