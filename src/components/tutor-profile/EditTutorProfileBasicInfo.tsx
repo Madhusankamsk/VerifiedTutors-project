@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Camera } from 'lucide-react';
+import { User, Camera, Upload } from 'lucide-react';
 
 interface SocialMedia {
   instagram: string;
@@ -37,6 +37,10 @@ const EditTutorProfileBasicInfo: React.FC<EditTutorProfileBasicInfoProps> = ({
   onDataChange,
   onProfileImageUpload
 }) => {
+  // Debug logging for profile image
+  console.log('EditTutorProfileBasicInfo - profileImage:', profileImage);
+  console.log('EditTutorProfileBasicInfo - isUploading:', isUploading);
+
   const handleMediumToggle = (mediumId: string) => {
     const newTeachingMediums = data.teachingMediums.includes(mediumId)
       ? data.teachingMediums.filter(id => id !== mediumId)
@@ -49,7 +53,7 @@ const EditTutorProfileBasicInfo: React.FC<EditTutorProfileBasicInfoProps> = ({
     <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
         {/* Profile Picture */}
-        <div className="flex-shrink-0 flex justify-center lg:justify-start">
+        <div className="flex-shrink-0 flex flex-col items-center lg:items-start">
           <div className="relative group w-32 h-32 sm:w-40 sm:h-40">
             <div className="w-full h-full rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center overflow-hidden">
               {profileImage ? (
@@ -60,6 +64,14 @@ const EditTutorProfileBasicInfo: React.FC<EditTutorProfileBasicInfoProps> = ({
                 </div>
               )}
             </div>
+            
+            {/* Preview indicator */}
+            {profileImage && profileImage.startsWith('blob:') && (
+              <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                Preview
+              </div>
+            )}
+            
             <label
               htmlFor="profile-image"
               className={`absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-b from-black/60 to-black/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-xl sm:rounded-2xl cursor-pointer ${
@@ -90,11 +102,40 @@ const EditTutorProfileBasicInfo: React.FC<EditTutorProfileBasicInfoProps> = ({
               </div>
             )}
           </div>
-          {/* File size requirements - visible on all screen sizes */}
+          
+          {/* Upload Button */}
+          <div className="mt-4 w-full">
+            <label
+              htmlFor="profile-image-upload"
+              className={`w-full flex items-center justify-center px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 cursor-pointer ${
+                isUploading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              <span className="text-sm font-medium">
+                {profileImage && profileImage.startsWith('blob:') ? 'Change Photo' : 'Upload Photo'}
+              </span>
+            </label>
+            <input
+              id="profile-image-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={onProfileImageUpload}
+              disabled={isUploading}
+            />
+          </div>
+          
+          {/* File size requirements */}
           <div className="mt-3 text-center">
             <p className="text-xs text-gray-500 font-medium">
               Profile photo: Max file size: 2MB • JPG, PNG, GIF
             </p>
+            {profileImage && profileImage.startsWith('blob:') && (
+              <p className="text-xs text-green-600 font-medium mt-1">
+                ✓ Preview loaded - Save to upload
+              </p>
+            )}
           </div>
         </div>
 

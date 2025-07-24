@@ -487,7 +487,19 @@ const EditTutorProfile: React.FC = () => {
 
   const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log('No file selected');
+      return;
+    }
+
+    console.log('File selected:', file.name, file.size, file.type);
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Please select a valid image file (JPG, PNG, or GIF)');
+      return;
+    }
 
     if (file.size > 2 * 1024 * 1024) {
       toast.error('File size must be less than 2MB');
@@ -496,10 +508,17 @@ const EditTutorProfile: React.FC = () => {
 
     setIsUploading(true);
     try {
-      // Store profile image temporarily
+      // Create preview immediately
       const preview = URL.createObjectURL(file);
+      console.log('Preview URL created:', preview);
+      
+      // Store profile image temporarily with preview
       setTempProfileImage({ file, preview });
-      toast.success('Profile image selected! It will be uploaded when you save changes.');
+      
+      // Show success message
+      toast.success('Profile image preview loaded! It will be uploaded when you save changes.');
+      
+      console.log('Temp profile image set:', { file: file.name, preview });
     } catch (error) {
       console.error('Error processing profile image:', error);
       toast.error('Failed to process profile image. Please try again.');
