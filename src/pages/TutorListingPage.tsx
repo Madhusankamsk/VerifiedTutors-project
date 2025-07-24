@@ -11,6 +11,7 @@ import {
 } from '../components/tutor-listing';
 import HomePageFilters, { HomePageFilterState } from '../components/filter/HomePageFilters';
 import TutorSorting from '../components/filter/TutorSorting';
+import LoadingBar from '../components/common/LoadingBar';
 
 
 const TutorListingPage: React.FC = () => {
@@ -26,6 +27,7 @@ const TutorListingPage: React.FC = () => {
   const [tutors, setTutors] = useState<TutorProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
   const [totalTutors, setTotalTutors] = useState(0);
@@ -159,6 +161,7 @@ const TutorListingPage: React.FC = () => {
         setLoadingMore(false);
       } else {
         setLoading(false);
+        setInitialLoading(false);
       }
     }
   }, [urlSubject, urlTopic, searchQuery, filters, sortBy, sortOrder, subjects, searchTutors]);
@@ -215,6 +218,9 @@ const TutorListingPage: React.FC = () => {
     <div className="min-h-screen bg-white relative overflow-hidden">
       {/* Hero Header Section - Improved Mobile Responsiveness */}
       <div className="relative w-full min-h-[280px] sm:min-h-[400px] lg:min-h-[500px] overflow-hidden pt-16 py-6 sm:py-12 lg:py-16">
+        {/* Loading Bar at Hero Section Bottom */}
+        <LoadingBar isLoading={initialLoading || loading} variant="hero" />
+        
         {/* Background Image */}
         <div className="absolute inset-0">
           <img 
