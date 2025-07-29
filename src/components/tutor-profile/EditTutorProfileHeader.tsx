@@ -35,9 +35,9 @@ const EditTutorProfileHeader: React.FC<EditTutorProfileHeaderProps> = ({
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:gap-6 mb-6 sm:mb-8 px-4 sm:px-0">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+          {/* <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
             Edit Profile
-          </h1>
+          </h1> */}
           <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
             <div className="flex items-center space-x-2">
               {isComplete ? (

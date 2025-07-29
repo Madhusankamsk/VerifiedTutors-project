@@ -123,7 +123,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
       </main>
 
       {/* Footer */}
-      <DashboardFooter />
+      {/* <DashboardFooter /> */}
     </div>
   );
 };
