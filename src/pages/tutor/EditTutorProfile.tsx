@@ -76,16 +76,27 @@ const EditTutorProfile: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
+
+  // Section refs for navigation
+  const basicInfoRef = useRef<HTMLDivElement>(null);
+  const bioRef = useRef<HTMLDivElement>(null);
+  const educationRef = useRef<HTMLDivElement>(null);
+  const experienceRef = useRef<HTMLDivElement>(null);
+  const subjectsRef = useRef<HTMLDivElement>(null);
+  const locationsRef = useRef<HTMLDivElement>(null);
+  const documentsRef = useRef<HTMLDivElement>(null);
 
   // Profile completion validation
   const validateProfileCompletion = () => {
     const requiredFields = {
       personalInfo: !!(formData.phone && formData.bio && formData.gender && user?.name && user?.email),
       education: formData.education.length > 0,
+      experience: formData.experience.length > 0,
       subjects: formData.subjects.length > 0 && formData.subjects.some(s => s && s.selectedTopics && s.selectedTopics.length > 0),
       profileImage: !!(profileImage || tempProfileImage),
-      documents: formData.documents.length > 0,
-      locations: !!formData.availableLocations
+      locations: !!formData.availableLocations,
+      documents: formData.documents.length > 0
     };
 
     const completedFields = Object.values(requiredFields).filter(Boolean).length;
@@ -101,6 +112,57 @@ const EditTutorProfile: React.FC = () => {
   };
 
   const profileValidation = validateProfileCompletion();
+
+  // Navigation function
+  const scrollToSection = (sectionRef: React.RefObject<HTMLDivElement>) => {
+    if (sectionRef.current) {
+      const headerHeight = 80; // Approximate header height
+      const bottomBarHeight = 60; // Approximate bottom bar height
+      const offset = headerHeight + 20; // Add some padding
+      
+      const elementTop = sectionRef.current.offsetTop;
+      const elementPosition = elementTop - offset;
+      
+      window.scrollTo({
+        top: elementPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Section navigation handlers
+  const handleSectionClick = (section: string) => {
+    let targetRef: React.RefObject<HTMLDivElement> | null = null;
+    
+    switch (section) {
+      case 'Personal Info':
+        targetRef = basicInfoRef;
+        break;
+      case 'Education':
+        targetRef = educationRef;
+        break;
+      case 'Experience':
+        targetRef = experienceRef;
+        break;
+      case 'Subjects & Topics':
+        targetRef = subjectsRef;
+        break;
+      case 'Profile Image':
+        targetRef = basicInfoRef; // Profile image is in basic info section
+        break;
+      case 'Available Locations':
+        targetRef = locationsRef;
+        break;
+      case 'Documents':
+        targetRef = documentsRef;
+        break;
+    }
+    
+    if (targetRef) {
+      setSelectedSection(section);
+      scrollToSection(targetRef);
+    }
+  };
 
   useEffect(() => {
     // Check if user is authenticated and is a tutor
@@ -588,52 +650,42 @@ const EditTutorProfile: React.FC = () => {
         completionPercentage={Math.round((profileValidation.completedFields / profileValidation.totalFields) * 100)}
       />
 
-      <form id="profile-form" onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 pb-24">
-        {/* Profile Completion Status */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-blue-100">
-          <h3 className="text-lg sm:text-xl font-semibold text-blue-900 mb-4">Profile Completion Status</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {Object.entries({
-              'Personal Info': profileValidation.requirements.personalInfo,
-              'Education': profileValidation.requirements.education,
-              'Subjects & Topics': profileValidation.requirements.subjects,
-              'Profile Image': profileValidation.requirements.profileImage,
-              'Documents': profileValidation.requirements.documents,
-              'Available Locations': profileValidation.requirements.locations
-            }).map(([label, completed]) => (
-              <div key={label} className="flex items-center space-x-2 sm:space-x-3">
-                <div className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center ${
-                  completed ? 'bg-green-500' : 'bg-gray-300'
-                }`}>
-                  {completed && <span className="text-white text-xs">✓</span>}
-                </div>
-                <span className={`text-sm sm:text-base font-medium ${
-                  completed ? 'text-green-700' : 'text-gray-600'
-                }`}>
-                  {label}
-                </span>
-              </div>
-            ))}
-          </div>
+      <form id="profile-form" onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 pb-32">
+        {/* Basic Information */}
+        <div 
+          ref={basicInfoRef} 
+          onClick={() => setSelectedSection('Personal Info')}
+          className={`transition-all duration-300 cursor-pointer ${
+            selectedSection === 'Personal Info' || selectedSection === 'Profile Image' 
+              ? 'ring-2 ring-blue-500 ring-offset-2 rounded-xl' 
+              : ''
+          }`}
+        >
+          <EditTutorProfileBasicInfo
+            data={{
+              phone: formData.phone,
+              bio: formData.bio,
+              gender: formData.gender,
+              socialMedia: formData.socialMedia,
+              teachingMediums: formData.teachingMediums
+            }}
+            profileImage={profileImage || (tempProfileImage?.preview || null)}
+            isUploading={isUploading}
+            onDataChange={handleBasicInfoChange}
+            onProfileImageUpload={handleProfileImageUpload}
+          />
         </div>
 
-        {/* Basic Information */}
-        <EditTutorProfileBasicInfo
-          data={{
-            phone: formData.phone,
-            bio: formData.bio,
-            gender: formData.gender,
-            socialMedia: formData.socialMedia,
-            teachingMediums: formData.teachingMediums
-          }}
-          profileImage={profileImage || (tempProfileImage?.preview || null)}
-          isUploading={isUploading}
-          onDataChange={handleBasicInfoChange}
-          onProfileImageUpload={handleProfileImageUpload}
-        />
-
         {/* Bio Section */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8">
+        <div 
+          ref={bioRef} 
+          onClick={() => setSelectedSection('Personal Info')}
+          className={`bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8 transition-all duration-300 cursor-pointer ${
+            selectedSection === 'Personal Info' 
+              ? 'ring-2 ring-blue-500 ring-offset-2' 
+              : ''
+          }`}
+        >
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">About Me</h2>
           <div>
             <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">
@@ -655,27 +707,65 @@ const EditTutorProfile: React.FC = () => {
         </div>
 
         {/* Education */}
-        <EditTutorProfileEducation
-          education={formData.education}
-          onEducationChange={handleEducationChange}
-        />
+        <div 
+          ref={educationRef} 
+          onClick={() => setSelectedSection('Education')}
+          className={`transition-all duration-300 cursor-pointer ${
+            selectedSection === 'Education' 
+              ? 'ring-2 ring-blue-500 ring-offset-2 rounded-xl' 
+              : ''
+          }`}
+        >
+          <EditTutorProfileEducation
+            education={formData.education}
+            onEducationChange={handleEducationChange}
+          />
+        </div>
 
         {/* Experience */}
-        <EditTutorProfileExperience
-          experience={formData.experience}
-          onExperienceChange={handleExperienceChange}
-        />
+        <div 
+          ref={experienceRef} 
+          onClick={() => setSelectedSection('Experience')}
+          className={`transition-all duration-300 cursor-pointer ${
+            selectedSection === 'Experience' 
+              ? 'ring-2 ring-blue-500 ring-offset-2 rounded-xl' 
+              : ''
+          }`}
+        >
+          <EditTutorProfileExperience
+            experience={formData.experience}
+            onExperienceChange={handleExperienceChange}
+          />
+        </div>
 
         {/* Subjects and Topics */}
-        <EditTutorProfileSubjects
-          subjects={formData.subjects}
-          allSubjects={subjects}
-          allTopics={topics}
-          onSubjectsChange={handleSubjectsChange}
-        />
+        <div 
+          ref={subjectsRef} 
+          onClick={() => setSelectedSection('Subjects & Topics')}
+          className={`transition-all duration-300 cursor-pointer ${
+            selectedSection === 'Subjects & Topics' 
+              ? 'ring-2 ring-blue-500 ring-offset-2 rounded-xl' 
+              : ''
+          }`}
+        >
+          <EditTutorProfileSubjects
+            subjects={formData.subjects}
+            allSubjects={subjects}
+            allTopics={topics}
+            onSubjectsChange={handleSubjectsChange}
+          />
+        </div>
 
         {/* Available Locations */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8">
+        <div 
+          ref={locationsRef} 
+          onClick={() => setSelectedSection('Available Locations')}
+          className={`bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8 transition-all duration-300 cursor-pointer ${
+            selectedSection === 'Available Locations' 
+              ? 'ring-2 ring-blue-500 ring-offset-2' 
+              : ''
+          }`}
+        >
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center">
             <MapPin className="w-5 h-5 mr-2 text-primary-600" />
             Available Locations
@@ -697,16 +787,114 @@ const EditTutorProfile: React.FC = () => {
         </div>
 
         {/* Documents */}
-        <EditTutorProfileDocuments
-          documents={formData.documents}
-          selectedDocuments={selectedDocuments}
-          uploading={uploading}
-          onDocumentSelect={handleDocumentSelect}
-          onDocumentUpload={handleDocumentUpload}
-          onDeleteDocument={handleDeleteDocument}
-          onRemoveSelectedDocument={removeSelectedDocument}
-        />
+        <div 
+          ref={documentsRef} 
+          onClick={() => setSelectedSection('Documents')}
+          className={`transition-all duration-300 cursor-pointer ${
+            selectedSection === 'Documents' 
+              ? 'ring-2 ring-blue-500 ring-offset-2 rounded-xl' 
+              : ''
+          }`}
+        >
+          <EditTutorProfileDocuments
+            documents={formData.documents}
+            selectedDocuments={selectedDocuments}
+            uploading={uploading}
+            onDocumentSelect={handleDocumentSelect}
+            onDocumentUpload={handleDocumentUpload}
+            onDeleteDocument={handleDeleteDocument}
+            onRemoveSelectedDocument={removeSelectedDocument}
+          />
+        </div>
       </form>
+
+      {/* Profile Completion Status - Fixed Bottom Strip */}
+      {!profileValidation.isComplete && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-lg">
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center justify-between">
+              {/* Progress Bar */}
+              <div className="flex-1 mr-4">
+                <div className="flex items-center space-x-2">
+                  <div className="flex-1 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.round((profileValidation.completedFields / profileValidation.totalFields) * 100)}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 min-w-[3rem]">
+                    {Math.round((profileValidation.completedFields / profileValidation.totalFields) * 100)}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Status Items - Reordered to match form content */}
+              <div className="hidden lg:flex items-center space-x-6">
+                {Object.entries({
+                  'Profile Image': profileValidation.requirements.profileImage,
+                  'Personal Info': profileValidation.requirements.personalInfo,
+                  'Education': profileValidation.requirements.education,
+                  'Experience': profileValidation.requirements.experience,
+                  'Subjects & Topics': profileValidation.requirements.subjects,
+                  'Available Locations': profileValidation.requirements.locations,
+                  'Documents': profileValidation.requirements.documents
+                }).map(([label, completed]) => (
+                  <button
+                    key={label}
+                    onClick={() => handleSectionClick(label)}
+                    className={`flex items-center space-x-2 transition-all duration-200 hover:scale-105 ${
+                      completed ? 'hover:text-green-600' : 'hover:text-gray-700'
+                    }`}
+                  >
+                    <div className={`w-3 h-3 rounded-full flex items-center justify-center ${
+                      completed ? 'bg-green-500' : 'bg-gray-300'
+                    }`}>
+                      {completed && <span className="text-white text-xs">✓</span>}
+                    </div>
+                    <span className={`text-xs font-medium ${
+                      completed ? 'text-green-700' : 'text-gray-500'
+                    }`}>
+                      {label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Mobile/Tablet View - Scrollable */}
+              <div className="lg:hidden flex items-center space-x-4 overflow-x-auto no-scrollbar">
+                {Object.entries({
+                  'Profile Image': profileValidation.requirements.profileImage,
+                  'Personal Info': profileValidation.requirements.personalInfo,
+                  'Education': profileValidation.requirements.education,
+                  'Experience': profileValidation.requirements.experience,
+                  'Subjects & Topics': profileValidation.requirements.subjects,
+                  'Available Locations': profileValidation.requirements.locations,
+                  'Documents': profileValidation.requirements.documents
+                }).map(([label, completed]) => (
+                  <button
+                    key={label}
+                    onClick={() => handleSectionClick(label)}
+                    className={`flex items-center space-x-1.5 flex-shrink-0 transition-all duration-200 hover:scale-105 ${
+                      completed ? 'hover:text-green-600' : 'hover:text-gray-700'
+                    }`}
+                  >
+                    <div className={`w-2.5 h-2.5 rounded-full flex items-center justify-center ${
+                      completed ? 'bg-green-500' : 'bg-gray-300'
+                    }`}>
+                      {completed && <span className="text-white text-xs">✓</span>}
+                    </div>
+                    <span className={`text-xs font-medium ${
+                      completed ? 'text-green-700' : 'text-gray-500'
+                    }`}>
+                      {label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Discard Confirmation Dialog */}
       <EditTutorProfileDiscardDialog
