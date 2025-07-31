@@ -212,10 +212,10 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
               <button
                 key={option.value}
                 onClick={() => handleTeachingModeChange(option.value)}
-                className={`px-3 py-2 text-xs sm:text-sm rounded-full border transition-all ${
+                className={`px-3 py-2 text-xs sm:text-sm rounded-lg border transition-all duration-200 font-medium ${
                   filters.teachingMode === option.value
-                    ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white border-purple-500 shadow-md shadow-purple-200 transform scale-105'
-                    : 'bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 border-purple-200 hover:from-purple-100 hover:to-purple-200 hover:border-purple-300 hover:shadow-md hover:shadow-purple-100 hover:scale-105'
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm hover:bg-blue-700 hover:border-blue-700'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900'
                 }`}
               >
                 {option.label}
@@ -240,7 +240,7 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
           </button>
 
           {/* Verified Only */}
-          <button
+          {/* <button
             onClick={() => handleVerifiedChange(!filters.verified)}
             className={`flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-full border transition-all ${
               filters.verified
@@ -250,7 +250,7 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
           >
             <Star className="h-3 w-3" />
             Verified Only
-          </button>
+          </button> */}
         </div>
       </div>
       )}
@@ -282,11 +282,11 @@ const HomePageFilters: React.FC<HomePageFiltersProps> = ({
               </div>
             )}
             {filters.teachingMode && (
-              <div className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs">
+              <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs">
                 <span className="truncate max-w-20 sm:max-w-24">{filters.teachingMode}</span>
                 <button
                   onClick={() => handleTeachingModeChange('')}
-                  className="ml-1 hover:text-purple-800 transition-colors flex-shrink-0"
+                  className="ml-1 hover:text-blue-800 transition-colors flex-shrink-0"
                 >
                   <X className="h-3 w-3" />
                 </button>
