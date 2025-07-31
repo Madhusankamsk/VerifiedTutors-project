@@ -166,40 +166,6 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
         
         {/* Content Overlay - Improved Mobile Layout */}
         <div className="absolute bottom-0 left-0 right-0 p-3 pb-16 sm:pb-12 md:pb-3 space-y-2">
-          {/* Name */}
-          <h3 className="text-white font-semibold text-sm sm:text-base line-clamp-1 group-hover:text-blue-200 transition-colors">
-            {tutor.name}
-          </h3>
-          
-          {/* Rating */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="flex items-center">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-3 w-3 sm:h-4 sm:w-4 ${
-                      i < Math.floor(tutor.rating)
-                        ? 'text-yellow-400 fill-yellow-400'
-                        : 'text-gray-300'
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="text-xs text-gray-200 ml-1">
-                ({tutor.reviewCount})
-              </span>
-            </div>
-          </div>
-
-          {/* Location */}
-          <div className="flex items-center text-gray-200">
-            <MapPin className="h-3 w-3 mr-1 text-gray-300 flex-shrink-0" />
-            <span className="text-xs line-clamp-1">
-              {tutor.location || 'Location not specified'}
-            </span>
-          </div>
-
           {/* Subjects */}
           <div className="flex items-center text-gray-200">
             <Book className="h-3 w-3 mr-1 text-gray-300 flex-shrink-0" />
@@ -258,6 +224,33 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
             className={`h-5 w-5 sm:h-4 sm:w-4 md:h-3.5 md:w-3.5 ${isTutorFavorite ? 'text-red-500 fill-red-500' : 'text-white hover:text-red-400 sm:text-gray-600'}`} 
           />
         </button>
+      </div>
+
+      {/* Tutor Info Section - Below Image */}
+      <div className="p-3 sm:p-4">
+        {/* Name */}
+        <h3 className="text-gray-900 font-semibold text-sm sm:text-base line-clamp-1 group-hover:text-blue-600 transition-colors mb-2">
+          {tutor.name}
+        </h3>
+        
+        {/* Rating */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                className={`h-3 w-3 sm:h-4 sm:w-4 ${
+                  i < Math.floor(tutor.rating)
+                    ? 'text-yellow-400 fill-yellow-400'
+                    : 'text-gray-300'
+                }`}
+              />
+            ))}
+          </div>
+          <span className="text-xs text-gray-600">
+            ({tutor.reviewCount} reviews)
+          </span>
+        </div>
       </div>
     </Link>
   );

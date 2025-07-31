@@ -2,7 +2,6 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import Header from '../components/common/Header';
-import Footer from '../components/common/Footer';
 import logo from '../assets/logo.png';
 
 const AuthLayout: React.FC = () => {
@@ -28,9 +27,6 @@ const AuthLayout: React.FC = () => {
           <Outlet />
         </div>
       </div>
-      
-      {/* Footer positioned to show only when scrolling */}
-      <Footer />
     </div>
   );
 };

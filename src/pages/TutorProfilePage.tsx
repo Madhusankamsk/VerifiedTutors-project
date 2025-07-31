@@ -233,7 +233,7 @@ const TutorProfilePage: React.FC = () => {
         <div className="absolute top-0 right-0 w-96 h-96 bg-pink-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
         
         <div className="relative z-10 px-4">
-          <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-red-100 p-6">
+          <div className="max-w-md w-full bg-white/95 backdrop-blur-md rounded-3xl shadow-sm border border-red-200/50 p-6">
             <div className="text-center">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <X className="h-6 w-6 text-red-600" />
@@ -261,7 +261,7 @@ const TutorProfilePage: React.FC = () => {
         <div className="absolute top-0 right-0 w-96 h-96 bg-slate-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
         
         <div className="relative z-10 px-4">
-          <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 p-6">
+          <div className="max-w-md w-full bg-white/95 backdrop-blur-md rounded-3xl shadow-sm border border-gray-200/50 p-6">
             <div className="text-center">
               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <User className="h-6 w-6 text-gray-600" />
@@ -314,7 +314,7 @@ const TutorProfilePage: React.FC = () => {
               {activeTab === 'education' && <TutorProfileEducation profile={profile} />}
               {activeTab === 'experience' && <TutorProfileExperience profile={profile} />}
               {activeTab === 'reviews' && (
-                <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
+                <div className="bg-white/95 backdrop-blur-md p-4 sm:p-6 rounded-3xl shadow-sm border border-gray-200/50">
                   <ReviewList
                     reviews={mappedReviews}
                     averageRating={profile.rating}
