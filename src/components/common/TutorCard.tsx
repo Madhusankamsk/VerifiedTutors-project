@@ -1,6 +1,14 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Star, CheckCircle, Book, Video, Home, Heart, MapPin } from 'lucide-react';
+import {
+  Star,
+  CheckCircle,
+  Book,
+  Video,
+  Home,
+  Heart,
+  MapPin,
+} from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useStudent } from '../../contexts/StudentContext';
 import { toast } from 'react-toastify';
@@ -77,7 +85,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
   // Get subject names
   const getSubjectNames = () => {
     if (tutor.subjects && tutor.subjects.length > 0) {
-      return tutor.subjects.map(s => s.subject.name);
+      return tutor.subjects.map((s) => s.subject.name);
     }
     return [];
   };
@@ -86,10 +94,10 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
   const getSubjectTopics = () => {
     if (tutor.subjects && tutor.subjects.length > 0) {
       const allTopics: string[] = [];
-      tutor.subjects.forEach(subject => {
+      tutor.subjects.forEach((subject) => {
         if (subject.selectedTopics && subject.selectedTopics.length > 0) {
           // Handle both populated topic objects and string arrays (for backwards compatibility)
-          subject.selectedTopics.forEach(topic => {
+          subject.selectedTopics.forEach((topic) => {
             if (typeof topic === 'string') {
               // Legacy case: topic is just a string
               allTopics.push(topic);
@@ -108,14 +116,14 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
   const subjectNames = getSubjectNames();
   const subjectTopics = getSubjectTopics();
 
-  const isTutorFavorite = favorites.some(fav => fav.tutor._id === tutor.id);
+  const isTutorFavorite = favorites.some((fav) => fav.tutor._id === tutor.id);
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (!user) {
-      toast.error('Please login to add favorites');
+      toast.error('Please login to add favourites');
       navigate('/login');
       return;
     }
@@ -123,10 +131,8 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
     try {
       if (isTutorFavorite) {
         await removeFavorite(tutor.id);
-        toast.success('Removed from favorites');
       } else {
         await addFavorite(tutor.id);
-        toast.success('Added to favorites');
       }
     } catch (error) {
       console.error('Error toggling favorite:', error);
@@ -153,17 +159,17 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
             </span>
           </div>
         )}
-        
+
         {/* Gradient Overlay for Content - Better Mobile Positioning */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent h-2/3"></div>
-        
+
         {/* Verified Badge - Top Right */}
         {tutor.verified && (
           <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium shadow-lg">
             Verified
           </div>
         )}
-        
+
         {/* Content Overlay - Improved Mobile Layout */}
         <div className="absolute bottom-0 left-0 right-0 p-3 pb-16 sm:pb-12 md:pb-3 space-y-2">
           {/* Subjects */}
@@ -173,7 +179,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
               {subjectNames.join(', ')}
             </span>
           </div>
-          
+
           {/* Topics - Better Mobile Layout */}
           {subjectTopics.length > 0 && (
             <div className="flex flex-wrap gap-1">
@@ -212,16 +218,21 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
             </div>
           )}
         </div>
-        
 
         {/* Favorite Button - Better Mobile Positioning */}
-        <button 
+        <button
           onClick={handleFavoriteClick}
           className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 md:bottom-2 md:right-2 sm:bg-white/95 sm:backdrop-blur-sm rounded-full sm:p-1.5 shadow-lg hover:bg-white hover:shadow-xl transition-all duration-200 sm:border sm:border-white/30 z-20"
-          aria-label={isTutorFavorite ? "Remove from favorites" : "Add to favorites"}
+          aria-label={
+            isTutorFavorite ? 'Remove from favorites' : 'Add to favorites'
+          }
         >
-          <Heart 
-            className={`h-5 w-5 sm:h-4 sm:w-4 md:h-3.5 md:w-3.5 ${isTutorFavorite ? 'text-red-500 fill-red-500' : 'text-white hover:text-red-400 sm:text-gray-600'}`} 
+          <Heart
+            className={`h-5 w-5 sm:h-4 sm:w-4 md:h-3.5 md:w-3.5 ${
+              isTutorFavorite
+                ? 'text-red-500 fill-red-500'
+                : 'text-white hover:text-red-400 sm:text-gray-600'
+            }`}
           />
         </button>
       </div>
@@ -232,7 +243,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
         <h3 className="text-gray-900 font-semibold text-sm sm:text-base line-clamp-1 group-hover:text-blue-600 transition-colors mb-2">
           {tutor.name}
         </h3>
-        
+
         {/* Rating */}
         <div className="flex items-center gap-2">
           <div className="flex items-center">

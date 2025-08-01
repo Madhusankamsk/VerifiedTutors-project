@@ -1,7 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
-import { toast } from 'react-hot-toast';
+import { toast } from 'react-toastify';
 import { API_URL } from '../config/constants';
 
 interface Booking {
@@ -90,25 +96,27 @@ interface StudentProviderProps {
   children: ReactNode;
 }
 
-export const StudentProvider: React.FC<StudentProviderProps> = ({ children }) => {
+export const StudentProvider: React.FC<StudentProviderProps> = ({
+  children,
+}) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
-  
+
   const fetchBookings = async () => {
     if (!user) return;
-    
+
     try {
       setLoading(true);
       setError(null);
-      
+
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_URL}/api/students/bookings`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       // Handle the new API response structure with pagination
       if (response.data.success && response.data.bookings) {
         setBookings(response.data.bookings);
@@ -118,74 +126,77 @@ export const StudentProvider: React.FC<StudentProviderProps> = ({ children }) =>
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch bookings');
+      toast.error('Error fetching bookings.');
+
       console.error('Error fetching bookings:', err);
     } finally {
       setLoading(false);
     }
   };
-  
+
   const fetchFavorites = async () => {
     if (!user) return;
-    
+
     try {
       setLoading(true);
       setError(null);
-      
+
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_URL}/api/students/favorites`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       setFavorites(response.data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch favorites');
-      console.error('Error fetching favorites:', err);
+      setError(err.response?.data?.message || 'Failed to fetch favourites');
+      toast.error('Error fetching favourites.');
+      console.error('Error fetching favourites:', err);
     } finally {
       setLoading(false);
     }
   };
-  
+
   const addFavorite = async (tutorId: string) => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        `${API_URL}/api/students/favorites/${tutorId}`, 
+        `${API_URL}/api/students/favorites/${tutorId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
-      toast.success('Added to favorites');
+
+      toast.success('Tutor added to favorites.');
       fetchFavorites();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to add favorite');
+      toast.error('Failed to add tutor to favorites. Please try again.');
     }
   };
-  
+
   const removeFavorite = async (tutorId: string) => {
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/students/favorites/${tutorId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
-      toast.success('Removed from favorites');
+
+      toast.success('Tutor removed from favorites.');
       fetchFavorites();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to remove favorite');
+      toast.error('Failed to remove tutor from favorites. Please try again.');
     }
   };
-  
+
   const isFavorite = (tutorId: string) => {
-    return favorites.some(fav => fav.tutor._id === tutorId);
+    return favorites.some((fav) => fav.tutor._id === tutorId);
   };
-  
+
   useEffect(() => {
     if (user && user.role === 'student') {
       fetchBookings();
       fetchFavorites();
     }
   }, [user]);
-  
+
   const value = {
     bookings,
     favorites,
@@ -195,12 +206,10 @@ export const StudentProvider: React.FC<StudentProviderProps> = ({ children }) =>
     fetchFavorites,
     addFavorite,
     removeFavorite,
-    isFavorite
+    isFavorite,
   };
-  
+
   return (
-    <StudentContext.Provider value={value}>
-      {children}
-    </StudentContext.Provider>
+    <StudentContext.Provider value={value}>{children}</StudentContext.Provider>
   );
-}; 
+};
