@@ -21,7 +21,6 @@ export const createBooking = async (req, res) => {
       selectedTopics,
       notes
     } = req.body;
-
     const studentId = req.user._id;
 
     // Validate tutor exists and is verified
@@ -64,7 +63,7 @@ export const createBooking = async (req, res) => {
       student: studentId,
       tutor: tutorId,
       subject: subjectId,
-      topic: topicId,
+      selectedTopics: topicId,
       date: startTime,
       time: startTime,
       duration,

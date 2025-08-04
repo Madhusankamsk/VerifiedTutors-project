@@ -43,6 +43,7 @@ export const createBooking = async (bookingData: {
   selectedTopics: string[];
   duration: number;
 }) => {
+  console.log("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY",bookingData)
   try {
     const response = await api.post('/api/bookings', bookingData);
     return response.data;
