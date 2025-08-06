@@ -43,6 +43,7 @@ const TutorListingPage: React.FC = () => {
   const [sortBy, setSortBy] = useState('rating');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showScrollToTop, setShowScrollToTop] = useState(false);
+  const [shouldSearch, setShouldSearch] = useState(false);
 
   const scrollToTop = useCallback(() => {
     window.scrollTo({
@@ -163,10 +164,10 @@ const TutorListingPage: React.FC = () => {
     }
   }, [urlSubject, urlTopic, searchQuery, filters, sortBy, sortOrder, subjects, searchTutors]);
 
-  // Fetch tutors when component mounts, search changes, or filters change
+  // Fetch tutors when component mounts or filters/sorting change (but not when searchQuery changes)
   useEffect(() => {
     fetchTutors(false);
-  }, [fetchTutors]);
+  }, [urlSubject, urlTopic, filters, sortBy, sortOrder, subjects, searchTutors]);
 
   const handleFilterChange = (newFilters: HomePageFilterState) => {
     setFilters(newFilters);
@@ -183,6 +184,17 @@ const TutorListingPage: React.FC = () => {
 
   const handleSearchClear = () => {
     setSearchQuery('');
+    // Reset all filters when clearing search
+    setFilters({
+      subject: '',
+      topic: '',
+      teachingMode: '',
+      femaleOnly: false,
+      verified: true
+    });
+    // Reset sorting to default
+    setSortBy('rating');
+    setSortOrder('desc');
     fetchTutors(false);
   };
 
@@ -381,6 +393,9 @@ const TutorListingPage: React.FC = () => {
                   femaleOnly: false,
                   verified: true
                 });
+                // Reset sorting to default
+                setSortBy('rating');
+                setSortOrder('desc');
               }} />
             ) : (
               <>
