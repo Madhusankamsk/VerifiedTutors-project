@@ -432,7 +432,7 @@ l0 344 -100 0 -100 0 0 -220 c0 -165 -3 -229 -14 -254 -42 -101 -191 -111
                 {isMobileMenuOpen ? (
                   <X className="h-5 w-5" />
                 ) : (
-                  <Menu className="h-5 w-5" />
+                  <User className="h-5 w-5" />
                 )}
               </button>
             </div>
