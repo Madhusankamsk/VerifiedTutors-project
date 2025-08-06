@@ -277,14 +277,14 @@ const StudentBookings = () => {
                   <div className="flex items-start gap-4">
                     {/* Tutor Avatar */}
                     <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center text-white font-bold shadow-md">
-                      {booking.tutor.user.profileImage ? (
+                      {booking.tutor.user?.profileImage ? (
                         <img
                           src={booking.tutor.user.profileImage}
-                          alt={booking.tutor.user.name}
+                          alt={booking.tutor.user?.name || 'Tutor'}
                           className="w-full h-full object-cover rounded-xl"
                         />
                       ) : (
-                        booking.tutor.user.name.charAt(0)
+                        booking.tutor.user?.name?.charAt(0) || 'T'
                       )}
                     </div>
 
@@ -307,7 +307,7 @@ const StudentBookings = () => {
                       <p className="text-gray-600 mb-3">
                         with{' '}
                         <span className="font-medium">
-                          {booking.tutor.user.name}
+                          {booking.tutor.user?.name || 'Unknown Tutor'}
                         </span>
                       </p>
 

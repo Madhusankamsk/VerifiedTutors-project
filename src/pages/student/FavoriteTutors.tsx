@@ -58,20 +58,20 @@ const FavoriteTutors = () => {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-md">
-                    {favorite.tutor.user.profileImage ? (
+                    {favorite.tutor.user?.profileImage ? (
                       <img 
                         src={favorite.tutor.user.profileImage} 
-                        alt={favorite.tutor.user.name}
+                        alt={favorite.tutor.user?.name || 'Tutor'}
                         className="w-full h-full object-cover rounded-xl"
                       />
                     ) : (
                       <span className="text-white font-bold text-lg">
-                        {favorite.tutor.user.name.charAt(0)}
+                        {favorite.tutor.user?.name?.charAt(0) || 'T'}
                       </span>
                     )}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{favorite.tutor.user.name}</h3>
+                    <h3 className="font-semibold text-gray-900">{favorite.tutor.user?.name || 'Unknown Tutor'}</h3>
                     <div className="flex items-center space-x-1 text-sm text-gray-500">
                       <Star className="w-4 h-4 text-yellow-500 fill-current" />
                       <span>{favorite.tutor.rating.toFixed(1)}</span>

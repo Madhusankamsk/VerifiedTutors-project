@@ -300,6 +300,9 @@ export const getTutors = async (req, res) => {
         .populate('subjects.subject', 'name topics')
         .populate('subjects.selectedTopics', 'name description');
       
+      // Filter out tutors with null user data
+      tutors = tutors.filter(tutor => tutor.user !== null);
+      
       // Sort based on the sortBy parameter
       if (sortBy === 'name') {
         tutors = tutors.sort((a, b) => {
@@ -377,10 +380,16 @@ export const getTutors = async (req, res) => {
         .sort(sortOptions)
         .skip(skip)
         .limit(Number(limit));
+      
+      // Filter out tutors with null user data
+      tutors = tutors.filter(tutor => tutor.user !== null);
     }
 
-    // Get total count for pagination
-    const total = await Tutor.countDocuments(query);
+    // Get total count for pagination (excluding tutors with null user data)
+    const total = await Tutor.countDocuments({
+      ...query,
+      user: { $exists: true, $ne: null }
+    });
 
     // Log the results for debugging
     console.log('Query Results:', {
@@ -439,6 +448,11 @@ export const getTutor = async (req, res) => {
 
     if (!tutor) {
       return res.status(404).json({ message: 'Tutor not found' });
+    }
+
+    // Check if user data is null (deleted user)
+    if (!tutor.user) {
+      return res.status(404).json({ message: 'Tutor profile not available' });
     }
 
     res.json(tutor);

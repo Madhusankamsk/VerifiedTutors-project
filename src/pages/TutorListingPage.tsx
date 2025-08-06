@@ -431,22 +431,22 @@ const TutorListingPage: React.FC = () => {
                 <div key={tutor._id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 group">
                   <div className="flex items-start gap-4">
                     <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                      {tutor.user.profileImage ? (
+                      {tutor.user?.profileImage ? (
                         <img 
                           src={tutor.user.profileImage} 
-                          alt={tutor.user.name}
+                          alt={tutor.user.name || 'Tutor'}
                           className="w-14 h-14 rounded-full object-cover"
                         />
                       ) : (
                         <span className="text-blue-600 font-semibold text-xl">
-                          {tutor.user.name.charAt(0).toUpperCase()}
+                          {tutor.user?.name?.charAt(0).toUpperCase() || 'T'}
                         </span>
                       )}
                     </div>
                     
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-900 text-base truncate group-hover:text-blue-700 transition-colors duration-300">
-                        {tutor.user.name}
+                        {tutor.user?.name || 'Unknown Tutor'}
                       </h3>
                       <div className="flex items-center gap-1 mt-1">
                         <Star className="h-4 w-4 text-yellow-500 fill-current" />

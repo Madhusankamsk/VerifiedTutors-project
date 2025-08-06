@@ -172,7 +172,7 @@ const ManageBookings = () => {
                         </div>
                         <div className="flex items-center gap-1">
                           <span>→</span>
-                          <span>{booking.tutor.user.name}</span>
+                          <span>{booking.tutor.user?.name || 'Unknown Tutor'}</span>
                         </div>
                       </div>
                       
