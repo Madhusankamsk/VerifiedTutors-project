@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Calendar, Clock, BookOpen, MessageSquare, ChevronRight, TrendingUp, Award, Users } from 'lucide-react';
+import { Calendar, Clock, BookOpen, MessageSquare, TrendingUp, Award, Users } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useStudent } from '../../contexts/StudentContext';
 import { Link } from 'react-router-dom';
@@ -20,23 +20,6 @@ const StudentDashboard = () => {
     new Date(booking.startTime) > new Date()
   );
   const completedBookings = bookings.filter(booking => booking.status === 'completed');
-  
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) {
-      return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    } else if (diffDays === 1) {
-      return `Yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    } else if (diffDays < 7) {
-      return `${diffDays} days ago`;
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
 
   if (loading) {
     return <LoadingSpinner />;
@@ -116,43 +99,6 @@ const StudentDashboard = () => {
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Recent Bookings */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-gray-100 transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-800">Recent Bookings</h2>
-            <Calendar className="w-6 h-6 text-primary-500" />
-          </div>
-          <div className="space-y-4">
-            {bookings.slice(0, 3).map((booking, index) => (
-              <div key={index} className="bg-gray-50/50 rounded-xl p-4 hover:bg-gray-100/50 transition-colors">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-medium text-gray-900">{booking.subject?.name}</h3>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                    booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    booking.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {booking.status}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600 mb-2">{booking.tutor?.user?.name}</p>
-                <p className="text-xs text-gray-500">{formatDate(booking.startTime)}</p>
-              </div>
-            ))}
-            {bookings.length === 0 && (
-              <p className="text-gray-500 text-center py-8">No bookings yet</p>
-            )}
-          </div>
-          <Link 
-            to="/student/bookings"
-            className="mt-4 flex items-center justify-center text-primary-600 hover:text-primary-700 font-medium transition-colors group"
-          >
-            View All Bookings
-            <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-          </Link>
         </div>
 
         {/* Quick Actions */}
