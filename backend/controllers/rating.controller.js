@@ -73,31 +73,22 @@ export const createRating = async (req, res) => {
       existingRating.review = review.trim();
       await existingRating.save();
     } else {
-      // Use topics from the booking automatically
+      // Use topics from the booking automatically (topics are now optional)
       const topicsFromBooking = booking.selectedTopics ? booking.selectedTopics.map(topic => topic._id) : [];
-      
-      if (topicsFromBooking.length === 0) {
-        return res.status(400).json({ 
-          success: false,
-          message: 'No topics found for this booking. Cannot submit review without topics.' 
-        });
-      }
 
-      // Check if student has already reviewed these specific topics for this tutor
-      const existingTopicRating = await Rating.findOne({ 
-        tutor: booking.tutor._id, 
-        student: req.user._id,
-        topics: { $in: topicsFromBooking }
+      // Check if student has already reviewed this booking (using booking ID as unique constraint)
+      const existingBookingRating = await Rating.findOne({
+        booking: bookingId
       });
 
-      if (existingTopicRating) {
-        return res.status(400).json({ 
+      if (existingBookingRating) {
+        return res.status(400).json({
           success: false,
-          message: 'You have already reviewed these topics for this tutor. You can only submit one review per topic combination.' 
+          message: 'You have already reviewed this booking.'
         });
       }
 
-      // Create new rating
+      // Create new rating (topics are optional now)
       existingRating = await Rating.create({
         tutor: booking.tutor._id,
         student: req.user._id,
@@ -155,14 +146,9 @@ export const createRating = async (req, res) => {
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       if (field === 'booking') {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: 'You have already reviewed this booking' 
-        });
-      } else if (error.message.includes('tutor_1_student_1_topics_1')) {
-        return res.status(400).json({ 
-          success: false,
-          message: 'You have already reviewed these topics for this tutor. You can only submit one review per topic combination.' 
+          message: 'You have already reviewed this booking'
         });
       }
     }
