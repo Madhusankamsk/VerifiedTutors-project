@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Clock, Calendar, Video, Home, BookOpen, DollarSign, Hash, ChevronRight, ChevronLeft, Phone, CheckCircle, User, ArrowRight } from 'lucide-react';
+import { X, Clock, Calendar, Video, Home, BookOpen, DollarSign, Hash, ChevronRight, ChevronLeft, Phone, CheckCircle, User } from 'lucide-react';
 
 interface TimeSlot {
   start: string;
@@ -214,6 +214,16 @@ const BookingModal: React.FC<BookingModalProps> = ({
     setSelectedTimeSlot(timeSlot);
   };
 
+  // Default to first available day when entering Step 3
+  useEffect(() => {
+    if (currentStep === 3) {
+      const days = getAvailableDays();
+      if (days.length > 0 && !selectedDay) {
+        setSelectedDay(days[0].day);
+      }
+    }
+  }, [currentStep, tutorAvailability, selectedDuration, selectedDay]);
+
   const formatPrice = (price: number) => {
     return `Rs. ${price.toLocaleString('en-IN')}`;
   };
@@ -262,7 +272,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-hidden shadow-2xl">
+      <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
         {/* Header */}
         <div className="relative bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
           <button
@@ -293,57 +303,65 @@ const BookingModal: React.FC<BookingModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-6 min-h-[400px] flex flex-col">
-          {/* Step 1: Duration & Method */}
+        <div className="p-6 flex-1 min-h-0 flex flex-col">
+          <div className="flex-1 overflow-y-auto">
+          {/* Step 1: Duration & Method (Bubble UI) */}
           {currentStep === 1 && (
             <div className="flex-1 space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Session Duration</h3>
-                <div className="grid grid-cols-3 gap-3">
-                  {DURATION_OPTIONS.map((duration) => (
-                    <button
-                      key={duration}
-                      onClick={() => setSelectedDuration(duration)}
-                      className={`p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
-                        selectedDuration === duration
-                          ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-lg'
-                          : 'border-gray-200 hover:border-blue-300 text-gray-700'
-                      }`}
-                    >
-                      <Clock className="w-5 h-5 mx-auto mb-2" />
-                      <div className="text-sm font-medium">{duration}h</div>
-                    </button>
-                  ))}
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Session Duration</h3>
+                <div className="flex flex-wrap gap-2">
+                  {DURATION_OPTIONS.map((duration) => {
+                    const isActive = selectedDuration === duration;
+                    return (
+                      <button
+                        key={duration}
+                        type="button"
+                        onClick={() => setSelectedDuration(duration)}
+                        className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm border transition-all ${
+                          isActive
+                            ? 'bg-blue-50 text-blue-700 border-blue-400 shadow-sm'
+                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                        }`}
+                        aria-pressed={isActive}
+                      >
+                        <Clock className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
+                        <span>{duration} hour{duration > 1 ? 's' : ''}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Learning Method</h3>
-                <div className="space-y-3">
-                  {Object.entries(availableMethods).map(([method, isAvailable]) => 
-                    isAvailable && (
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Learning Method</h3>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(availableMethods).map(([method, isAvailable]) => {
+                    if (!isAvailable) return null;
+                    const isActive = learningMethod === (method as LearningMethod);
+                    return (
                       <button
                         key={method}
+                        type="button"
                         onClick={() => setLearningMethod(method as LearningMethod)}
-                        className={`w-full p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
-                          learningMethod === method
-                            ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-lg'
-                            : 'border-gray-200 hover:border-blue-300 text-gray-700'
+                        className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm border transition-all ${
+                          isActive
+                            ? 'bg-blue-50 text-blue-700 border-blue-400 shadow-sm'
+                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
                         }`}
+                        aria-pressed={isActive}
                       >
-                        <div className="flex items-center gap-3">
-                          {getLearningMethodIcon(method as LearningMethod)}
-                          <span className="font-medium">{getLearningMethodLabel(method as LearningMethod)}</span>
-                        </div>
+                        {getLearningMethodIcon(method as LearningMethod)}
+                        <span>{getLearningMethodLabel(method as LearningMethod)}</span>
                       </button>
-                    )
-                  )}
+                    );
+                  })}
                 </div>
               </div>
             </div>
           )}
 
-          {/* Step 2: Topic Selection */}
+          {/* Step 2: Topic Selection (Bubble UI) */}
           {currentStep === 2 && (
             <div className="flex-1 space-y-4">
               <div>
@@ -352,36 +370,29 @@ const BookingModal: React.FC<BookingModalProps> = ({
               </div>
 
               {currentSubject && currentSubject.selectedTopics.length > 0 ? (
-                <div className="space-y-3 max-h-80 overflow-y-auto">
-                  {currentSubject.selectedTopics.map((topic) => (
-                    <button
-                      key={topic._id}
-                      onClick={() => setSelectedTopic(selectedTopic === topic._id ? '' : topic._id)}
-                      className={`w-full p-4 text-left rounded-xl border-2 transition-all transform hover:scale-105 ${
-                        selectedTopic === topic._id
-                          ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-lg'
-                          : 'border-gray-200 hover:border-blue-300 text-gray-700'
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                          selectedTopic === topic._id
-                            ? 'border-blue-500 bg-blue-500'
-                            : 'border-gray-300'
-                        }`}>
-                          {selectedTopic === topic._id && (
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium text-sm mb-1">{topic.name}</div>
-                          {topic.description && (
-                            <div className="text-xs text-gray-500">{topic.description}</div>
-                          )}
-                        </div>
-                      </div>
-                    </button>
-                  ))}
+                <div className="max-h-80 overflow-y-auto">
+                  <div className="flex flex-wrap gap-2">
+                    {currentSubject.selectedTopics.map((topic) => {
+                      const isActive = selectedTopic === topic._id;
+                      return (
+                        <button
+                          key={topic._id}
+                          type="button"
+                          onClick={() => setSelectedTopic(isActive ? '' : topic._id)}
+                          className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm border transition-all ${
+                            isActive
+                              ? 'bg-blue-50 text-blue-700 border-blue-400 shadow-sm'
+                              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                          }`}
+                          aria-pressed={isActive}
+                          title={topic.description || topic.name}
+                        >
+                          <Hash className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
+                          <span className="truncate max-w-[12rem] sm:max-w-[16rem]">{topic.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">
@@ -393,7 +404,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
             </div>
           )}
 
-          {/* Step 3: Combined Day & Time Selection */}
+          {/* Step 3: Combined Day & Time Selection (Bubble UI, responsive) */}
           {currentStep === 3 && (
             <div className="flex-1 space-y-4">
               <div>
@@ -404,28 +415,32 @@ const BookingModal: React.FC<BookingModalProps> = ({
               {availableDays.length > 0 ? (
                 <div className="space-y-4 max-h-80 overflow-y-auto">
                   {availableDays.map(({ day, slots }) => (
-                    <div key={day} className="bg-gray-50 rounded-xl p-4">
+                    <div key={day} className="bg-gray-50 rounded-xl p-3">
                       <div className="flex items-center gap-2 mb-3">
-                        <Calendar className="w-5 h-5 text-blue-600" />
-                        <h4 className="font-semibold text-gray-900">{day}</h4>
+                        <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm bg-white text-gray-800 border border-gray-200">
+                          <Calendar className="w-4 h-4 text-blue-600" />
+                          {day}
+                        </span>
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        {slots.map((slot) => (
-                          <button
-                            key={`${day}-${slot.start}-${slot.end}`}
-                            onClick={() => handleDayTimeSelection(day, `${slot.start} - ${slot.end}`)}
-                            className={`p-3 rounded-lg border-2 transition-all transform hover:scale-105 ${
-                              selectedDay === day && selectedTimeSlot === `${slot.start} - ${slot.end}`
-                                ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-lg'
-                                : 'border-gray-200 hover:border-blue-300 text-gray-700 bg-white'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <Clock className="w-4 h-4" />
-                              <span className="text-sm font-medium">{slot.start} - {slot.end}</span>
-                            </div>
-                          </button>
-                        ))}
+                      <div className="-mx-1 px-1 flex gap-2 overflow-x-auto">
+                        {slots.map((slot) => {
+                          const isActive = selectedDay === day && selectedTimeSlot === `${slot.start} - ${slot.end}`;
+                          return (
+                            <button
+                              key={`${day}-${slot.start}-${slot.end}`}
+                              onClick={() => handleDayTimeSelection(day, `${slot.start} - ${slot.end}`)}
+                              className={`shrink-0 inline-flex items-center rounded-full px-3 py-1.5 text-sm border transition-all ${
+                                isActive
+                                  ? 'bg-blue-50 text-blue-700 border-blue-400 shadow-sm'
+                                  : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                              }`}
+                              aria-pressed={isActive}
+                              title={`${slot.start} - ${slot.end}`}
+                            >
+                              {slot.start} - {slot.end}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
@@ -502,8 +517,9 @@ const BookingModal: React.FC<BookingModalProps> = ({
             </div>
           )}
 
+          </div>
           {/* Navigation */}
-          <div className="flex justify-between items-center pt-6 border-t mt-6">
+          <div className="shrink-0 flex justify-between items-center pt-4 pb-2 border-t mt-4 bg-white">
             <button
               onClick={handleBack}
               disabled={currentStep === 1}
