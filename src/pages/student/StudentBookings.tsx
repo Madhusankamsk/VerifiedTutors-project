@@ -37,6 +37,11 @@ const StudentBookings = () => {
   );
   const { addNotification } = useNotifications();
 
+  // Ensure latest bookings are loaded when navigating to this page
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString();

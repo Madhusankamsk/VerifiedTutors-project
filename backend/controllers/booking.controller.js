@@ -63,11 +63,13 @@ export const createBooking = async (req, res) => {
       student: studentId,
       tutor: tutorId,
       subject: subjectId,
-      selectedTopics: topicId,
-      date: startTime,
-      time: startTime,
+      // store selected topics as an array per schema
+      selectedTopics: topicId ? [topicId] : [],
+      startTime,
+      endTime,
       duration,
-      teachingMode,
+      // map to schema's learningMethod
+      learningMethod: teachingMode,
       amount,
       notes,
       status: 'confirmed'
@@ -87,6 +89,20 @@ export const createBooking = async (req, res) => {
           select: 'name email'
         }
       });
+
+    // Increment tutor's unique student count if this is the first confirmed/completed booking by this student with this tutor
+    try {
+      const prior = await Booking.exists({
+        tutor: tutorId,
+        student: studentId,
+        _id: { $ne: booking._id }
+      });
+      if (!prior) {
+        await Tutor.findByIdAndUpdate(tutorId, { $inc: { totalStudents: 1 } });
+      }
+    } catch (countError) {
+      console.error('Failed to update tutor totalStudents on booking create:', countError);
+    }
 
     // Send notifications using centralized service
     try {
@@ -238,8 +254,26 @@ export const updateBookingStatus = async (req, res) => {
     }
 
     // Update status
+    const previousStatus = booking.status;
     booking.status = status;
     await booking.save();
+
+    // If status moved to confirmed/completed, ensure tutor's unique student count is incremented once per student
+    try {
+      if ((status === 'confirmed' || status === 'completed') && previousStatus !== 'confirmed' && previousStatus !== 'completed') {
+        // Only increment if this is the first ever booking between this student and tutor
+        const priorAny = await Booking.exists({
+          tutor: booking.tutor._id || booking.tutor,
+          student: booking.student._id || booking.student,
+          _id: { $ne: booking._id }
+        });
+        if (!priorAny) {
+          await Tutor.findByIdAndUpdate(booking.tutor._id || booking.tutor, { $inc: { totalStudents: 1 } });
+        }
+      }
+    } catch (countError) {
+      console.error('Failed to update tutor totalStudents on status change:', countError);
+    }
 
     // Send notifications based on status change
     try {

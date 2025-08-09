@@ -200,6 +200,20 @@ export const createBooking = async (req, res) => {
       contactNumber: extractedContactNumber
     });
     
+    // Increment tutor's unique student count if this is the first booking by this student for this tutor
+    try {
+      const prior = await Booking.exists({
+        tutor: tutorId,
+        student: req.user._id,
+        _id: { $ne: booking._id }
+      });
+      if (!prior) {
+        await Tutor.findByIdAndUpdate(tutorId, { $inc: { totalStudents: 1 } });
+      }
+    } catch (countError) {
+      console.error('Failed to update tutor totalStudents on student booking create:', countError);
+    }
+    
     // Populate the booking with related data
     const populatedBooking = await Booking.findById(booking._id)
       .populate('student', 'name email profileImage')
