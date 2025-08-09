@@ -79,15 +79,18 @@ export const getAllTutors = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(limit);
 
+    // Guard against orphaned tutor records where the referenced user was deleted
+    const validTutors = tutors.filter(t => t.user);
+
     // Map the tutor data
-    const mappedTutors = tutors.map(tutor => {
+    const mappedTutors = validTutors.map(tutor => {
       const tutorObj = {
         _id: tutor._id,
         user: {
-          _id: tutor.user._id,
-          name: tutor.user.name,
-          email: tutor.user.email,
-          profileImage: tutor.user.profileImage
+          _id: tutor.user?._id,
+          name: tutor.user?.name,
+          email: tutor.user?.email,
+          profileImage: tutor.user?.profileImage
         },
         phone: tutor.phone,
         gender: tutor.gender,

@@ -169,6 +169,15 @@ const TutorListingPage: React.FC = () => {
     fetchTutors(false);
   }, [urlSubject, urlTopic, filters, sortBy, sortOrder, subjects, searchTutors]);
 
+  // When user clears the search input, automatically reset the results
+  useEffect(() => {
+    // Avoid triggering an extra fetch on initial mount; the main effect above handles that
+    if (initialLoading) return;
+    if (searchQuery.trim() === '') {
+      fetchTutors(false);
+    }
+  }, [searchQuery, initialLoading, fetchTutors]);
+
   const handleFilterChange = (newFilters: HomePageFilterState) => {
     setFilters(newFilters);
   };
