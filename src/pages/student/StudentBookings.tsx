@@ -92,20 +92,27 @@ const StudentBookings = () => {
   const checkBookingReview = async (bookingId: string) => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        return null;
+      }
+
       const response = await axios.get(
         `${API_URL}/api/ratings/booking/${bookingId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      return response.data;
+      
+      if (response.data.success && response.data.rating) {
+        return response.data.rating;
+      }
+      return null;
     } catch (error: any) {
       if (error.response?.status === 404) {
         return null; // No review exists
       }
 
       console.error('Error checking booking review:', error);
-      toast.error('Error checking booking review.');
       return null;
     }
   };
@@ -143,6 +150,11 @@ const StudentBookings = () => {
 
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Please login to submit a review');
+        return;
+      }
+
       const response = await axios.post(
         `${API_URL}/api/ratings`,
         {
@@ -170,20 +182,28 @@ const StudentBookings = () => {
         // Refresh bookings to show the new review
         await fetchBookings();
         await loadBookingReviews();
+      } else {
+        throw new Error(response.data.message || 'Failed to submit review');
       }
     } catch (error: any) {
       console.error('Error submitting review:', error);
+
+      let errorMessage = 'Failed to submit review. Please try again.';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
 
       // Show error notification
       addNotification({
         type: 'error',
         title: 'Review Submission Failed',
-        message:
-          error.response?.data?.message ||
-          'Failed to submit review. Please try again.',
+        message: errorMessage,
       });
 
-      toast.error('Failed to submit review. Please try again.');
+      toast.error(errorMessage);
     }
   };
 

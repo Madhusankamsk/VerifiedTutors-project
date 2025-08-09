@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTutor, TutorProfile } from '../contexts/TutorContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -46,24 +46,26 @@ const TutorProfilePage: React.FC = () => {
   // Scroll to top when tutor ID changes
   useScrollToTop([id]);
 
-  useEffect(() => {
-    const loadTutorProfile = async () => {
-      if (!id) return;
-      try {
-        const tutorProfile = await fetchTutorById(id);
-        setProfile(tutorProfile);
-        console.log('tutorProfile', tutorProfile);
-        await fetchReviews(id);
-      } catch (err) {
-        console.error('Failed to load tutor profile:', err);
-        toast.error('Failed to load tutor profile. Please try again later.');
-      }
-    };
-
-    loadTutorProfile();
+  // Memoize the loadTutorProfile function
+  const loadTutorProfile = useCallback(async () => {
+    if (!id) return;
+    try {
+      const tutorProfile = await fetchTutorById(id);
+      setProfile(tutorProfile);
+      console.log('tutorProfile', tutorProfile);
+      await fetchReviews(id);
+    } catch (err) {
+      console.error('Failed to load tutor profile:', err);
+      toast.error('Failed to load tutor profile. Please try again later.');
+    }
   }, [id, fetchTutorById, fetchReviews]);
 
-  const handleBookSession = () => {
+  useEffect(() => {
+    loadTutorProfile();
+  }, [loadTutorProfile]);
+
+  // Memoize the handleBookSession function
+  const handleBookSession = useCallback(() => {
     if (!isAuthenticated) {
       toast.info('Please login to book a session');
       navigate('/login', { state: { from: `/tutors/${id}` } });
@@ -76,9 +78,10 @@ const TutorProfilePage: React.FC = () => {
     }
     
     setShowBookingModal(true);
-  };
+  }, [isAuthenticated, navigate, id, profile]);
 
-  const handleBookingSubmit = async (data: { 
+  // Memoize the handleBookingSubmit function
+  const handleBookingSubmit = useCallback(async (data: { 
     subject: string;
     topics: string[];
     day: string; 
@@ -195,28 +198,76 @@ const TutorProfilePage: React.FC = () => {
       
       toast.error(error.response?.data?.message || 'Failed to book session. Please try again.');
     }
-  };
+  }, [id, profile, addNotification, navigate, createBooking]);
 
-  const mappedReviews = reviews.map(review => ({
-    id: review._id,
-    rating: review.rating,
-    comment: review.review,
-    createdAt: review.createdAt,
-    user: {
-      name: review.student.name,
-      profileImage: review.student.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.student.name)}`
-    },
-    subject: review.subject,
-    topics: review.topics
-  }));
+  // Memoize the mapped reviews
+  const mappedReviews = useMemo(() => {
+    return reviews.map(review => ({
+      id: review._id,
+      rating: review.rating,
+      comment: review.review,
+      createdAt: review.createdAt,
+      user: {
+        name: review.student.name,
+        profileImage: review.student.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.student.name)}`
+      },
+      subject: review.subject,
+      topics: review.topics
+    }));
+  }, [reviews]);
+
+  // Memoize the booking modal props
+  const bookingModalProps = useMemo(() => {
+    if (!profile) return null;
+    
+    return {
+      isOpen: showBookingModal,
+      onClose: () => setShowBookingModal(false),
+      onSubmit: handleBookingSubmit,
+      tutorAvailability: {
+        subject: profile.subjects[0]?.subject.name || '',
+        availability: profile.subjects[0]?.availability?.reduce((acc, avail) => {
+          acc[avail.day] = avail.slots || [];
+          return acc;
+        }, {} as { [key: string]: { start: string; end: string; }[] }) || {}
+      },
+      selectedSubject: selectedSubjectForBooking,
+      availableMethods: {
+        online: profile.subjects[0]?.teachingModes?.some(mode => mode.type === 'online' && mode.enabled) || false,
+        'home-visit': profile.subjects[0]?.teachingModes?.some(mode => mode.type === 'home-visit' && mode.enabled) || false
+      },
+      subjects: profile.subjects.map(subj => ({
+        _id: subj.subject._id,
+        name: subj.subject.name,
+        selectedTopics: (subj.selectedTopics || []).map(topic => {
+          // Handle both populated topic objects and string IDs
+          if (typeof topic === 'string') {
+            return {
+              _id: topic,
+              name: topic, // Fallback to ID if not populated
+              description: ''
+            };
+          } else {
+            return {
+              _id: topic._id,
+              name: topic.name,
+              description: topic.description || ''
+            };
+          }
+        }),
+        teachingModes: (subj.teachingModes || []).filter(mode => mode.type !== 'group') as { type: 'online' | 'home-visit'; rate: number; enabled: boolean; }[],
+        availability: subj.availability || [],
+        rates: subj.rates
+      })),
+      tutorName: profile.user.name
+    };
+  }, [profile, showBookingModal, selectedSubjectForBooking, handleBookingSubmit]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-white relative overflow-hidden flex items-center justify-center">
-        {/* Floating Background Elements */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-sky-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+        {/* Simplified background - removed heavy animations */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-white to-blue-50/30"></div>
         
         <div className="relative z-10">
           <LoadingSpinner size="large" />
@@ -228,12 +279,11 @@ const TutorProfilePage: React.FC = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-white relative overflow-hidden flex items-center justify-center">
-        {/* Floating Background Elements */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-red-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-pink-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        {/* Simplified background - removed heavy animations */}
+        <div className="absolute inset-0 bg-gradient-to-br from-red-50/30 via-white to-red-50/30"></div>
         
         <div className="relative z-10 px-4">
-          <div className="max-w-md w-full bg-white/95 backdrop-blur-md rounded-3xl shadow-sm border border-red-200/50 p-6">
+          <div className="max-w-md w-full bg-white/95 rounded-3xl shadow-sm border border-red-200/50 p-6">
             <div className="text-center">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <X className="h-6 w-6 text-red-600" />
@@ -256,12 +306,11 @@ const TutorProfilePage: React.FC = () => {
   if (!profile) {
     return (
       <div className="min-h-screen bg-white relative overflow-hidden flex items-center justify-center">
-        {/* Floating Background Elements */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-gray-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-slate-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        {/* Simplified background - removed heavy animations */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-50/30 via-white to-gray-50/30"></div>
         
         <div className="relative z-10 px-4">
-          <div className="max-w-md w-full bg-white/95 backdrop-blur-md rounded-3xl shadow-sm border border-gray-200/50 p-6">
+          <div className="max-w-md w-full bg-white/95 rounded-3xl shadow-sm border border-gray-200/50 p-6">
             <div className="text-center">
               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <User className="h-6 w-6 text-gray-600" />
@@ -283,12 +332,8 @@ const TutorProfilePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
-      {/* Floating Background Elements */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-      <div className="absolute top-0 right-0 w-96 h-96 bg-sky-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
-      <div className="absolute top-1/2 left-0 w-64 h-64 bg-cyan-100 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-blob animation-delay-6000"></div>
-      <div className="absolute bottom-1/4 right-0 w-80 h-80 bg-blue-50 rounded-full mix-blend-multiply filter blur-3xl opacity-25 animate-blob animation-delay-8000"></div>
+      {/* Simplified background - removed heavy animations */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-white to-blue-50/30"></div>
 
       <div className="relative z-10">
         {/* Breadcrumb Navigation */}
@@ -305,16 +350,16 @@ const TutorProfilePage: React.FC = () => {
           />
 
           {/* Main Content Area - Mobile Responsive */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8">
             {/* Main Content Column */}
-            <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Tab Content */}
               {activeTab === 'about' && <TutorProfileAbout profile={profile} />}
               {activeTab === 'subjects' && <TutorProfileSubjects profile={profile} />}
               {activeTab === 'education' && <TutorProfileEducation profile={profile} />}
               {activeTab === 'experience' && <TutorProfileExperience profile={profile} />}
               {activeTab === 'reviews' && (
-                <div className="bg-white/95 backdrop-blur-md p-4 sm:p-6 rounded-3xl shadow-sm border border-gray-200/50">
+                <div className="bg-white/95 p-4 sm:p-6 rounded-3xl shadow-sm border border-gray-200/50">
                   <ReviewList
                     reviews={mappedReviews}
                     averageRating={profile.rating}
@@ -323,66 +368,18 @@ const TutorProfilePage: React.FC = () => {
                 </div>
               )}
             </div>
-
-            {/* Sidebar - Hidden on mobile, shown on desktop */}
-            <div className="hidden lg:block">
-              <TutorProfileSidebar profile={profile} />
-            </div>
-          </div>
-
-          {/* Sidebar - Mobile Only (shown below all content) */}
-          <div className="lg:hidden mt-6 sm:mt-8">
-            <TutorProfileSidebar profile={profile} />
           </div>
         </div>
       </div>
 
       {/* Booking Modal - Rendered outside main content */}
-      {showBookingModal && profile && (
+      {showBookingModal && profile && bookingModalProps && (
         <BookingModal
-          isOpen={showBookingModal}
-          onClose={() => setShowBookingModal(false)}
-          onSubmit={handleBookingSubmit}
-          tutorAvailability={{
-            subject: profile!.subjects[0]?.subject.name || '',
-            availability: profile!.subjects[0]?.availability?.reduce((acc, avail) => {
-              acc[avail.day] = avail.slots || [];
-              return acc;
-            }, {} as { [key: string]: { start: string; end: string; }[] }) || {}
-          }}
-          selectedSubject={selectedSubjectForBooking}
-          availableMethods={{
-            online: profile!.subjects[0]?.teachingModes?.some(mode => mode.type === 'online' && mode.enabled) || false,
-            'home-visit': profile!.subjects[0]?.teachingModes?.some(mode => mode.type === 'home-visit' && mode.enabled) || false
-          }}
-          subjects={profile!.subjects.map(subj => ({
-            _id: subj.subject._id,
-            name: subj.subject.name,
-            selectedTopics: (subj.selectedTopics || []).map(topic => {
-              // Handle both populated topic objects and string IDs
-              if (typeof topic === 'string') {
-                return {
-                  _id: topic,
-                  name: topic, // Fallback to ID if not populated
-                  description: ''
-                };
-              } else {
-                return {
-                  _id: topic._id,
-                  name: topic.name,
-                  description: topic.description || ''
-                };
-              }
-            }),
-              teachingModes: (subj.teachingModes || []).filter(mode => mode.type !== 'group') as { type: 'online' | 'home-visit'; rate: number; enabled: boolean; }[],
-            availability: subj.availability || [],
-            rates: subj.rates
-          }))}
-          tutorName={profile!.user.name}
+          {...bookingModalProps}
         />
       )}
     </div>
   );
 };
 
-export default TutorProfilePage; 
+export default React.memo(TutorProfilePage); 

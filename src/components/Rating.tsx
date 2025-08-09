@@ -31,25 +31,46 @@ export const Rating: React.FC<RatingProps> = ({
     }
   };
 
+  const handleMouseEnter = (ratingValue: number) => {
+    if (!readOnly) {
+      setHoverRating(ratingValue);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!readOnly) {
+      setHoverRating(0);
+    }
+  };
+
+  const getStarFill = (starIndex: number) => {
+    const ratingValue = starIndex + 1;
+    const currentRating = readOnly ? rating : (hoverRating || rating);
+    return ratingValue <= currentRating;
+  };
+
   return (
     <div className={`flex items-center gap-1 ${className}`}>
       {[...Array(5)].map((_, index) => {
         const ratingValue = index + 1;
+        const isFilled = getStarFill(index);
+        
         return (
           <button
             key={index}
             type="button"
-            className={`${sizeClasses[size]} transition-colors duration-200`}
+            className={`${sizeClasses[size]} transition-colors duration-200 hover:scale-110 ${
+              readOnly ? 'cursor-default' : 'cursor-pointer'
+            }`}
             onClick={() => onRatingChange(ratingValue)}
-            onMouseEnter={() => !readOnly && setHoverRating(ratingValue)}
-            onMouseLeave={() => !readOnly && setHoverRating(0)}
+            onMouseEnter={() => handleMouseEnter(ratingValue)}
+            onMouseLeave={handleMouseLeave}
             disabled={readOnly}
+            aria-label={`Rate ${ratingValue} star${ratingValue > 1 ? 's' : ''}`}
           >
             <svg
               className={`${color} ${
-                ratingValue <= (readOnly ? rating : (hoverRating || rating))
-                  ? 'fill-current'
-                  : 'fill-gray-300'
+                isFilled ? 'fill-current' : 'fill-gray-300'
               }`}
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"

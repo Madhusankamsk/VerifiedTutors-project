@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useCallback, useState } from 'react';
 import { Calendar, Clock, BookOpen, MessageSquare, TrendingUp, Award, Users } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useStudent } from '../../contexts/StudentContext';
@@ -8,20 +8,43 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 const StudentDashboard = () => {
   const { user } = useAuth();
   const { bookings, favorites, loading, error, fetchBookings, fetchFavorites } = useStudent();
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // Memoize the data fetching to prevent unnecessary re-renders
+  const fetchData = useCallback(async () => {
+    if (user) {
+      try {
+        await Promise.all([fetchBookings(), fetchFavorites()]);
+      } finally {
+        setIsInitialLoad(false);
+      }
+    }
+  }, [user, fetchBookings, fetchFavorites]);
 
   useEffect(() => {
-    fetchBookings();
-    fetchFavorites();
-  }, []);
+    fetchData();
+  }, [fetchData]);
 
-  // Calculate stats
-  const upcomingBookings = bookings.filter(
-    booking => ['pending', 'confirmed'].includes(booking.status) &&
-    new Date(booking.startTime) > new Date()
-  );
-  const completedBookings = bookings.filter(booking => booking.status === 'completed');
+  // Memoize expensive calculations
+  const { upcomingBookings, completedBookings } = useMemo(() => {
+    const now = new Date();
+    const upcoming = bookings.filter(
+      booking => ['pending', 'confirmed'].includes(booking.status) &&
+      new Date(booking.startTime) > now
+    );
+    const completed = bookings.filter(booking => booking.status === 'completed');
+    
+    return { upcomingBookings: upcoming, completedBookings: completed };
+  }, [bookings]);
 
-  if (loading) {
+  // Memoize the error retry handler
+  const handleRetry = useCallback(() => {
+    setIsInitialLoad(true);
+    fetchData();
+  }, [fetchData]);
+
+  // Show loading spinner only on initial load
+  if (isInitialLoad && loading) {
     return <LoadingSpinner />;
   }
 
@@ -31,10 +54,7 @@ const StudentDashboard = () => {
         <h2 className="text-xl font-bold text-red-700 mb-2">Error</h2>
         <p className="text-red-600">{error}</p>
         <button 
-          onClick={() => {
-            fetchBookings();
-            fetchFavorites();
-          }}
+          onClick={handleRetry}
           className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
         >
           Try Again
@@ -45,14 +65,9 @@ const StudentDashboard = () => {
 
   return (
     <div className="relative">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 -z-10"></div>
+      {/* Background Pattern - Simplified */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-white to-blue-50/30 -z-10"></div>
       
-      {/* Decorative Elements */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-primary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob -z-10"></div>
-      <div className="absolute top-0 right-0 w-96 h-96 bg-secondary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 -z-10"></div>
-      <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 -z-10"></div>
-
       {/* Welcome Section */}
       <div className="mb-8">
         <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
@@ -63,7 +78,7 @@ const StudentDashboard = () => {
         </p>
       </div>
         
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Quick Stats */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-gray-100 transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
           <div className="flex items-center justify-between mb-6">
@@ -133,4 +148,4 @@ const StudentDashboard = () => {
   );
 };
 
-export default StudentDashboard;
+export default React.memo(StudentDashboard);

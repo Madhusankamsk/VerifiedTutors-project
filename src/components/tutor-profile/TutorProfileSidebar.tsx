@@ -1,5 +1,5 @@
-import React from 'react';
-import { Phone, Mail, Star, CheckCircle, AlertCircle, Clock, Calendar } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Phone, Mail, CheckCircle, AlertCircle, Clock, Calendar } from 'lucide-react';
 import { TutorProfile } from '../../contexts/TutorContext';
 
 interface TutorProfileSidebarProps {
@@ -7,8 +7,8 @@ interface TutorProfileSidebarProps {
 }
 
 const TutorProfileSidebar: React.FC<TutorProfileSidebarProps> = ({ profile }) => {
-  // Get availability data from the tutor's subjects
-  const getAvailabilityData = () => {
+  // Memoize availability data from the tutor's subjects
+  const availableDays = useMemo(() => {
     if (!profile.subjects || profile.subjects.length === 0) return [];
     
     const subject = profile.subjects[0]; // Get first subject's availability
@@ -18,14 +18,12 @@ const TutorProfileSidebar: React.FC<TutorProfileSidebarProps> = ({ profile }) =>
     return subject.availability.filter(dayAvail => 
       dayAvail.slots && dayAvail.slots.length > 0
     );
-  };
-
-  const availableDays = getAvailabilityData();
+  }, [profile.subjects]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Contact Information Card */}
-      <div className="bg-white/95 backdrop-blur-md p-4 sm:p-6 rounded-3xl shadow-sm border border-gray-200/50">
+      <div className="bg-white/95 p-4 sm:p-6 rounded-3xl shadow-sm border border-gray-200/50">
         <h2 className="text-lg font-semibold mb-3 sm:mb-4 text-gray-900">Contact Information</h2>
         <div className="space-y-3">
           <div className="flex items-center p-3 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200/60 shadow-sm">
@@ -41,7 +39,7 @@ const TutorProfileSidebar: React.FC<TutorProfileSidebarProps> = ({ profile }) =>
 
       {/* Availability Card */}
       {availableDays.length > 0 && (
-        <div className="bg-white/95 backdrop-blur-md p-4 sm:p-6 rounded-3xl shadow-sm border border-gray-200/50">
+        <div className="bg-white/95 p-4 sm:p-6 rounded-3xl shadow-sm border border-gray-200/50">
           <h2 className="text-lg font-semibold mb-3 sm:mb-4 text-gray-900 flex items-center">
             <Calendar className="h-5 w-5 mr-2 text-blue-500" />
             Availability
@@ -67,36 +65,6 @@ const TutorProfileSidebar: React.FC<TutorProfileSidebarProps> = ({ profile }) =>
           </div>
         </div>
       )}
-
-      {/* Quick Stats Card */}
-      <div className="bg-white/95 backdrop-blur-md p-4 sm:p-6 rounded-3xl shadow-sm border border-gray-200/50">
-        <h2 className="text-lg font-semibold mb-3 sm:mb-4 text-gray-900">Quick Stats</h2>
-        <div className="space-y-3 sm:space-y-4">
-          <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200/60 shadow-sm">
-            <span className="text-gray-600 text-sm">Teaching Experience</span>
-            <span className="font-medium text-gray-900 text-sm">
-              {profile.experience.length > 0 ? `${profile.experience.length} years` : 'N/A'}
-            </span>
-          </div>
-          <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200/60 shadow-sm">
-            <span className="text-gray-600 text-sm">Students Taught</span>
-            <span className="font-medium text-gray-900 text-sm">{profile.totalStudents || 0}</span>
-          </div>
-          <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200/60 shadow-sm">
-            <span className="text-gray-600 text-sm">Average Rating</span>
-            <div className="flex items-center">
-              <span className="font-medium text-gray-900 mr-1 text-sm">
-                {profile.rating ? profile.rating.toFixed(1) : '0.0'}
-              </span>
-              <Star className="h-4 w-4 text-yellow-400 fill-current" />
-            </div>
-          </div>
-          <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200/60 shadow-sm">
-            <span className="text-gray-600 text-sm">Subjects</span>
-            <span className="font-medium text-gray-900 text-sm">{profile.subjects.length}</span>
-          </div>
-        </div>
-      </div>
 
       {/* Verification Status Card */}
       <div className="bg-white/95 backdrop-blur-md p-4 sm:p-6 rounded-3xl shadow-sm border border-gray-200/50">

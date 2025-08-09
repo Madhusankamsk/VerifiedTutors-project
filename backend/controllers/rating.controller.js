@@ -28,20 +28,23 @@ export const createRating = async (req, res) => {
     const { bookingId, rating, review } = req.body;
 
     // Validate input
-    if (!bookingId || !rating || !review) {
+    if (!bookingId || rating === undefined || !review) {
       return res.status(400).json({ 
+        success: false,
         message: 'Please provide all required fields: bookingId, rating, and review' 
       });
     }
 
     if (typeof rating !== 'number' || rating < 1 || rating > 5) {
       return res.status(400).json({ 
+        success: false,
         message: 'Rating must be a number between 1 and 5' 
       });
     }
 
     if (typeof review !== 'string' || review.trim().length < 10) {
       return res.status(400).json({ 
+        success: false,
         message: 'Review must be at least 10 characters long' 
       });
     }
@@ -53,15 +56,24 @@ export const createRating = async (req, res) => {
       .populate('selectedTopics');
     
     if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Booking not found' 
+      });
     }
 
     if (booking.student.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ message: 'Not authorized to review this booking' });
+      return res.status(401).json({ 
+        success: false,
+        message: 'Not authorized to review this booking' 
+      });
     }
 
     if (booking.status !== 'completed') {
-      return res.status(400).json({ message: 'Can only review completed bookings' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Can only review completed bookings' 
+      });
     }
 
     // Check if student has already rated this booking
@@ -76,24 +88,12 @@ export const createRating = async (req, res) => {
       // Use topics from the booking automatically (topics are now optional)
       const topicsFromBooking = booking.selectedTopics ? booking.selectedTopics.map(topic => topic._id) : [];
 
-      // Check if student has already reviewed this booking (using booking ID as unique constraint)
-      const existingBookingRating = await Rating.findOne({
-        booking: bookingId
-      });
-
-      if (existingBookingRating) {
-        return res.status(400).json({
-          success: false,
-          message: 'You have already reviewed this booking.'
-        });
-      }
-
       // Create new rating (topics are optional now)
       existingRating = await Rating.create({
         tutor: booking.tutor._id,
         student: req.user._id,
         subject: booking.subject._id,
-        topics: topicsFromBooking,
+        topics: topicsFromBooking || [], // Ensure topics is always an array
         booking: bookingId,
         rating,
         review: review.trim()
@@ -150,6 +150,12 @@ export const createRating = async (req, res) => {
           success: false,
           message: 'You have already reviewed this booking'
         });
+      } else if (field === 'tutor_1_student_1_topics_1') {
+        // This is an old index that should be removed
+        return res.status(400).json({
+          success: false,
+          message: 'You have already reviewed this booking. Please try again.'
+        });
       }
     }
     
@@ -172,12 +178,23 @@ export const getBookingRating = async (req, res) => {
       .populate('topics', 'name description');
 
     if (!rating) {
-      return res.status(404).json({ message: 'Rating not found for this booking' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Rating not found for this booking' 
+      });
     }
 
-    res.json(rating);
+    res.json({
+      success: true,
+      rating: rating
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error in getBookingRating:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Error fetching booking rating',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 

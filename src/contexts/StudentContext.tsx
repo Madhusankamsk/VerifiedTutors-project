@@ -4,6 +4,8 @@ import React, {
   useState,
   useEffect,
   ReactNode,
+  useCallback,
+  useMemo,
 } from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
@@ -105,7 +107,7 @@ export const StudentProvider: React.FC<StudentProviderProps> = ({
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -132,9 +134,9 @@ export const StudentProvider: React.FC<StudentProviderProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const fetchFavorites = async () => {
+  const fetchFavorites = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -154,9 +156,9 @@ export const StudentProvider: React.FC<StudentProviderProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const addFavorite = async (tutorId: string) => {
+  const addFavorite = useCallback(async (tutorId: string) => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
@@ -170,9 +172,9 @@ export const StudentProvider: React.FC<StudentProviderProps> = ({
     } catch (err: any) {
       toast.error('Failed to add tutor to favorites. Please try again.');
     }
-  };
+  }, [fetchFavorites]);
 
-  const removeFavorite = async (tutorId: string) => {
+  const removeFavorite = useCallback(async (tutorId: string) => {
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/students/favorites/${tutorId}`, {
@@ -184,20 +186,21 @@ export const StudentProvider: React.FC<StudentProviderProps> = ({
     } catch (err: any) {
       toast.error('Failed to remove tutor from favorites. Please try again.');
     }
-  };
+  }, [fetchFavorites]);
 
-  const isFavorite = (tutorId: string) => {
+  const isFavorite = useCallback((tutorId: string) => {
     return favorites.some((fav) => fav.tutor._id === tutorId);
-  };
+  }, [favorites]);
 
   useEffect(() => {
     if (user && user.role === 'student') {
       fetchBookings();
       fetchFavorites();
     }
-  }, [user]);
+  }, [user, fetchBookings, fetchFavorites]);
 
-  const value = {
+  // Memoize the context value to prevent unnecessary re-renders
+  const value = useMemo(() => ({
     bookings,
     favorites,
     loading,
@@ -207,9 +210,11 @@ export const StudentProvider: React.FC<StudentProviderProps> = ({
     addFavorite,
     removeFavorite,
     isFavorite,
-  };
+  }), [bookings, favorites, loading, error, fetchBookings, fetchFavorites, addFavorite, removeFavorite, isFavorite]);
 
   return (
-    <StudentContext.Provider value={value}>{children}</StudentContext.Provider>
+    <StudentContext.Provider value={value}>
+      {children}
+    </StudentContext.Provider>
   );
 };

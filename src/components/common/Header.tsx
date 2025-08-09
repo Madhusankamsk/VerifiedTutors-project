@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
@@ -30,23 +30,24 @@ const Header: React.FC<HeaderProps> = ({
   const notificationsRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
-  const toggleProfileMenu = () => {
-    setIsProfileMenuOpen(!isProfileMenuOpen);
-  };
+  // Memoize toggle handlers
+  const toggleProfileMenu = useCallback(() => {
+    setIsProfileMenuOpen(prev => !prev);
+  }, []);
 
-  const toggleNotifications = () => {
-    setIsNotificationsOpen(!isNotificationsOpen);
-  };
+  const toggleNotifications = useCallback(() => {
+    setIsNotificationsOpen(prev => !prev);
+  }, []);
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  const toggleMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen(prev => !prev);
+  }, []);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     navigate('/');
     setIsMobileMenuOpen(false);
-  };
+  }, [logout, navigate]);
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -73,8 +74,8 @@ const Header: React.FC<HeaderProps> = ({
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Determine dashboard link based on user role
-  const getDashboardLink = () => {
+  // Memoize dashboard link calculation
+  const dashboardLink = useMemo(() => {
     if (!user) return '/';
     
     switch (user.role) {
@@ -87,10 +88,10 @@ const Header: React.FC<HeaderProps> = ({
       default:
         return '/';
     }
-  };
+  }, [user]);
 
-  // Generate breadcrumb for dashboard pages
-  const getBreadcrumb = () => {
+  // Memoize breadcrumb calculation
+  const breadcrumb = useMemo(() => {
     const path = location.pathname;
     if (path.startsWith('/admin/')) {
       const page = path.split('/')[2];
@@ -103,14 +104,19 @@ const Header: React.FC<HeaderProps> = ({
       return { role: 'Student', page: page?.charAt(0).toUpperCase() + page?.slice(1) || 'Dashboard' };
     }
     return null;
-  };
+  }, [location.pathname]);
 
-  const breadcrumb = getBreadcrumb();
-  const isDashboardPage = breadcrumb !== null || !!dashboardTitle;
-  const isDashboardLayout = !!onToggleSidebar; // Dashboard layout when sidebar toggle is provided
+  // Determine if this is a dashboard layout
+  const isDashboardLayout = useMemo(() => {
+    return onToggleSidebar !== undefined;
+  }, [onToggleSidebar]);
+
+  const isDashboardPage = useMemo(() => {
+    return breadcrumb !== null || !!dashboardTitle;
+  }, [breadcrumb, dashboardTitle]);
 
   return (
-    <header className="bg-white/80 backdrop-blur-xl shadow-soft border-b border-gray-100/50 fixed w-full top-0 z-50">
+    <header className="bg-white/95 shadow-soft border-b border-gray-100/50 fixed w-full top-0 z-50">
       {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-transparent to-blue-50/30 pointer-events-none"></div>
       
@@ -372,7 +378,7 @@ l0 344 -100 0 -100 0 0 -220 c0 -165 -3 -229 -14 -254 -42 -101 -191 -111
                           {/* Menu Items */}
                           <div className="py-2">
                             <Link
-                              to={getDashboardLink()}
+                              to={dashboardLink}
                               className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:text-blue-700 transition-all duration-200 rounded-xl mx-1 border border-transparent hover:border-blue-200/50"
                               onClick={() => setIsProfileMenuOpen(false)}
                             >
@@ -469,7 +475,7 @@ l0 344 -100 0 -100 0 0 -220 c0 -165 -3 -229 -14 -254 -42 -101 -191 -111
                 </div>
 
                 <Link
-                  to={getDashboardLink()}
+                  to={dashboardLink}
                   className="block px-4 py-3.5 text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 rounded-xl transition-all duration-200 border border-transparent hover:border-blue-200/50"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >

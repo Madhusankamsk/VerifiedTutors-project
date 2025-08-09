@@ -85,18 +85,27 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   // Calculate unread count from all notifications
   const unreadCount = allNotifications.filter(n => !n.read).length;
 
-  // Check if notification already exists (by title)
-  const notificationExists = (title: string): boolean => {
-    return allNotifications.some(notification => notification.title === title);
+  // Check if notification already exists (by title and type)
+  const notificationExists = (title: string, type: string): boolean => {
+    return allNotifications.some(notification => 
+      notification.title === title && notification.type === type
+    );
   };
 
   // Add notification
   const addNotification = (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     console.log('➕ Adding notification:', notification.title);
     
-    // Check if notification with same title already exists
-    if (notificationExists(notification.title)) {
-      console.log(`⚠️ Notification with title "${notification.title}" already exists, skipping.`);
+    // Check if notification with same title and type already exists (within last 1 minute)
+    const oneMinuteAgo = new Date(Date.now() - 1 * 60 * 1000);
+    const recentDuplicate = allNotifications.find(n => 
+      n.title === notification.title && 
+      n.type === notification.type &&
+      n.timestamp > oneMinuteAgo
+    );
+    
+    if (recentDuplicate) {
+      console.log(`⚠️ Recent notification with title "${notification.title}" already exists, skipping.`);
       return;
     }
 

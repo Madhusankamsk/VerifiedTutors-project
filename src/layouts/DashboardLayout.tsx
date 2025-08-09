@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,11 +23,77 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
   const { user } = useAuth();
   const location = useLocation();
 
+  // Memoize sidebar toggle handler
+  const handleToggleSidebar = useCallback(() => {
+    setIsSidebarOpen(prev => !prev);
+  }, []);
+
+  // Memoize sidebar close handler
+  const handleCloseSidebar = useCallback(() => {
+    setIsSidebarOpen(false);
+  }, []);
+
+  // Memoize navigation items to prevent unnecessary re-renders
+  const navigationItems = useMemo(() => {
+    return sidebarItems.map((item) => {
+      const isActive = location.pathname === item.path;
+      return (
+        <Link
+          key={item.path}
+          to={item.path}
+          onClick={(e) => {
+            if (item.onClick) {
+              e.preventDefault();
+              item.onClick();
+            }
+            setIsSidebarOpen(false);
+          }}
+          className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group ${
+            isActive
+              ? 'bg-blue-50 text-blue-700 shadow-md border border-blue-200/50'
+              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md border border-transparent hover:border-gray-200/50'
+          }`}
+        >
+          <span className={`${isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'} mr-3 transition-colors duration-200`}>
+            {item.icon}
+          </span>
+          <span>{item.name}</span>
+        </Link>
+      );
+    });
+  }, [sidebarItems, location.pathname]);
+
+  // Memoize user info section
+  const userInfoSection = useMemo(() => (
+    <div className="px-6 py-4 border-t border-gray-200/50 bg-gradient-to-r from-blue-50/30 to-purple-50/30">
+      <div className="flex items-center space-x-3">
+        {user?.profileImage ? (
+          <img
+            className="h-8 w-8 rounded-lg object-cover border-2 border-white shadow-md"
+            src={user.profileImage}
+            alt={user.name}
+            loading="lazy"
+          />
+        ) : (
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center border-2 border-white shadow-md">
+            <span className="text-white font-semibold text-sm">
+              {user?.name?.charAt(0)}
+            </span>
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
+          <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+        </div>
+      </div>
+    </div>
+  ), [user]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
       {/* Header */}
       <Header 
-        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        onToggleSidebar={handleToggleSidebar}
         isSidebarOpen={isSidebarOpen}
         dashboardTitle={title}
       />
@@ -35,14 +101,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
       {/* Mobile sidebar overlay */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+          onClick={handleCloseSidebar}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-16 left-0 bottom-0 z-50 w-64 bg-white/80 backdrop-blur-sm shadow-2xl transform ${
+        className={`fixed top-16 left-0 bottom-0 z-50 w-64 bg-white/95 shadow-2xl transform ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } transition-transform duration-300 ease-in-out lg:translate-x-0 border-r border-gray-200/50`}
       >
@@ -54,63 +120,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-            {sidebarItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={(e) => {
-                    if (item.onClick) {
-                      e.preventDefault();
-                      item.onClick();
-                    }
-                    setIsSidebarOpen(false);
-                  }}
-                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group ${
-                    isActive
-                      ? 'bg-blue-50 text-blue-700 shadow-md border border-blue-200/50'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md border border-transparent hover:border-gray-200/50'
-                  }`}
-                >
-                  <span className={`${isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'} mr-3 transition-colors duration-200`}>
-                    {item.icon}
-                  </span>
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
+            {navigationItems}
           </nav>
 
           {/* User Info */}
-          <div className="px-6 py-4 border-t border-gray-200/50 bg-gradient-to-r from-blue-50/30 to-purple-50/30">
-            <div className="flex items-center space-x-3">
-              {user?.profileImage ? (
-                <img
-                  className="h-8 w-8 rounded-lg object-cover border-2 border-white shadow-md"
-                  src={user.profileImage}
-                  alt={user.name}
-                />
-              ) : (
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center border-2 border-white shadow-md">
-                  <span className="text-white font-semibold text-sm">
-                    {user?.name?.charAt(0)}
-                  </span>
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
-                <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
-              </div>
-            </div>
-          </div>
+          {userInfoSection}
         </div>
       </aside>
 
       {/* Main content area */}
       <main className="lg:pl-64 pt-16">
         {/* Page Title Bar - Desktop */}
-        <div className="hidden lg:block bg-white/80 backdrop-blur-sm border-b border-gray-200/50 px-6 py-4">
+        <div className="hidden lg:block bg-white/95 border-b border-gray-200/50 px-6 py-4">
           <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
         </div>
 
@@ -128,4 +149,4 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebarItems, title }
   );
 };
 
-export default DashboardLayout; 
+export default React.memo(DashboardLayout); 

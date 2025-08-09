@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 interface TutorProfileTabsProps {
   activeTab: string;
@@ -9,16 +9,17 @@ const TutorProfileTabs: React.FC<TutorProfileTabsProps> = ({
   activeTab,
   onTabChange
 }) => {
-  const tabs = [
+  // Memoize tabs array
+  const tabs = useMemo(() => [
     { id: 'about', label: 'About' },
     { id: 'subjects', label: 'Subjects & Rates' },
     { id: 'education', label: 'Education' },
     { id: 'experience', label: 'Experience' },
     { id: 'reviews', label: 'Reviews' }
-  ];
+  ], []);
 
   return (
-    <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-sm border border-gray-200/50 mb-4 sm:mb-6 overflow-hidden">
+    <div className="bg-white/95 rounded-3xl shadow-sm border border-gray-200/50 mb-4 sm:mb-6 overflow-hidden">
       <div className="p-3 sm:p-4">
         <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto py-2 no-scrollbar">
           {tabs.map((tab) => (
@@ -40,4 +41,4 @@ const TutorProfileTabs: React.FC<TutorProfileTabsProps> = ({
   );
 };
 
-export default TutorProfileTabs; 
+export default React.memo(TutorProfileTabs); 

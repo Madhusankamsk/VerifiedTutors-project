@@ -325,7 +325,7 @@ class NotificationService {
       const context = {
         studentName: review.student.name,
         tutorName: review.tutor.user.name,
-        reviewText: review.comment.substring(0, 50) + (review.comment.length > 50 ? '...' : '')
+        reviewText: review.review.substring(0, 50) + (review.review.length > 50 ? '...' : '')
       };
 
       // Send to tutor
