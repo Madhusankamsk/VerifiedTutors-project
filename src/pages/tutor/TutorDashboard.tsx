@@ -243,51 +243,6 @@ const TutorDashboard = () => {
           </Link>
         </div>
       </div>
-
-      {/* Recent Activity */}
-      <div className="bg-white rounded-2xl p-6 shadow-xl">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
-          <Link
-            to="/tutor/bookings"
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1"
-          >
-            View All
-            <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-        
-        <div className="space-y-4">
-          {pendingBookings.slice(0, 3).map((booking) => (
-            <div key={booking._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <span className="text-blue-600 font-semibold text-sm">
-                    {booking.student?.name?.charAt(0) || 'S'}
-                  </span>
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">{booking.student?.name || 'Student'}</p>
-                  <p className="text-sm text-gray-500">{booking.subject?.name || 'Subject'}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">${booking.amount || 0}</p>
-                <span className="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                  {booking.status || 'pending'}
-                </span>
-              </div>
-            </div>
-          ))}
-          
-          {pendingBookings.length === 0 && (
-            <div className="text-center py-8">
-              <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No recent bookings</p>
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 };
