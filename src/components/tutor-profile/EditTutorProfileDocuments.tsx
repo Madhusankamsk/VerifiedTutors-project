@@ -27,7 +27,7 @@ const EditTutorProfileDocuments: React.FC<EditTutorProfileDocumentsProps> = ({
   onRemoveSelectedDocument
 }) => {
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 p-8">
+    <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
       <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-900">
         <Upload className="w-5 h-5 mr-2 text-primary-600" />
         Verification Images
@@ -192,4 +192,4 @@ const EditTutorProfileDocuments: React.FC<EditTutorProfileDocumentsProps> = ({
   );
 };
 
-export default EditTutorProfileDocuments; 
+export default React.memo(EditTutorProfileDocuments);

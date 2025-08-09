@@ -17,7 +17,11 @@ interface BasicInfoData {
 }
 
 interface EditTutorProfileBasicInfoProps {
-  data: BasicInfoData;
+  phone: string;
+  bio: string;
+  gender: 'Male' | 'Female' | 'Other';
+  socialMedia: SocialMedia;
+  teachingMediums: string[];
   profileImage: string | null;
   isUploading: boolean;
   onDataChange: (data: Partial<BasicInfoData>) => void;
@@ -38,26 +42,27 @@ const SOCIAL_MEDIA_ICONS = {
 };
 
 const EditTutorProfileBasicInfo: React.FC<EditTutorProfileBasicInfoProps> = ({
-  data,
+  phone,
+  bio,
+  gender,
+  socialMedia,
+  teachingMediums,
   profileImage,
   isUploading,
   onDataChange,
   onProfileImageUpload
 }) => {
-  // Debug logging for profile image
-  console.log('EditTutorProfileBasicInfo - profileImage:', profileImage);
-  console.log('EditTutorProfileBasicInfo - isUploading:', isUploading);
 
   const handleMediumToggle = (mediumId: string) => {
-    const newTeachingMediums = data.teachingMediums.includes(mediumId)
-      ? data.teachingMediums.filter(id => id !== mediumId)
-      : [...data.teachingMediums, mediumId];
+    const newTeachingMediums = teachingMediums.includes(mediumId)
+      ? teachingMediums.filter(id => id !== mediumId)
+      : [...teachingMediums, mediumId];
     
     onDataChange({ teachingMediums: newTeachingMediums });
   };
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 p-4 sm:p-6">
+    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 sm:p-6">
       <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
         {/* Profile Picture - Compact */}
         <div className="flex-shrink-0 flex flex-col items-center lg:items-start">
@@ -101,7 +106,7 @@ const EditTutorProfileBasicInfo: React.FC<EditTutorProfileBasicInfoProps> = ({
               disabled={isUploading}
             />
             {isUploading && (
-              <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-black/30 backdrop-blur-sm rounded-xl">
+              <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-black/30 rounded-xl">
                 <div className="flex flex-col items-center">
                   <div className="animate-spin rounded-full h-6 w-6 border-3 border-white border-t-transparent mb-1"></div>
                   <span className="text-white text-xs font-medium">Uploading...</span>
@@ -139,7 +144,7 @@ const EditTutorProfileBasicInfo: React.FC<EditTutorProfileBasicInfoProps> = ({
               <input
                 type="tel"
                 id="phone"
-                value={data.phone}
+                value={phone}
                 onChange={(e) => onDataChange({ phone: e.target.value })}
                 className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
                 placeholder="Enter phone number"
@@ -152,7 +157,7 @@ const EditTutorProfileBasicInfo: React.FC<EditTutorProfileBasicInfoProps> = ({
               </label>
               <select
                 id="gender"
-                value={data.gender}
+                value={gender}
                 onChange={(e) => onDataChange({ gender: e.target.value as 'Male' | 'Female' | 'Other' })}
                 className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
               >
@@ -171,26 +176,26 @@ const EditTutorProfileBasicInfo: React.FC<EditTutorProfileBasicInfoProps> = ({
                 <label
                   key={medium.id}
                   className={`relative flex items-center px-3 py-2 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
-                    data.teachingMediums.includes(medium.id)
+                    teachingMediums.includes(medium.id)
                       ? 'border-primary-500 bg-primary-50'
                       : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}
                 >
                   <input
                     type="checkbox"
-                    checked={data.teachingMediums.includes(medium.id)}
+                    checked={teachingMediums.includes(medium.id)}
                     onChange={() => handleMediumToggle(medium.id)}
                     className="sr-only"
                   />
                   <div className="flex items-center space-x-2">
                     <span className="text-base">{medium.flag}</span>
                     <span className={`font-medium text-sm ${
-                      data.teachingMediums.includes(medium.id) ? 'text-primary-700' : 'text-gray-700'
+                      teachingMediums.includes(medium.id) ? 'text-primary-700' : 'text-gray-700'
                     }`}>
                       {medium.name}
                     </span>
                   </div>
-                  {data.teachingMediums.includes(medium.id) && (
+                  {teachingMediums.includes(medium.id) && (
                     <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary-500 rounded-full flex items-center justify-center">
                       <span className="text-white text-xs">✓</span>
                     </div>
@@ -204,7 +209,7 @@ const EditTutorProfileBasicInfo: React.FC<EditTutorProfileBasicInfoProps> = ({
           <div>
             <h3 className="text-sm font-medium text-gray-900 mb-2">Social Media Links</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {Object.entries(data.socialMedia).map(([platform, value]) => {
+              {Object.entries(socialMedia).map(([platform, value]) => {
                 const IconComponent = SOCIAL_MEDIA_ICONS[platform as keyof typeof SOCIAL_MEDIA_ICONS];
                 return (
                   <div key={platform}>
@@ -223,7 +228,7 @@ const EditTutorProfileBasicInfo: React.FC<EditTutorProfileBasicInfoProps> = ({
                         id={platform}
                         value={value}
                         onChange={(e) => onDataChange({
-                          socialMedia: { ...data.socialMedia, [platform]: e.target.value }
+                          socialMedia: { ...socialMedia, [platform]: e.target.value }
                         })}
                         className="pl-8 w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
                         placeholder="username"
@@ -240,4 +245,4 @@ const EditTutorProfileBasicInfo: React.FC<EditTutorProfileBasicInfoProps> = ({
   );
 };
 
-export default EditTutorProfileBasicInfo; 
+export default React.memo(EditTutorProfileBasicInfo);

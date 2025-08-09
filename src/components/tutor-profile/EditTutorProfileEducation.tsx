@@ -36,7 +36,7 @@ const EditTutorProfileEducation: React.FC<EditTutorProfileEducationProps> = ({
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 p-8">
+    <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold flex items-center text-gray-900">
           <GraduationCap className="w-5 h-5 mr-2 text-primary-600" />
@@ -53,7 +53,7 @@ const EditTutorProfileEducation: React.FC<EditTutorProfileEducationProps> = ({
       </div>
       <div className="space-y-4">
         {education.map((edu, index) => (
-          <div key={`education-${index}`} className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
+          <div key={`education-${index}`} className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
             <div className="flex items-start justify-between">
               <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
@@ -104,4 +104,4 @@ const EditTutorProfileEducation: React.FC<EditTutorProfileEducationProps> = ({
   );
 };
 
-export default EditTutorProfileEducation; 
+export default React.memo(EditTutorProfileEducation);

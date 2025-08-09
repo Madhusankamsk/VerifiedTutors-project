@@ -66,7 +66,7 @@ const EditTutorProfileHeader: React.FC<EditTutorProfileHeaderProps> = ({
 
       {/* Floating Action Bar */}
       {hasChanges && (
-        <div className="fixed bottom-11 sm:bottom-8 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200 shadow-lg z-[60] safe-area-pb">
+        <div className="fixed bottom-11 sm:bottom-8 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-[60] safe-area-pb">
           <div className="container mx-auto px-4 py-3 sm:py-4">
             <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
               <div className="flex items-center space-x-3">
@@ -117,4 +117,4 @@ const EditTutorProfileHeader: React.FC<EditTutorProfileHeaderProps> = ({
   );
 };
 
-export default EditTutorProfileHeader; 
+export default React.memo(EditTutorProfileHeader); 

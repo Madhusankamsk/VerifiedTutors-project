@@ -37,7 +37,7 @@ const EditTutorProfileExperience: React.FC<EditTutorProfileExperienceProps> = ({
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 p-8">
+    <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold flex items-center text-gray-900">
           <Briefcase className="w-5 h-5 mr-2 text-primary-600" />
@@ -54,7 +54,7 @@ const EditTutorProfileExperience: React.FC<EditTutorProfileExperienceProps> = ({
       </div>
       <div className="space-y-4">
         {experience.map((exp, index) => (
-          <div key={`experience-${index}`} className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
+          <div key={`experience-${index}`} className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
             <div className="flex items-start justify-between">
               <div className="flex-1 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -117,4 +117,4 @@ const EditTutorProfileExperience: React.FC<EditTutorProfileExperienceProps> = ({
   );
 };
 
-export default EditTutorProfileExperience; 
+export default React.memo(EditTutorProfileExperience);

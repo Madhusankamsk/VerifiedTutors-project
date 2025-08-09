@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { BookOpen, Clock, DollarSign, MapPin, X, Check, AlertCircle } from 'lucide-react';
 import { Subject, Topic } from '../../contexts/AdminContext';
 import { toast } from 'react-toastify';
@@ -47,6 +47,15 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
   allTopics,
   onSubjectsChange
 }) => {
+  const topicsBySubjectId = useMemo(() => {
+    const map = new Map<string, Topic[]>();
+    for (const topic of allTopics) {
+      const subjectId = typeof topic.subject === 'string' ? topic.subject : topic.subject._id;
+      if (!map.has(subjectId)) map.set(subjectId, []);
+      map.get(subjectId)!.push(topic);
+    }
+    return map;
+  }, [allTopics]);
   const removeSubject = (subjectId: string) => {
     onSubjectsChange([]);
   };
@@ -126,15 +135,11 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
   };
 
   const getTopicsBySubject = (subjectId: string): Topic[] => {
-    return allTopics.filter(topic => 
-      typeof topic.subject === 'string' 
-        ? topic.subject === subjectId 
-        : topic.subject._id === subjectId
-    );
+    return topicsBySubjectId.get(subjectId) || [];
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8">
+    <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8">
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold flex items-center text-gray-900">
           <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-primary-600" />
@@ -401,4 +406,4 @@ const EditTutorProfileSubjects: React.FC<EditTutorProfileSubjectsProps> = ({
   );
 };
 
-export default EditTutorProfileSubjects; 
+export default React.memo(EditTutorProfileSubjects);

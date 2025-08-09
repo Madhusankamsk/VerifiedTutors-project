@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useTutor } from '../../contexts/TutorContext';
 import { useSubjects } from '../../contexts/SubjectContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -111,7 +111,7 @@ const EditTutorProfile: React.FC = () => {
     };
   };
 
-  const profileValidation = validateProfileCompletion();
+  const profileValidation = useMemo(() => validateProfileCompletion(), [formData, profileImage, tempProfileImage, user]);
 
   // Navigation function
   const scrollToSection = (sectionRef: React.RefObject<HTMLDivElement>) => {
@@ -283,11 +283,11 @@ const EditTutorProfile: React.FC = () => {
     }
   }, [formData, initialFormData, tempProfileImage]);
 
-  const handleDiscard = () => {
+  const handleDiscard = useCallback(() => {
     setShowDiscardConfirm(true);
-  };
+  }, []);
 
-  const confirmDiscard = () => {
+  const confirmDiscard = useCallback(() => {
     if (initialFormData) {
       setFormData(initialFormData);
       
@@ -301,7 +301,7 @@ const EditTutorProfile: React.FC = () => {
       setHasChanges(false);
       setShowDiscardConfirm(false);
     }
-  };
+  }, [initialFormData, tempProfileImage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -384,20 +384,13 @@ const EditTutorProfile: React.FC = () => {
     }
   };
 
-  const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDocumentSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    console.log('Files selected:', files.length);
+    
     
     // Calculate total documents (existing + selected + new files)
     const totalExisting = formData.documents.length + selectedDocuments.length;
     const totalAfterAdding = totalExisting + files.length;
-    
-    console.log('Document counts:', {
-      existing: formData.documents.length,
-      selected: selectedDocuments.length,
-      newFiles: files.length,
-      totalAfterAdding
-    });
     
     // Check if adding these files would exceed the limit
     if (totalAfterAdding > 5) {
@@ -434,15 +427,14 @@ const EditTutorProfile: React.FC = () => {
     
     // Reset the input value to allow selecting the same files again if needed
     e.target.value = '';
-  };
+  }, [formData.documents.length, selectedDocuments.length]);
 
-  const handleDocumentUpload = async () => {
+  const handleDocumentUpload = useCallback(async () => {
     if (selectedDocuments.length === 0) {
       toast.warning('No documents selected to upload.');
       return;
     }
     
-    console.log('Uploading documents immediately:', selectedDocuments.length);
     setUploading(true);
     
     try {
@@ -466,8 +458,6 @@ const EditTutorProfile: React.FC = () => {
       }
 
       const data = await response.json();
-      console.log('Upload response:', data);
-
       // Add uploaded documents to form data (but don't save profile yet)
       const uploadedDocs = data.data.map((doc: any) => ({
         id: doc.id,
@@ -487,9 +477,9 @@ const EditTutorProfile: React.FC = () => {
     } finally {
       setUploading(false);
     }
-  };
+  }, [selectedDocuments]);
 
-  const handleDeleteDocument = async (documentId: string) => {
+  const handleDeleteDocument = useCallback(async (documentId: string) => {
     if (!documentId) {
       toast.error('Invalid document ID');
       return;
@@ -497,12 +487,10 @@ const EditTutorProfile: React.FC = () => {
     
     try {
       setUploading(true);
-      console.log('Deleting document with ID:', documentId);
       
       // URL encode the document ID to handle special characters
       const encodedId = encodeURIComponent(documentId);
       const deleteUrl = `/api/upload/${encodedId}`;
-      console.log('Delete URL:', deleteUrl);
       
       // Delete the file from server/Cloudinary
       const response = await fetch(deleteUrl, {
@@ -511,8 +499,6 @@ const EditTutorProfile: React.FC = () => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-
-      console.log('Delete response status:', response.status);
 
       if (!response.ok) {
         let errorMessage = 'Failed to delete image';
@@ -541,20 +527,17 @@ const EditTutorProfile: React.FC = () => {
     } finally {
       setUploading(false);
     }
-  };
+  }, []);
 
-  const removeSelectedDocument = (index: number) => {
+  const removeSelectedDocument = useCallback((index: number) => {
     setSelectedDocuments(prev => prev.filter((_, i) => i !== index));
-  };
+  }, []);
 
-  const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProfileImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
-      console.log('No file selected');
       return;
     }
-
-    console.log('File selected:', file.name, file.size, file.type);
 
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
@@ -572,42 +555,39 @@ const EditTutorProfile: React.FC = () => {
     try {
       // Create preview immediately
       const preview = URL.createObjectURL(file);
-      console.log('Preview URL created:', preview);
       
       // Store profile image temporarily with preview
       setTempProfileImage({ file, preview });
       
       // Show success message
       toast.success('Profile image preview loaded! It will be uploaded when you save changes.');
-      
-      console.log('Temp profile image set:', { file: file.name, preview });
     } catch (error) {
       console.error('Error processing profile image:', error);
       toast.error('Failed to process profile image. Please try again.');
     } finally {
       setIsUploading(false);
     }
-  };
+  }, []);
 
   // Handler for basic info changes
-  const handleBasicInfoChange = (data: Partial<BasicInfoData>) => {
+  const handleBasicInfoChange = useCallback((data: Partial<BasicInfoData>) => {
     setFormData(prev => ({ ...prev, ...data }));
-  };
+  }, []);
 
   // Handler for education changes
-  const handleEducationChange = (education: Education[]) => {
+  const handleEducationChange = useCallback((education: Education[]) => {
     setFormData(prev => ({ ...prev, education }));
-  };
+  }, []);
 
   // Handler for experience changes
-  const handleExperienceChange = (experience: Experience[]) => {
+  const handleExperienceChange = useCallback((experience: Experience[]) => {
     setFormData(prev => ({ ...prev, experience }));
-  };
+  }, []);
 
   // Handler for subjects changes
-  const handleSubjectsChange = (subjects: any[]) => {
+  const handleSubjectsChange = useCallback((subjects: any[]) => {
     setFormData(prev => ({ ...prev, subjects }));
-  };
+  }, []);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -662,13 +642,11 @@ const EditTutorProfile: React.FC = () => {
           }`}
         >
           <EditTutorProfileBasicInfo
-            data={{
-              phone: formData.phone,
-              bio: formData.bio,
-              gender: formData.gender,
-              socialMedia: formData.socialMedia,
-              teachingMediums: formData.teachingMediums
-            }}
+            phone={formData.phone}
+            bio={formData.bio}
+            gender={formData.gender}
+            socialMedia={formData.socialMedia}
+            teachingMediums={formData.teachingMediums}
             profileImage={profileImage || (tempProfileImage?.preview || null)}
             isUploading={isUploading}
             onDataChange={handleBasicInfoChange}
@@ -680,7 +658,7 @@ const EditTutorProfile: React.FC = () => {
         <div 
           ref={bioRef} 
           onClick={() => setSelectedSection('Personal Info')}
-          className={`bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8 transition-all duration-300 cursor-pointer ${
+          className={`bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8 transition-all duration-300 cursor-pointer ${
             selectedSection === 'Personal Info' 
               ? 'ring-2 ring-blue-500 ring-offset-2' 
               : ''
@@ -760,7 +738,7 @@ const EditTutorProfile: React.FC = () => {
         <div 
           ref={locationsRef} 
           onClick={() => setSelectedSection('Available Locations')}
-          className={`bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8 transition-all duration-300 cursor-pointer ${
+          className={`bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8 transition-all duration-300 cursor-pointer ${
             selectedSection === 'Available Locations' 
               ? 'ring-2 ring-blue-500 ring-offset-2' 
               : ''
@@ -810,7 +788,7 @@ const EditTutorProfile: React.FC = () => {
 
       {/* Profile Completion Status - Fixed Bottom Strip */}
       {!profileValidation.isComplete && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-lg">
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg">
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center justify-between">
               {/* Progress Bar */}
