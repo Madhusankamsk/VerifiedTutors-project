@@ -23,6 +23,7 @@ import ratingRoutes from './routes/rating.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import bookingRoutes from './routes/booking.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
+import statsRoutes from './routes/stats.routes.js';
 
 // Middleware imports
 import { errorHandler } from './middleware/errorHandler.js';
@@ -65,6 +66,7 @@ app.use('/api/ratings', ratingRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/stats', statsRoutes);
 
 // Base API route
 app.get('/api', (req, res) => {

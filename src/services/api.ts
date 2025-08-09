@@ -74,3 +74,19 @@ export const updateBookingStatus = async (bookingId: string, status: string) => 
 };
 
 export default api; 
+ 
+// Public Stats API
+export const getPublicStats = async () => {
+  try {
+    const response = await api.get('/api/stats/public');
+    return response.data as {
+      totalTutors: number;
+      activeSubjects: number;
+      averageRating: number;
+      totalReviews: number;
+    };
+  } catch (error) {
+    console.error('Error fetching public stats:', error);
+    throw error;
+  }
+};

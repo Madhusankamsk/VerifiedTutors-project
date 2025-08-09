@@ -12,6 +12,7 @@ import {
 import HomePageFilters, { HomePageFilterState } from '../components/filter/HomePageFilters';
 import TutorSorting from '../components/filter/TutorSorting';
 import LoadingBar from '../components/common/LoadingBar';
+import { getPublicStats } from '../services/api';
 
 const TutorListingPage: React.FC = () => {
   const { searchTutors } = useTutor();
@@ -45,6 +46,9 @@ const TutorListingPage: React.FC = () => {
   const [showScrollToTop, setShowScrollToTop] = useState(false);
   const [shouldSearch, setShouldSearch] = useState(false);
 
+  // Public stats for hero
+  const [stats, setStats] = useState<{ totalTutors: number; activeSubjects: number; averageRating: number } | null>(null);
+
   const scrollToTop = useCallback(() => {
     window.scrollTo({
       top: 0,
@@ -61,6 +65,22 @@ const TutorListingPage: React.FC = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Fetch public stats for hero
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getPublicStats();
+        setStats({
+          totalTutors: data.totalTutors || 0,
+          activeSubjects: data.activeSubjects || 0,
+          averageRating: data.averageRating || 0,
+        });
+      } catch (e) {
+        // Non-blocking; keep defaults
+      }
+    })();
   }, []);
 
   const fetchTutors = useCallback(async (isLoadMore = false, targetPage?: number) => {
@@ -162,21 +182,14 @@ const TutorListingPage: React.FC = () => {
         setInitialLoading(false);
       }
     }
-  }, [urlSubject, urlTopic, searchQuery, filters, sortBy, sortOrder, subjects, searchTutors]);
+  }, [urlSubject, urlTopic, searchQuery, filters, sortBy, sortOrder, searchTutors]);
 
   // Fetch tutors when component mounts or filters/sorting change (but not when searchQuery changes)
   useEffect(() => {
     fetchTutors(false);
-  }, [urlSubject, urlTopic, filters, sortBy, sortOrder, subjects, searchTutors]);
+  }, [urlSubject, urlTopic, filters, sortBy, sortOrder, searchTutors]);
 
-  // When user clears the search input, automatically reset the results
-  useEffect(() => {
-    // Avoid triggering an extra fetch on initial mount; the main effect above handles that
-    if (initialLoading) return;
-    if (searchQuery.trim() === '') {
-      fetchTutors(false);
-    }
-  }, [searchQuery, initialLoading, fetchTutors]);
+  // Note: on clearing search input we explicitly call fetchTutors in handleSearchClear to avoid duplicate initial fetches
 
   const handleFilterChange = (newFilters: HomePageFilterState) => {
     setFilters(newFilters);
@@ -204,8 +217,17 @@ const TutorListingPage: React.FC = () => {
     // Reset sorting to default
     setSortBy('rating');
     setSortOrder('desc');
-    fetchTutors(false);
+    // Trigger a refetch after state updates settle to avoid stale values
+    setShouldSearch(true);
   };
+
+  // Perform a refetch after clearing to avoid stale state usage
+  useEffect(() => {
+    if (shouldSearch) {
+      fetchTutors(false);
+      setShouldSearch(false);
+    }
+  }, [shouldSearch, fetchTutors]);
 
   // Infinite scroll setup
   useEffect(() => {
@@ -307,19 +329,25 @@ const TutorListingPage: React.FC = () => {
                   </div>
                 </div>
                 
-                {/* Stats - More Compact & Visible */}
+                {/* Stats - More Compact & Visible (dynamic) */}
                 <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mt-2 sm:mt-3">
                   <div className="flex items-center text-white/95 text-xs sm:text-sm font-medium">
                     <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 flex-shrink-0" />
-                    <span>1000+ Tutors</span>
+                    <span>
+                      {stats ? `${stats.totalTutors.toLocaleString()} Tutors` : '— Tutors'}
+                    </span>
                   </div>
                   <div className="flex items-center text-white/95 text-xs sm:text-sm font-medium">
                     <Star className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 fill-current flex-shrink-0" />
-                    <span>4.8+ Rating</span>
+                    <span>
+                      {stats ? `${stats.averageRating.toFixed(1)} Rating` : '— Rating'}
+                    </span>
                   </div>
                   <div className="flex items-center text-white/95 text-xs sm:text-sm font-medium">
                     <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 flex-shrink-0" />
-                    <span>50+ Subjects</span>
+                    <span>
+                      {stats ? `${stats.activeSubjects}+ Subjects` : '— Subjects'}
+                    </span>
                   </div>
                 </div>
              </div>
